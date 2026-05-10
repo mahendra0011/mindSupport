@@ -1,0 +1,261 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mental Health Platform Design System - Deep tech blues with purple accents
+All colors MUST be HSL for consistency.
+*/
+
+@layer base {
+  :root {
+    /* Core Background Colors */
+    --background: 225 39% 8%;
+    --foreground: 210 100% 95%;
+
+    /* Glass Morphism Card Colors */
+    --card: 225 39% 12%;
+    --card-foreground: 210 100% 95%;
+    --glass: 225 39% 15%;
+    --glass-border: 225 39% 25%;
+
+    /* Popover Colors */
+    --popover: 225 39% 10%;
+    --popover-foreground: 210 100% 95%;
+
+    /* Primary Tech Blue */
+    --primary: 225 84% 65%;
+    --primary-foreground: 225 39% 8%;
+    --primary-glow: 225 84% 75%;
+
+    /* Purple Accent Colors */
+    --secondary: 270 84% 70%;
+    --secondary-foreground: 225 39% 8%;
+    --purple-accent: 285 84% 65%;
+
+    /* Cyan Highlights */
+    --accent: 180 84% 70%;
+    --accent-foreground: 225 39% 8%;
+    --cyan-glow: 180 84% 80%;
+
+    /* Muted Colors */
+    --muted: 225 39% 20%;
+    --muted-foreground: 210 40% 75%;
+
+    /* Status Colors */
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 210 100% 95%;
+    --success: 120 84% 65%;
+    --warning: 45 84% 65%;
+    
+    /* Emergency/Alert Colors */
+    --emergency: 0 84% 60%;
+    --emergency-foreground: 210 40% 98%;
+    --info: 214 100% 50%;
+    --info-foreground: 210 40% 98%;
+
+    /* Interactive Elements */
+    --border: 225 39% 25%;
+    --input: 225 39% 18%;
+    --ring: 225 84% 65%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(225 84% 65%) 0%, hsl(270 84% 70%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(180 84% 70%) 0%, hsl(225 84% 65%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(225 39% 15% / 0.8) 0%, hsl(225 39% 12% / 0.6) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(225 39% 8%) 0%, hsl(225 39% 12%) 50%, hsl(270 39% 12%) 100%);
+
+    /* Shadows & Glows */
+    --shadow-glass: 0 8px 32px 0 hsl(225 39% 8% / 0.37);
+    --shadow-glow: 0 0 40px hsl(225 84% 65% / 0.3);
+    --shadow-purple-glow: 0 0 40px hsl(270 84% 70% / 0.3);
+    --shadow-cyan-glow: 0 0 40px hsl(180 84% 70% / 0.3);
+
+    /* Border Radius */
+    --radius: 1rem;
+    --radius-lg: 1.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  [data-theme="lavender"] {
+    --background: 252 42% 10%;
+    --foreground: 260 100% 97%;
+    --card: 252 38% 14%;
+    --glass: 252 34% 18%;
+    --glass-border: 260 32% 32%;
+    --primary: 268 78% 75%;
+    --primary-foreground: 252 42% 10%;
+    --primary-glow: 268 78% 82%;
+    --secondary: 198 76% 78%;
+    --accent: 148 60% 76%;
+    --muted: 252 28% 22%;
+    --input: 252 28% 20%;
+    --ring: 268 78% 75%;
+  }
+
+  [data-theme="sky"] {
+    --background: 206 58% 10%;
+    --foreground: 205 100% 96%;
+    --card: 205 52% 14%;
+    --glass: 205 44% 18%;
+    --glass-border: 202 48% 32%;
+    --primary: 199 88% 72%;
+    --primary-foreground: 206 58% 10%;
+    --primary-glow: 199 88% 82%;
+    --secondary: 158 62% 72%;
+    --accent: 268 70% 78%;
+    --muted: 205 38% 22%;
+    --input: 205 38% 20%;
+    --ring: 199 88% 72%;
+  }
+
+  [data-theme="mint"] {
+    --background: 164 38% 9%;
+    --foreground: 150 100% 96%;
+    --card: 162 36% 13%;
+    --glass: 160 34% 17%;
+    --glass-border: 154 34% 30%;
+    --primary: 154 66% 70%;
+    --primary-foreground: 164 38% 9%;
+    --primary-glow: 154 66% 80%;
+    --secondary: 206 78% 72%;
+    --accent: 276 68% 76%;
+    --muted: 160 28% 22%;
+    --input: 160 28% 20%;
+    --ring: 154 66% 70%;
+  }
+
+  [data-theme="soft"] {
+    --background: 210 33% 96%;
+    --foreground: 224 28% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 28% 16%;
+    --glass: 210 33% 100%;
+    --glass-border: 214 18% 82%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 28% 16%;
+    --primary: 216 76% 56%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 216 76% 68%;
+    --secondary: 268 52% 66%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 154 54% 56%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 210 28% 90%;
+    --muted-foreground: 224 20% 36%;
+    --border: 214 18% 82%;
+    --input: 214 18% 88%;
+    --ring: 216 76% 56%;
+  }
+}
+
+/* Custom Glass Morphism Components */
+@layer components {
+  .glass-card {
+    @apply bg-gradient-to-br from-glass/80 to-glass/60 backdrop-blur-xl border border-glass-border/30 rounded-2xl shadow-2xl;
+  }
+  
+  .glass-nav {
+    @apply bg-gradient-to-r from-glass/90 to-glass/70 backdrop-blur-xl border-b border-glass-border/30;
+  }
+  
+  .floating-card {
+    @apply transform transition-all duration-300 hover:scale-105 hover:shadow-purple-glow;
+  }
+  
+  .glow-primary {
+    @apply shadow-glow;
+  }
+  
+  .glow-purple {
+    @apply shadow-purple-glow;
+  }
+  
+  .glow-cyan {
+    @apply shadow-cyan-glow;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
+  }
+  
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+  }
+}
+
+/* Custom Animations */
+@layer utilities {
+  @keyframes pulse-glow {
+    0% {
+      box-shadow: 0 0 20px hsl(225 84% 65% / 0.3);
+    }
+    100% {
+      box-shadow: 0 0 40px hsl(225 84% 65% / 0.6), 0 0 60px hsl(270 84% 70% / 0.4);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-float-delayed {
+    animation: float 3s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+
+  .reactbits-glow-panel {
+    border-radius: 1rem;
+    box-shadow: 0 18px 60px hsl(225 84% 8% / 0.28);
+  }
+
+  .reactbits-glow-panel__shine {
+    position: absolute;
+    inset: -1px;
+    background:
+      radial-gradient(circle at 20% 0%, hsl(180 84% 70% / 0.18), transparent 28%),
+      radial-gradient(circle at 90% 20%, hsl(270 84% 70% / 0.16), transparent 30%),
+      linear-gradient(135deg, hsl(225 84% 65% / 0.08), transparent 45%);
+    pointer-events: none;
+  }
+
+  .reactbits-meter {
+    background-image:
+      linear-gradient(90deg, hsl(180 84% 70% / 0.28) 1px, transparent 1px),
+      linear-gradient(0deg, hsl(225 84% 65% / 0.18) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

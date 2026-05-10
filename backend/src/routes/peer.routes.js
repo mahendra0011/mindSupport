@@ -1,0 +1,151 @@
+export function registerPeerRoutes(app, context) {
+  const {
+    Appointment,
+    Assessment,
+    CounsellorApplication,
+    Journal,
+    Message,
+    MoodEntry,
+    Notification,
+    OtpVerification,
+    Payment,
+    PeerComment,
+    PeerPost,
+    PeerReport,
+    Resource,
+    Review,
+    User,
+    MONGODB_URI,
+    activeStatuses,
+    approvedCounsellorStatuses,
+    asyncRoute,
+    authOptional,
+    authRequired,
+    badgeForCounsellorType,
+    bcrypt,
+    buildMeetLink,
+    canAccessAppointment,
+    canMessageUser,
+    createNotification,
+    crisisRegex,
+    findCounsellor,
+    findUserByIdentifier,
+    generateOtpCode,
+    hasAppointmentConflict,
+    io,
+    isDatabaseReady,
+    listFromInput,
+    mongoose,
+    normalizeRole,
+    clampRating,
+    normalizeApplication,
+    normalizeAppointment,
+    normalizeAppointmentsWithReviewStatus,
+    normalizeJournal,
+    normalizeMessage,
+    normalizeNotification,
+    normalizePayment,
+    normalizeReview,
+    publicUser,
+    refreshCounsellorRating,
+    requireRoles,
+    scoreAssessment,
+    signToken,
+    todayYMD,
+  } = context;
+
+app.get(
+  "/api/peer/posts",
+  asyncRoute(async (req, res) => {
+    const query = {};
+    if (req.query.category) query.category = String(req.query.category);
+    const posts = await PeerPost.find(query).sort({ created_at: -1 });
+    const counts = await PeerComment.aggregate([{ $group: { _id: "$post_id", count: { $sum: 1 } } }]);
+    const countMap = new Map(counts.map((item) => [String(item._id), item.count]));
+    res.json(posts.map((post) => ({ ...post.toJSON(), commentCount: countMap.get(String(post._id)) || 0 })));
+  })
+);
+
+app.post(
+  "/api/peer/posts",
+  asyncRoute(authOptional),
+  asyncRoute(async (req, res) => {
+    const content = String(req.body?.content || "").trim();
+    if (!content) {
+      res.status(400).json({ error: "Post content is required" });
+      return;
+    }
+    const crisis = crisisRegex.test(content);
+    const post = await PeerPost.create({
+      author_uid: req.user ? String(req.user._id) : req.body?.author_uid || "anonymous",
+      alias: req.user?.name || req.body?.alias || "Anonymous",
+      category: req.body?.category || "General Wellness",
+      content,
+      flagged: crisis,
+      crisis,
+      crisisMessage: crisis ? "If this is urgent, contact emergency services or a crisis helpline now." : "",
+    });
+    res.status(201).json(post);
+  })
+);
+
+app.post(
+  "/api/peer/posts/:post_id/vote",
+  asyncRoute(async (req, res) => {
+    const post = await PeerPost.findById(req.params.post_id);
+    if (!post) {
+      res.status(404).json({ error: "Post not found" });
+      return;
+    }
+    if (req.body?.direction === "down") post.down += 1;
+    else post.up += 1;
+    await post.save();
+    res.json(post);
+  })
+);
+
+app.get(
+  "/api/peer/comments",
+  asyncRoute(async (req, res) => {
+    const comments = await PeerComment.find({ post_id: req.query.postId }).sort({ created_at: 1 });
+    res.json(comments);
+  })
+);
+
+app.post(
+  "/api/peer/comments",
+  asyncRoute(authOptional),
+  asyncRoute(async (req, res) => {
+    const content = String(req.body?.content || "").trim();
+    if (!content || !req.body?.post_id) {
+      res.status(400).json({ error: "post_id and content are required" });
+      return;
+    }
+    const crisis = crisisRegex.test(content);
+    const comment = await PeerComment.create({
+      post_id: req.body.post_id,
+      author_uid: req.user ? String(req.user._id) : req.body?.author_uid || "anonymous",
+      alias: req.user?.name || req.body?.alias || "Anonymous",
+      content,
+      flagged: crisis,
+      crisis,
+      crisisMessage: crisis ? "If this is urgent, contact emergency services or a crisis helpline now." : "",
+    });
+    res.status(201).json(comment);
+  })
+);
+
+app.post(
+  "/api/peer/reports",
+  asyncRoute(authOptional),
+  asyncRoute(async (req, res) => {
+    await PeerReport.create({
+      post_id: req.body?.post_id,
+      comment_id: req.body?.comment_id,
+      reporter_uid: req.user ? String(req.user._id) : req.body?.reporter_uid || "anonymous",
+      reason: req.body?.reason || "Reported by user",
+    });
+    res.status(201).json({ success: true });
+  })
+);
+}
