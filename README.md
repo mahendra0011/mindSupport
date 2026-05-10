@@ -56,46 +56,75 @@ Admins are created manually from the backend script. Admins review counsellor ap
 
 ```text
 mindSupport-main/
+  .env.example                 # Example environment variables
+  index.html                   # Vite HTML entry
+  package.json                 # Scripts and dependencies
+  vite.config.js               # Vite config and /api proxy
+  tailwind.config.js           # Tailwind theme config
+  components.json              # shadcn/ui config
+  public/                      # Static public assets
+
   backend/
-    server.js
+    server.js                  # Small API entrypoint
+    .env.example               # Backend env reference
     scripts/
-      create-admin.js
+      create-admin.js          # Manual admin account creation
     src/
-      app.js
+      app.js                   # Express app, middleware, helpers
       config/
-        env.js
+        env.js                 # Environment config
       database/
-        connect.js
-        seed.js
+        connect.js             # MongoDB connection
+        seed.js                # Starter resource seeding
       models/
-        index.js
+        index.js               # Mongoose schemas and models
       realtime/
-        socket.js
+        socket.js              # Socket.io auth and rooms
       routes/
-        auth.routes.js
-        applications.routes.js
-        user.routes.js
-        counsellor.routes.js
-        admin.routes.js
-        marketplace.routes.js
+        index.js               # Registers all route modules
+        auth.routes.js         # Register, login, OTP, current user
+        applications.routes.js # Counsellor application flow
+        user.routes.js         # User dashboard, journals
+        counsellor.routes.js   # Counsellor dashboard, Meet service
+        admin.routes.js        # Admin dashboard and moderation
+        marketplace.routes.js  # Counsellors, appointments, reviews
         communication.routes.js
         notifications.routes.js
         resources.routes.js
         peer.routes.js
         wellness.routes.js
         analytics.routes.js
-        index.js
+
   src/
-    assets/
-    components/
-    components/reactbits/
-    components/ui/
-    hooks/
+    assets/                    # Frontend images and static imports
+    components/                # Shared React components
+      reactbits/               # ReactBits-style UI components
+      ui/                      # shadcn/Radix UI primitives
+    hooks/                     # Shared React hooks
     lib/
+      api.js                   # API client and auth storage
+      socket.js                # Socket.io client helper
+      utils.js                 # UI utilities
     pages/
+      AdminDashboard.jsx
+      ConfidentialBooking.jsx
+      CounsellorDashboard.jsx
+      Dashboard.jsx
+      Index.jsx
+      Login.jsx
+      MyWellness.jsx
+      PeerSupport.jsx
+      Pricing.jsx
+      ResourceHub.jsx
+      Signup.jsx
+      UserDashboard.jsx
+      NotFound.jsx
     store/
-    App.jsx
-    main.jsx
+      authSlice.js
+      hooks.js
+      index.js
+    App.jsx                    # Frontend route map
+    main.jsx                   # React app entrypoint
 ```
 
 ## Setup
