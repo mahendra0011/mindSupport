@@ -11,7 +11,6 @@ import PeerSupport from "./pages/PeerSupport";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyWellness from "./pages/MyWellness";
 import Signup from "./pages/Signup";
-import Download from "./pages/Download";
 import Pricing from "./pages/Pricing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -50,7 +49,6 @@ const App = () => (<QueryClientProvider client={queryClient}>
               </ProtectedRoute>}/>
           <Route path="/signup" element={<Signup />}/>
           <Route path="/login" element={<Login />}/>
-          <Route path="/download" element={<Download />}/>
           <Route path="/pricing" element={<Pricing />}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />}/>

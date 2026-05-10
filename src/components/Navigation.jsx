@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X, BookOpen, Calendar, Users, BarChart3, Home, Heart, Crown, DownloadCloud, LogIn, LogOut } from "lucide-react";
+import { Brain, Menu, X, BookOpen, Calendar, Users, BarChart3, Home, Heart, Crown, LogIn, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -55,10 +55,6 @@ const Navigation = () => {
               <Crown className="h-4 w-4 mr-2"/>
               <span className="text-sm font-semibold tracking-wide">Upgrade</span>
             </Button>
-            <Button variant="outline" onClick={() => navigate("/download")} className="ml-2 whitespace-nowrap">
-              <DownloadCloud className="h-4 w-4 mr-2"/>
-              <span className="text-sm font-semibold tracking-wide">Download App</span>
-            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -84,10 +80,6 @@ const Navigation = () => {
                     <LogIn className="h-4 w-4 mr-2"/>
                     <span className="text-sm font-semibold tracking-wide">Login</span>
                   </Button>)}
-                <Button onClick={() => { setIsOpen(false); navigate("/download"); }} variant="outline" className="w-full">
-                  <DownloadCloud className="h-4 w-4 mr-2"/>
-                  <span className="text-sm font-semibold tracking-wide">Download App</span>
-                </Button>
                 <Button onClick={() => { setIsOpen(false); navigate("/pricing"); }} className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-md hover:shadow-lg">
                   <Crown className="h-4 w-4 mr-2"/>
                   <span className="text-sm font-semibold tracking-wide">Upgrade</span>

@@ -1,123 +1,263 @@
 # MindSupport
 
-MindSupport is a full-stack student mental health platform built with Vite, React, Redux, Tailwind/shadcn UI, Node.js, Express, and MongoDB.
+MindSupport is a full-stack mental wellness and counselling platform built with React, Redux Toolkit, Tailwind CSS, Node.js, Express, Socket.io, and MongoDB. It includes separate user, counsellor, and admin experiences with JWT authentication, role-based authorization, counsellor approval, session booking, Google Meet support, wellness tracking, resources, chat, payments, reviews, and emergency support.
 
-## Features
-
-- JWT authentication with role authorization for users, counsellors, and admins
-- Mongo-backed OTP account verification
-- Socket.io live updates for secure messages and notifications
-- Separate dashboards:
-  - User dashboard for wellness status, bookings, Google Meet sessions, private journal, payments, notifications, and counsellor messaging
-  - Counsellor dashboard for session requests, care notes, patient progress, secure messages, ratings, earnings, and Meet links
-  - Admin dashboard for role management, counsellor applications, review moderation, reports, notifications, resources, and session oversight
-- Confidential appointment booking backed by MongoDB
-- Counsellor application flow: every new account starts as a user, then admin approves mentor/professional access
-- Anonymous counselling mode with admin safety visibility
-- Rating and review moderation with low-score flagging
-- Google Meet service option for online counselling sessions
-- Resource hub, peer support, mood tracking, assessments, notifications, payments, and emergency support routes
-- ReactBits-style reusable animated UI panel in `src/components/reactbits`
+This project is JavaScript-only and MongoDB-only.
 
 ## Tech Stack
 
-- Frontend: HTML, CSS, JavaScript, React, Redux Toolkit, React Router, Tailwind, shadcn/ui
-- Backend: Node.js, Express, MongoDB, Mongoose, Socket.io
-- Auth: bcrypt password hashing and JWT bearer tokens
-- JavaScript-only project with MongoDB-only persistence
+| Area | Technology |
+| --- | --- |
+| Frontend | HTML, CSS, JavaScript, React, React Router, Redux Toolkit |
+| Styling | Tailwind CSS, shadcn/ui, Radix UI, Lucide icons, ReactBits-style UI components |
+| Backend | Node.js, Express |
+| Database | MongoDB with Mongoose |
+| Auth | JWT bearer tokens, bcrypt password hashing, OTP verification routes |
+| Real-time | Socket.io |
+| Video sessions | Google Meet link flow |
 
-## Backend Structure
+## Main Features
 
-- `backend/server.js` - small Node entrypoint that starts the API
-- `backend/src/app.js` - Express app setup, middleware, shared route helpers, static frontend serving
-- `backend/src/config/env.js` - environment configuration
-- `backend/src/database/connect.js` - MongoDB connection lifecycle
-- `backend/src/database/seed.js` - starter wellness resource seeding
-- `backend/scripts/create-admin.js` - manual admin account creation
-- `backend/src/models/index.js` - Mongoose schemas and models
-- `backend/src/realtime/socket.js` - Socket.io authentication and room setup
-- `backend/src/routes/index.js` - route module loader
-- `backend/src/routes/*.routes.js` - separated REST routes for auth, applications, users, chat, payments/notifications, counsellors, admins, marketplace/bookings, resources, peer support, wellness, and analytics
+- Role-aware authentication for users, counsellors, and admins.
+- Manual admin creation only. Admin signup is not available from the UI.
+- User signup and counsellor signup only.
+- Counsellor accounts are created in a pending state and cannot access the counsellor dashboard until an admin approves them.
+- Admin dashboard for users, counsellor approvals, reports, sessions, revenue, resources, notifications, analytics, and review moderation.
+- User dashboard for booking, wellness status, mood tracking, journal, resources, payments, notifications, chat, anonymous counselling, and emergency support.
+- Counsellor dashboard for booking requests, patient management, session notes, schedule, messaging, reviews, earnings, and Google Meet sessions.
+- Public counsellor marketplace with filters, badges, reviews, and booking.
+- Wellness dashboard with mood tracking, PHQ-9/GAD-7 style assessments, resources, breathing support, emergency hotlines, and notifications.
+- MongoDB-only persistence through structured Mongoose models.
+- Proper backend folder structure with route modules instead of putting everything in one `server.js`.
 
-## Quick Start
+## Role Flow
 
-1. Install dependencies:
+### User
+
+Users can create a normal account, log in, access the user dashboard, book sessions, track mood, use resources, message counsellors, pay for sessions, and use emergency support.
+
+### Counsellor
+
+Counsellors select the counsellor account type during signup. The signup form collects verification details such as bio, specialization, experience, languages, pricing, profile photo URL, certificates, LinkedIn or portfolio, ID details, education, availability, counselling type, and references.
+
+After signup:
+
+- `role = counsellor`
+- `status = pending`
+- `verificationStatus = pending`
+- admin receives a counsellor application
+- counsellor dashboard access stays locked until approval
+
+### Admin
+
+Admins are created manually from the backend script. Admins review counsellor applications, approve or reject counsellors, manage platform users, monitor sessions, review reports, moderate reviews, manage resources, and view analytics.
+
+## Project Structure
+
+```text
+mindSupport-main/
+  backend/
+    server.js
+    scripts/
+      create-admin.js
+    src/
+      app.js
+      config/
+        env.js
+      database/
+        connect.js
+        seed.js
+      models/
+        index.js
+      realtime/
+        socket.js
+      routes/
+        auth.routes.js
+        applications.routes.js
+        user.routes.js
+        counsellor.routes.js
+        admin.routes.js
+        marketplace.routes.js
+        communication.routes.js
+        notifications.routes.js
+        resources.routes.js
+        peer.routes.js
+        wellness.routes.js
+        analytics.routes.js
+        index.js
+  src/
+    assets/
+    components/
+    components/reactbits/
+    components/ui/
+    hooks/
+    lib/
+    pages/
+    store/
+    App.jsx
+    main.jsx
+```
+
+## Setup
+
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-2. Create `.env` from `.env.example` and set at least:
+### 2. Create environment file
+
+Copy `.env.example` to `.env` in the project root.
 
 ```bash
-VITE_API_BASE_URL=http://localhost:5001
-MONGODB_URI=mongodb://127.0.0.1:27017/mindsupport
-JWT_SECRET=replace-with-a-long-random-secret
+cp .env.example .env
 ```
 
-3. Start MongoDB locally, then run the app:
+For Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Required values:
+
+```env
+VITE_API_BASE_URL=http://localhost:5001
+PORT=5001
+CLIENT_ORIGIN=http://localhost:8080
+MONGODB_URI=mongodb://127.0.0.1:27017/mindsupport
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_EXPIRES_IN=7d
+GOOGLE_MEET_DEFAULT_LINK=
+```
+
+### 3. Start MongoDB
+
+Make sure MongoDB is running locally or update `MONGODB_URI` to your MongoDB connection string.
+
+### 4. Start frontend and backend
 
 ```bash
 npm run dev:full
 ```
 
-Frontend runs on `http://localhost:8080`.
-API runs on `http://localhost:5001`.
+Frontend:
 
-## Manual Admin Account
+```text
+http://localhost:8080
+```
 
-Admin accounts are not available in signup or admin-created account forms. Create one manually from the backend:
+Backend API:
+
+```text
+http://localhost:5001
+```
+
+Health check:
+
+```text
+GET http://localhost:5001/api/health
+```
+
+## Create Admin Manually
+
+Admin accounts are not created from signup. Use:
 
 ```bash
 npm run create:admin -- owner@example.com strong-password "Owner Name"
 ```
 
+Or with environment variables:
+
+```bash
+ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner Name" npm run create:admin
+```
+
 ## Scripts
 
-- `npm run dev` - Vite frontend only
-- `npm run dev:api` - Express API with Node watch mode
-- `npm run dev:full` - frontend and backend together
-- `npm run server` - Express API
-- `npm run build` - production frontend build
-- `npm run preview` - preview built frontend
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Start Vite frontend only |
+| `npm run dev:api` | Start Express API with Node watch mode |
+| `npm run dev:full` | Start frontend and backend together |
+| `npm run server` | Start backend server |
+| `npm run start` | Start backend server |
+| `npm run create:admin` | Create or update an admin account |
+| `npm run build` | Build production frontend |
+| `npm run preview` | Preview production frontend |
+| `npm run lint` | Run ESLint |
 
-## Important Routes
+## Frontend Routes
 
-- `/login` - role-aware sign in
-- `/signup` - normal user registration; counsellor access is requested from the user dashboard
-- `/dashboard` - redirects to the current user's dashboard
-- `/user` - user dashboard
-- `/counsellor` - counsellor dashboard
-- `/admin` - admin dashboard
-- `/book` - protected session booking with Google Meet option
-- `/wellness` - protected wellness tools
-- `/peer` - protected peer support
-- `/resources` - resource hub
+| Route | Access |
+| --- | --- |
+| `/` | Public home |
+| `/login` | Public login |
+| `/signup` | User and counsellor signup |
+| `/dashboard` | Role-based dashboard redirect |
+| `/user` | User only |
+| `/counsellor` | Approved counsellor only |
+| `/admin` | Admin only |
+| `/book` | User and admin |
+| `/wellness` | User and admin |
+| `/peer` | User and admin |
+| `/resources` | Public resources |
+| `/pricing` | Public pricing |
 
 ## API Highlights
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `POST /api/auth/otp/request`
-- `POST /api/auth/otp/verify`
-- `GET /api/user/dashboard`
-- `GET /api/counsellor/dashboard`
-- `GET /api/admin/dashboard`
-- `POST /api/counsellor-applications`
-- `PATCH /api/admin/counsellor-applications/:id`
-- `POST /api/appointments`
-- `PUT /api/appointments/:id`
-- `POST /api/meet/create`
-- `POST /api/messages`
-- `POST /api/journals`
-- `POST /api/payments/session`
-- `POST /api/reviews`
-- `PATCH /api/admin/reviews/:id`
-- `GET /api/resources`
-- `POST /api/wellness/mood`
-- `POST /api/wellness/assessment`
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Register user or counsellor |
+| `POST` | `/api/auth/login` | Login and receive JWT |
+| `GET` | `/api/auth/me` | Current authenticated user |
+| `POST` | `/api/auth/otp/request` | Request OTP |
+| `POST` | `/api/auth/otp/verify` | Verify OTP |
+| `GET` | `/api/user/dashboard` | User dashboard data |
+| `GET` | `/api/counsellor/dashboard` | Counsellor dashboard data |
+| `GET` | `/api/admin/dashboard` | Admin dashboard data |
+| `GET` | `/api/counsellor-applications/me` | Current counsellor application |
+| `POST` | `/api/counsellor-applications` | Submit counsellor verification request |
+| `GET` | `/api/admin/counsellor-applications` | List counsellor applications |
+| `PATCH` | `/api/admin/counsellor-applications/:id` | Approve or reject counsellor |
+| `GET` | `/api/counsellors` | Browse counsellors |
+| `POST` | `/api/appointments` | Book a session |
+| `PUT` | `/api/appointments/:id` | Update session status |
+| `POST` | `/api/meet/create` | Create or open Google Meet session |
+| `POST` | `/api/messages` | Send secure message |
+| `POST` | `/api/journals` | Save journal entry |
+| `POST` | `/api/payments/session` | Record payment |
+| `POST` | `/api/reviews` | Add counsellor review |
+| `PATCH` | `/api/admin/reviews/:id` | Moderate review |
+| `GET` | `/api/resources` | List resources |
+| `POST` | `/api/wellness/mood` | Save mood entry |
+| `POST` | `/api/wellness/assessment` | Save wellness assessment |
+| `POST` | `/api/wellness/emergency` | Trigger emergency support record |
 
 ## Google Meet
 
-Set `GOOGLE_MEET_DEFAULT_LINK` to a reusable Meet room if your institution has one. If it is empty, the counsellor dashboard and booking flow use `https://meet.google.com/new`, which lets a signed-in counsellor create/start a Meet session.
+Set `GOOGLE_MEET_DEFAULT_LINK` if you want all online sessions to use a fixed institutional Meet room.
+
+If it is empty, the app uses:
+
+```text
+https://meet.google.com/new
+```
+
+That lets a signed-in counsellor create or start a new Meet session.
+
+## Safety Notice
+
+MindSupport is for emotional support, counselling workflows, wellness tracking, and educational mental health resources. It does not replace medical, psychiatric, or emergency care. For immediate danger or crisis situations, users should contact local emergency services or a crisis helpline.
+
+## Quality Checks
+
+Run these before deployment:
+
+```bash
+npm run lint
+npm run build
+```
+
+The app is expected to run with MongoDB connected and a strong `JWT_SECRET` configured.
