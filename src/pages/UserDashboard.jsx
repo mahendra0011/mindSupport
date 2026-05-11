@@ -2,27 +2,34 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Activity,
+  Archive,
   Bell,
   BookOpen,
+  Camera,
   CalendarClock,
   CalendarDays,
+  CheckCheck,
   CheckCircle2,
   Crown,
   CreditCard,
   Droplets,
   Dumbbell,
   EyeOff,
+  File,
   FileText,
   Heart,
   HeartPulse,
   IdCard,
+  Image,
   LineChart,
   Lock,
   MessageCircle,
+  Mic,
   Moon,
   NotebookPen,
   Palette,
   Paperclip,
+  Pin,
   PlayCircle,
   Search,
   Send,
@@ -35,6 +42,7 @@ import {
   Star,
   Users,
   Video,
+  MoreVertical,
 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
@@ -142,6 +150,12 @@ const UserDashboard = () => {
   const [messageRecipient, setMessageRecipient] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messageFileUrl, setMessageFileUrl] = useState("");
+  const [chatSearch, setChatSearch] = useState("");
+  const [chatFilter, setChatFilter] = useState("all");
+  const [showAttachmentPanel, setShowAttachmentPanel] = useState(false);
+  const [showEmojiPanel, setShowEmojiPanel] = useState(false);
+  const [pinnedChatIds, setPinnedChatIds] = useState([]);
+  const [archivedChatIds, setArchivedChatIds] = useState([]);
   const [paying, setPaying] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("plus");
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -215,6 +229,89 @@ const UserDashboard = () => {
   const selectedPlanData = subscriptionPlans.find((plan) => plan.id === selectedPlan) || subscriptionPlans[1];
   const latestMood = data.moodEntries?.[0]?.mood || data.stats.moodScore || 4;
   const currentRisk = data.latestAssessment?.level || data.stats.latestRiskLevel || "not-started";
+  const allChatConversations = useMemo(() => {
+    const knownTherapists = new Map(data.therapists.map((therapist) => [therapist.id, therapist]));
+    const messagePeers = new Map();
+
+    chatMessages.forEach((message) => {
+      const peerId = message.direction === "sent" ? message.toId : message.fromId;
+      const peerName = message.direction === "sent" ? message.to : message.from;
+      if (peerId && !knownTherapists.has(peerId)) {
+        messagePeers.set(peerId, {
+          id: peerId,
+          name: peerName || "Counsellor",
+          specialization: "Secure support",
+          responseTime: "Within 24 hours",
+          rating: 4.8,
+          categories: [],
+        });
+      }
+    });
+
+    return [...data.therapists, ...messagePeers.values()]
+      .map((therapist) => {
+        const thread = chatMessages.filter(
+          (message) =>
+            message.fromId === therapist.id ||
+            message.toId === therapist.id ||
+            message.from === therapist.name ||
+            message.to === therapist.name
+        );
+        const lastMessage = thread[thread.length - 1];
+        const unreadCount = thread.filter((message) => message.unread).length;
+        const pinned = pinnedChatIds.includes(therapist.id);
+        const archived = archivedChatIds.includes(therapist.id);
+        return {
+          ...therapist,
+          thread,
+          lastMessage,
+          unreadCount,
+          pinned,
+          archived,
+          online: therapist.responseTime?.toLowerCase().includes("fast") || Number(therapist.rating) >= 4.8,
+          lastText: lastMessage?.text || "Start a secure conversation",
+          lastTime: formatChatTime(lastMessage?.createdAt || lastMessage?.time),
+        };
+      })
+      .sort((a, b) => {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        const aTime = new Date(a.lastMessage?.createdAt || 0).getTime();
+        const bTime = new Date(b.lastMessage?.createdAt || 0).getTime();
+        return bTime - aTime;
+      });
+  }, [archivedChatIds, chatMessages, data.therapists, pinnedChatIds]);
+  const filteredChatConversations = useMemo(() => {
+    const q = chatSearch.trim().toLowerCase();
+    return allChatConversations.filter((conversation) => {
+      const matchesSearch =
+        !q ||
+        conversation.name?.toLowerCase().includes(q) ||
+        conversation.specialization?.toLowerCase().includes(q) ||
+        conversation.lastText?.toLowerCase().includes(q);
+      const matchesFilter =
+        chatFilter === "all" ||
+        (chatFilter === "unread" && conversation.unreadCount > 0) ||
+        (chatFilter === "pinned" && conversation.pinned) ||
+        (chatFilter === "archived" && conversation.archived);
+      const visibleArchiveState = chatFilter === "archived" ? conversation.archived : !conversation.archived;
+      return matchesSearch && matchesFilter && visibleArchiveState;
+    });
+  }, [allChatConversations, chatFilter, chatSearch]);
+  const activeConversation =
+    allChatConversations.find((conversation) => conversation.id === messageRecipient) ||
+    filteredChatConversations[0] ||
+    allChatConversations[0] ||
+    null;
+  const activeMessages = useMemo(() => {
+    if (!activeConversation) return [];
+    return chatMessages.filter(
+      (message) =>
+        message.fromId === activeConversation.id ||
+        message.toId === activeConversation.id ||
+        message.from === activeConversation.name ||
+        message.to === activeConversation.name
+    );
+  }, [activeConversation, chatMessages]);
 
   const submitJournal = async (sharedWithCounsellor = false) => {
     if (!journalText.trim()) {
@@ -264,7 +361,8 @@ const UserDashboard = () => {
   };
 
   const sendUserMessage = async () => {
-    if (!messageRecipient || !messageText.trim()) {
+    const targetRecipient = messageRecipient || activeConversation?.id;
+    if (!targetRecipient || !messageText.trim()) {
       toast({ variant: "destructive", title: "Message is incomplete", description: "Choose a counsellor and write a message." });
       return;
     }
@@ -272,8 +370,8 @@ const UserDashboard = () => {
       await apiFetch("/api/messages", {
         method: "POST",
         body: JSON.stringify({
-          to: messageRecipient,
-          subject: "Session follow-up",
+          to: targetRecipient,
+          subject: activeConversation ? `Chat with ${activeConversation.name}` : "Session follow-up",
           text: messageText,
           fileUrl: messageFileUrl,
           fileName: messageFileUrl ? "Shared file" : "",
@@ -286,6 +384,32 @@ const UserDashboard = () => {
     } catch (error) {
       toast({ variant: "destructive", title: "Message failed", description: error?.message || "" });
     }
+  };
+
+  const togglePinnedChat = (id) => {
+    setPinnedChatIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+  };
+
+  const toggleArchivedChat = (id) => {
+    setArchivedChatIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+    if (chatFilter !== "archived") setChatFilter("all");
+  };
+
+  const addEmojiToMessage = (emoji) => {
+    setMessageText((current) => `${current}${emoji}`);
+    setShowEmojiPanel(false);
+  };
+
+  const addQuickReply = (reply) => {
+    setMessageText((current) => (current ? `${current}\n${reply}` : reply));
+  };
+
+  const selectAttachmentType = (type) => {
+    setShowAttachmentPanel(false);
+    toast({
+      title: `${type} attachment`,
+      description: "Paste a secure file or resource link in the attachment field before sending.",
+    });
   };
 
   const payNextSession = async () => {
@@ -794,57 +918,226 @@ const UserDashboard = () => {
               </TabsContent>
 
               <TabsContent value="chat" className="space-y-6">
-                <Card className="glass-card overflow-hidden">
-                  <CardHeader className="border-b border-glass-border/40 bg-background/60">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <MessageCircle className="h-5 w-5 text-primary" />
-                          Counsellor Chat
-                        </CardTitle>
-                        <CardDescription>WhatsApp-like secure follow-up messages with optional file links.</CardDescription>
-                      </div>
-                      <Badge className="w-fit bg-emerald-500/15 text-emerald-600 border border-emerald-500/20">Secure messaging</Badge>
-                    </div>
-                  </CardHeader>
+                <Card className="glass-card overflow-hidden border-emerald-500/15">
                   <CardContent className="p-0">
-                    <div className="flex min-h-[560px] flex-col bg-gradient-to-br from-background via-primary/5 to-secondary/5">
-                      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
-                        {chatMessages.length === 0 ? (
-                          <div className="h-full min-h-[300px] flex items-center justify-center">
-                            <PanelText>No messages yet. Choose a counsellor below and send your first follow-up.</PanelText>
+                    <div className="grid min-h-[720px] lg:grid-cols-[360px_1fr]">
+                      <aside className="border-b border-glass-border/40 bg-background/95 lg:border-b-0 lg:border-r">
+                        <div className="border-b border-glass-border/40 p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <AvatarBadge name={user?.name || "You"} online />
+                              <div>
+                                <div className="font-semibold">Chats</div>
+                                <div className="text-xs text-foreground/55">Secure counsellor messaging</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <IconButton title="Archived chats" onClick={() => setChatFilter(chatFilter === "archived" ? "all" : "archived")}>
+                                <Archive className="h-4 w-4" />
+                              </IconButton>
+                              <IconButton title="More chat options">
+                                <MoreVertical className="h-4 w-4" />
+                              </IconButton>
+                            </div>
                           </div>
+                          <div className="relative mt-4">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
+                            <Input
+                              className="h-10 rounded-full bg-foreground/5 pl-9"
+                              value={chatSearch}
+                              onChange={(event) => setChatSearch(event.target.value)}
+                              placeholder="Search or start new chat"
+                            />
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {["all", "unread", "pinned", "archived"].map((filter) => (
+                              <button
+                                key={filter}
+                                type="button"
+                                onClick={() => setChatFilter(filter)}
+                                className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition ${
+                                  chatFilter === filter ? "bg-emerald-500 text-white" : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10"
+                                }`}
+                              >
+                                {filter}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="max-h-[590px] overflow-y-auto">
+                          {filteredChatConversations.length === 0 ? (
+                            <div className="p-4">
+                              <PanelText>No chats match this filter.</PanelText>
+                            </div>
+                          ) : (
+                            filteredChatConversations.map((conversation) => (
+                              <ConversationRow
+                                key={conversation.id}
+                                conversation={conversation}
+                                active={activeConversation?.id === conversation.id}
+                                onClick={() => setMessageRecipient(conversation.id)}
+                              />
+                            ))
+                          )}
+                        </div>
+                      </aside>
+
+                      <section className="flex min-h-[720px] flex-col bg-[#0b141a] text-slate-50">
+                        {activeConversation ? (
+                          <>
+                            <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#202c33] p-4">
+                              <div className="flex min-w-0 items-center gap-3">
+                                <AvatarBadge name={activeConversation.name} online={activeConversation.online} />
+                                <div className="min-w-0">
+                                  <div className="truncate font-semibold">{activeConversation.name}</div>
+                                  <div className="truncate text-xs text-slate-300">
+                                    {activeConversation.online ? "online" : `last seen ${activeConversation.responseTime || "recently"}`}
+                                  </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <IconButton title={activeConversation.pinned ? "Unpin chat" : "Pin chat"} dark onClick={() => togglePinnedChat(activeConversation.id)}>
+                                  <Pin className={`h-4 w-4 ${activeConversation.pinned ? "fill-current text-emerald-300" : ""}`} />
+                                </IconButton>
+                                <IconButton title={activeConversation.archived ? "Unarchive chat" : "Archive chat"} dark onClick={() => toggleArchivedChat(activeConversation.id)}>
+                                  <Archive className="h-4 w-4" />
+                                </IconButton>
+                              </div>
+                            </div>
+
+                            <div className="border-b border-white/10 bg-[#111b21] px-4 py-2 text-center text-xs text-slate-300">
+                              <Lock className="mr-1 inline h-3.5 w-3.5 text-emerald-300" />
+                              Messages are protected in your MindSupport account. This platform is not emergency medical care.
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_28%),linear-gradient(135deg,#0b141a,#111b21)] p-4 md:p-6">
+                              {activeMessages.length === 0 ? (
+                                <EmptyChatState conversation={activeConversation} onQuickReply={addQuickReply} />
+                              ) : (
+                                <div className="space-y-3">
+                                  {activeMessages.map((message, index) => {
+                                    const previous = activeMessages[index - 1];
+                                    const showDate = messageDateKey(message) !== messageDateKey(previous);
+                                    return (
+                                      <div key={message.id || `${message.direction}-${message.text}-${index}`}>
+                                        {showDate && <DatePill message={message} />}
+                                        <ChatBubble message={message} />
+                                      </div>
+                                    );
+                                  })}
+                                  {messageText && (
+                                    <div className="ml-2 mt-4 flex items-center gap-2 text-xs text-slate-300">
+                                      <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-300" />
+                                      You are typing...
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="border-t border-white/10 bg-[#202c33] p-3">
+                              <div className="mb-2 flex flex-wrap gap-2">
+                                {["I need to reschedule", "Can we discuss my journal?", "Please share a coping task"].map((reply) => (
+                                  <button
+                                    key={reply}
+                                    type="button"
+                                    onClick={() => addQuickReply(reply)}
+                                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 hover:bg-white/10"
+                                  >
+                                    {reply}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {(showAttachmentPanel || showEmojiPanel) && (
+                                <div className="mb-3 rounded-2xl border border-white/10 bg-[#111b21] p-3">
+                                  {showAttachmentPanel && (
+                                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                      <AttachmentAction icon={File} label="Document" onClick={() => selectAttachmentType("Document")} />
+                                      <AttachmentAction icon={Image} label="Gallery" onClick={() => selectAttachmentType("Gallery")} />
+                                      <AttachmentAction icon={Camera} label="Camera" onClick={() => selectAttachmentType("Camera")} />
+                                      <AttachmentAction icon={FileText} label="Resource" onClick={() => selectAttachmentType("Resource")} />
+                                    </div>
+                                  )}
+                                  {showEmojiPanel && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {["🙂", "🙏", "💙", "🌱", "😔", "😌", "👍", "✨"].map((emoji) => (
+                                        <button key={emoji} type="button" onClick={() => addEmojiToMessage(emoji)} className="rounded-lg bg-white/5 px-3 py-2 text-lg hover:bg-white/10">
+                                          {emoji}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="grid gap-2 md:grid-cols-[220px_1fr]">
+                                <Select value={messageRecipient || activeConversation.id} onValueChange={setMessageRecipient}>
+                                  <SelectTrigger className="border-white/10 bg-[#111b21] text-slate-100">
+                                    <SelectValue placeholder="Choose counsellor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {data.therapists.map((therapist) => (
+                                      <SelectItem key={therapist.id} value={therapist.id}>
+                                        {therapist.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <div className="relative">
+                                  <Paperclip className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                  <Input
+                                    className="border-white/10 bg-[#111b21] pl-9 text-slate-100 placeholder:text-slate-400"
+                                    value={messageFileUrl}
+                                    onChange={(event) => setMessageFileUrl(event.target.value)}
+                                    placeholder="Optional file, image, resource, or report URL"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="mt-2 flex items-end gap-2">
+                                <IconButton title="Emoji" dark onClick={() => { setShowEmojiPanel((value) => !value); setShowAttachmentPanel(false); }}>
+                                  <Smile className="h-5 w-5" />
+                                </IconButton>
+                                <IconButton title="Attach" dark onClick={() => { setShowAttachmentPanel((value) => !value); setShowEmojiPanel(false); }}>
+                                  <Paperclip className="h-5 w-5" />
+                                </IconButton>
+                                <Textarea
+                                  rows={2}
+                                  value={messageText}
+                                  onChange={(event) => setMessageText(event.target.value)}
+                                  onKeyDown={(event) => {
+                                    if (event.key === "Enter" && !event.shiftKey) {
+                                      event.preventDefault();
+                                      sendUserMessage();
+                                    }
+                                  }}
+                                  placeholder="Type a message"
+                                  className="min-h-[46px] resize-none rounded-2xl border-white/10 bg-[#111b21] text-slate-100 placeholder:text-slate-400"
+                                />
+                                {messageText.trim() ? (
+                                  <Button onClick={sendUserMessage} className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600">
+                                    <Send className="h-5 w-5" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    onClick={() => toast({ title: "Voice note", description: "Voice note UI is ready. Connect storage to upload recorded audio." })}
+                                    className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600"
+                                  >
+                                    <Mic className="h-5 w-5" />
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </>
                         ) : (
-                          chatMessages.map((message) => <ChatBubble key={message.id || `${message.direction}-${message.text}`} message={message} />)
-                        )}
-                      </div>
-                      <div className="border-t border-glass-border/40 bg-background/90 p-4 space-y-3">
-                        <div className="grid md:grid-cols-[240px_1fr] gap-3">
-                          <Select value={messageRecipient} onValueChange={setMessageRecipient}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choose counsellor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {data.therapists.map((therapist) => (
-                                <SelectItem key={therapist.id} value={therapist.id}>
-                                  {therapist.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <div className="relative">
-                            <Paperclip className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
-                            <Input className="pl-9" value={messageFileUrl} onChange={(event) => setMessageFileUrl(event.target.value)} placeholder="Optional file or resource URL" />
+                          <div className="flex flex-1 items-center justify-center p-6">
+                            <PanelText>No approved counsellor chats are available yet. Book a session to unlock secure messaging.</PanelText>
                           </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Textarea rows={2} value={messageText} onChange={(event) => setMessageText(event.target.value)} placeholder="Type a message..." className="resize-none" />
-                          <Button onClick={sendUserMessage} className="self-end gap-2">
-                            <Send className="h-4 w-4" />
-                            Send
-                          </Button>
-                        </div>
-                      </div>
+                        )}
+                      </section>
                     </div>
                   </CardContent>
                 </Card>
@@ -1150,6 +1443,131 @@ function MiniHabit({ icon: Icon, label }) {
   );
 }
 
+function getInitials(name = "") {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "MS";
+}
+
+function formatChatTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+}
+
+function messageDateKey(message) {
+  if (!message?.createdAt) return "";
+  const date = new Date(message.createdAt);
+  return Number.isNaN(date.getTime()) ? "" : date.toDateString();
+}
+
+function IconButton({ children, title, onClick, dark = false }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-label={title}
+      onClick={onClick}
+      className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+        dark ? "text-slate-200 hover:bg-white/10" : "text-foreground/70 hover:bg-foreground/10"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function AvatarBadge({ name, online = false }) {
+  return (
+    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white shadow-sm">
+      {getInitials(name)}
+      {online && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#202c33] bg-emerald-300" />}
+    </span>
+  );
+}
+
+function ConversationRow({ conversation, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 border-b border-glass-border/30 p-4 text-left transition ${
+        active ? "bg-emerald-500/10" : "hover:bg-foreground/5"
+      }`}
+    >
+      <AvatarBadge name={conversation.name} online={conversation.online} />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate font-semibold">{conversation.name}</span>
+          <span className="shrink-0 text-[11px] text-foreground/50">{conversation.lastTime}</span>
+        </span>
+        <span className="mt-1 flex items-center gap-1 text-xs text-foreground/55">
+          {conversation.pinned && <Pin className="h-3 w-3 fill-current text-emerald-600" />}
+          {conversation.archived && <Archive className="h-3 w-3 text-foreground/45" />}
+          <span className="truncate">{conversation.lastText}</span>
+        </span>
+      </span>
+      {conversation.unreadCount > 0 && (
+        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 text-xs font-semibold text-white">
+          {conversation.unreadCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function EmptyChatState({ conversation, onQuickReply }) {
+  return (
+    <div className="mx-auto flex min-h-[360px] max-w-md flex-col items-center justify-center text-center">
+      <AvatarBadge name={conversation.name} online={conversation.online} />
+      <h3 className="mt-4 text-lg font-semibold">Start chat with {conversation.name}</h3>
+      <p className="mt-2 text-sm text-slate-300">
+        Send a follow-up, share a journal note, ask for a wellness task, or attach a resource link.
+      </p>
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        {["Hello, I need support today", "Can we plan my next session?", "Please suggest one coping task"].map((reply) => (
+          <button
+            key={reply}
+            type="button"
+            onClick={() => onQuickReply(reply)}
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 hover:bg-white/10"
+          >
+            {reply}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DatePill({ message }) {
+  const label = message?.createdAt ? new Date(message.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "Today";
+  return (
+    <div className="my-4 flex justify-center">
+      <span className="rounded-full bg-[#182229] px-3 py-1 text-[11px] font-medium text-slate-300 shadow-sm">{label}</span>
+    </div>
+  );
+}
+
+function AttachmentAction({ icon: Icon, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-200 transition hover:bg-white/10"
+    >
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-200">
+        <Icon className="h-5 w-5" />
+      </span>
+      {label}
+    </button>
+  );
+}
+
 function ChatBubble({ message }) {
   const sent = message.direction === "sent";
   const timeLabel = message.createdAt
@@ -1158,18 +1576,23 @@ function ChatBubble({ message }) {
 
   return (
     <div className={`flex ${sent ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-sm ${sent ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-background/85 border border-glass-border/40 rounded-bl-sm"}`}>
-        <div className={`mb-1 text-xs font-semibold ${sent ? "text-primary-foreground/80" : "text-foreground/60"}`}>
+      <div className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-sm ${sent ? "bg-[#005c4b] text-white rounded-br-sm" : "bg-[#202c33] text-slate-100 rounded-bl-sm"}`}>
+        <div className={`mb-1 text-xs font-semibold ${sent ? "text-emerald-100" : "text-slate-300"}`}>
           {sent ? "You" : message.from || "Counsellor"}
         </div>
         {message.subject && <div className="text-sm font-semibold">{message.subject}</div>}
         <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.text}</div>
+        {message.task && <div className="mt-2 rounded-lg bg-white/10 p-2 text-xs">Task: {message.task}</div>}
         {message.fileUrl && (
-          <a className={`mt-2 inline-flex text-xs underline ${sent ? "text-primary-foreground" : "text-primary"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
-            Open shared file
+          <a className={`mt-2 inline-flex items-center gap-1 text-xs underline ${sent ? "text-emerald-100" : "text-emerald-300"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
+            <Paperclip className="h-3 w-3" />
+            {message.fileName || "Open shared file"}
           </a>
         )}
-        <div className={`mt-2 text-right text-[11px] ${sent ? "text-primary-foreground/70" : "text-foreground/45"}`}>{timeLabel}</div>
+        <div className={`mt-2 flex items-center justify-end gap-1 text-[11px] ${sent ? "text-emerald-100/80" : "text-slate-400"}`}>
+          {timeLabel}
+          {sent && <CheckCheck className={`h-3.5 w-3.5 ${message.unread ? "" : "text-sky-300"}`} />}
+        </div>
       </div>
     </div>
   );
