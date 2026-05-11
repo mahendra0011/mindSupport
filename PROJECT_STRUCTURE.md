@@ -8,6 +8,7 @@ mindSupport-main/
     scripts/
       create-admin.js            # Manual admin account creation
       seed-resources.js          # Manual resource seed runner for Atlas/Render data
+      seed-counsellors.js        # Manual approved counsellor seed runner
     src/
       app.js                     # Express app assembly and shared helpers
       config/

@@ -70,6 +70,7 @@ mindSupport-main/
     scripts/
       create-admin.js          # Manual admin account creation
       seed-resources.js        # Manual resource seed runner
+      seed-counsellors.js      # Manual approved counsellor seed runner
     src/
       app.js                   # Express app, middleware, helpers
       config/
@@ -216,6 +217,8 @@ ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner N
 | `npm run start` | Start backend server |
 | `npm run create:admin` | Create or update an admin account |
 | `npm run seed:resources` | Seed video/article resources into the configured MongoDB |
+| `npm run seed:counsellors` | Seed approved counsellors into the configured MongoDB |
+| `npm run seed:all` | Seed resources and counsellors |
 | `npm run build` | Build production frontend |
 | `npm run preview` | Preview production frontend |
 | `npm run lint` | Run ESLint |
@@ -286,10 +289,10 @@ Set `YOUTUBE_API_KEY` to enable live YouTube Data API searches in the Resources 
 
 ## Seed Data
 
-The backend seeds curated video and article resources on startup, so a Render deploy connected to MongoDB Atlas will show resources automatically. To seed manually into the MongoDB configured by `MONGODB_URI`, run:
+The backend seeds curated video/article resources and approved counsellor marketplace profiles on startup, so a Render deploy connected to MongoDB Atlas will show useful launch data automatically. To seed manually into the MongoDB configured by `MONGODB_URI`, run:
 
 ```bash
-npm run seed:resources
+npm run seed:all
 ```
 
 For Atlas, run the command with your Atlas connection string in the environment or set `MONGODB_URI` in Render.
