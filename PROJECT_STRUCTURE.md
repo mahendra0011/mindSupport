@@ -7,6 +7,7 @@ mindSupport-main/
     .env.example                 # MongoDB-only backend env example
     scripts/
       create-admin.js            # Manual admin account creation
+      seed-resources.js          # Manual resource seed runner for Atlas/Render data
     src/
       app.js                     # Express app assembly and shared helpers
       config/

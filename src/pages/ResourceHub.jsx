@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
-import { BookOpen, Filter, Languages, Search, Video, FileAudio2, FileText, Bookmark } from "lucide-react";
+import { BookOpen, Filter, Languages, Search, Video, FileText, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-const API_BASE = import.meta?.env?.VITE_API_BASE_URL || "http://localhost:5001";
+const API_BASE = import.meta?.env?.VITE_API_BASE_URL || "";
 function buildQuery(params) {
     const q = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -47,12 +47,18 @@ async function fetchResources(filters) {
 }
 async function fetchYouTube(q, opts) {
     try {
-        if (!q?.trim())
-            return [];
         if (opts.type !== "video" && opts.type !== "all")
             return [];
         const max = opts.maxResults ?? 6;
-        const res = await fetch(`${API_BASE}/api/resources/youtube?q=${encodeURIComponent(q)}&maxResults=${max}`);
+        const query = buildQuery({
+            q: q || opts.category || opts.tags?.[0] || "mental health motivation",
+            category: opts.category && opts.category !== "all" ? opts.category : undefined,
+            language: opts.language && opts.language !== "all" ? opts.language : undefined,
+            minDur: opts.minDur,
+            maxDur: opts.maxDur,
+            maxResults: max,
+        });
+        const res = await fetch(`${API_BASE}/api/resources/youtube${query}`);
         if (!res.ok)
             return [];
         const items = await res.json();
@@ -94,7 +100,23 @@ function getYoutubeId(url) {
     }
 }
 // NOTE: Keep all hooks inside the component
-const defaultCategories = ["Anxiety", "Stress", "Sleep", "Burnout", "Depression", "General"];
+const defaultCategories = [
+    "Anxiety",
+    "Stress",
+    "Sleep",
+    "Burnout",
+    "Depression",
+    "Motivation",
+    "Self Confidence",
+    "Meditation",
+    "Relationships",
+    "Career Stress",
+    "Student Pressure",
+    "Loneliness",
+    "Addiction Recovery",
+    "Trauma Support",
+    "General",
+];
 const defaultLanguages = ["English", "Hindi", "Tamil", "Telugu", "Kannada", "Marathi", "Bengali"];
 const ResourceHub = () => {
     const { toast } = useToast();
@@ -138,7 +160,9 @@ const ResourceHub = () => {
             const platformPromise = fetchResources(selectedFilters);
             const ytPromise = fetchYouTube(q, {
                 type,
+                category,
                 language,
+                tags,
                 minDur: selectedFilters.minDur,
                 maxDur: selectedFilters.maxDur,
                 maxResults: 8,
@@ -169,7 +193,7 @@ const ResourceHub = () => {
             (r.tags || []).forEach((t) => bag.add(t));
         }
         // Seed some commonly useful tags
-        ["exam stress", "mindfulness", "sleep hygiene", "breathing", "grounding", "study"].forEach((t) => bag.add(t));
+        ["motivation", "self confidence", "exam stress", "mindfulness", "sleep hygiene", "breathing", "grounding", "study", "relationships", "burnout"].forEach((t) => bag.add(t));
         return Array.from(bag).sort();
     }, [resources]);
     const recommended = useMemo(() => {
@@ -190,8 +214,8 @@ const ResourceHub = () => {
                   Psychoeducational Resource Hub
                 </h1>
                 <p className="text-foreground/70 mt-2">
-                  Search, filter, and explore trusted videos, audio guides, and articles. Multi-language support
-                  included.
+                  Search trusted wellness videos and practical articles for motivation, stress, sleep, confidence,
+                  relationships, and student pressure.
                 </p>
               </div>
               <div className="hidden md:flex gap-2">
@@ -242,7 +266,6 @@ const ResourceHub = () => {
                       <SelectContent>
                         <SelectItem value="all">All</SelectItem>
                         <SelectItem value="video">Video</SelectItem>
-                        <SelectItem value="audio">Audio</SelectItem>
                         <SelectItem value="article">Article</SelectItem>
                       </SelectContent>
                     </Select>
@@ -350,9 +373,6 @@ const ResourceHub = () => {
                 <TabsTrigger value="video" className="gap-2">
                   <Video className="h-4 w-4"/> Videos
                 </TabsTrigger>
-                <TabsTrigger value="audio" className="gap-2">
-                  <FileAudio2 className="h-4 w-4"/> Audios
-                </TabsTrigger>
                 <TabsTrigger value="article" className="gap-2">
                   <FileText className="h-4 w-4"/> Articles
                 </TabsTrigger>
@@ -372,7 +392,7 @@ const ResourceHub = () => {
                 </Card>
               </TabsContent>
 
-              {["video", "audio", "article"].map((t) => (<TabsContent key={t} value={t}>
+              {["video", "article"].map((t) => (<TabsContent key={t} value={t}>
                   <Card className="glass-card">
                     <CardHeader>
                       <CardTitle className="capitalize">{t}</CardTitle>
@@ -400,27 +420,27 @@ function ResourceGrid({ items }) {
     return (<div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((r) => (<Card key={r.id} className="overflow-hidden glass-card hover:shadow-xl transition-shadow">
           <div className="aspect-video bg-black/5 relative">
-            {r.type === "video" ? (<VideoEmbed url={r.url}/>) : r.type === "audio" ? (<div className="p-4 h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-                <audio controls className="w-full">
-                  <source src={r.url} type="audio/mpeg"/>
-                  Your browser does not support the audio element.
-                </audio>
-              </div>) : (<div className="p-4 h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
+            {r.type === "video" ? (
+              <VideoEmbed url={r.url} thumbnail={r.thumbnail} title={r.title} />
+            ) : (
+              <div className="p-5 h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 text-center">
                 <FileText className="h-10 w-10 text-primary"/>
-              </div>)}
+                <div className="mt-3 text-sm font-semibold text-foreground/80">Wellness Article</div>
+              </div>
+            )}
           </div>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="line-clamp-1">{r.title}</CardTitle>
               <span className="text-xs px-2 py-0.5 rounded-md bg-foreground/10 capitalize">{r.type}</span>
             </div>
-            <CardDescription className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <Badge variant="secondary" className="capitalize">
                 {r.category}
               </Badge>
               <Badge className="bg-foreground/10 text-foreground">{r.language}</Badge>
               {typeof r.durationMin === "number" && r.durationMin > 0 && (<Badge className="bg-foreground/10 text-foreground">{r.durationMin} min</Badge>)}
-            </CardDescription>
+            </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {r.description && <p className="text-sm text-foreground/80 line-clamp-3">{r.description}</p>}
@@ -445,7 +465,7 @@ function ResourceGrid({ items }) {
         </Card>))}
     </div>);
 }
-function VideoEmbed({ url }) {
+function VideoEmbed({ url, thumbnail, title }) {
     const id = getYoutubeId(url);
     if (!id) {
         return (<div className="w-full h-full flex items-center justify-center bg-foreground/5">
@@ -453,6 +473,6 @@ function VideoEmbed({ url }) {
       </div>);
     }
     const embed = `https://www.youtube.com/embed/${id}`;
-    return (<iframe className="absolute inset-0 w-full h-full" src={embed} title="YouTube video" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen/>);
+    return (<iframe className="absolute inset-0 w-full h-full" src={embed} title={title || "YouTube video"} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen style={thumbnail ? { backgroundImage: `url(${thumbnail})`, backgroundSize: "cover" } : undefined}/>);
 }
 export default ResourceHub;

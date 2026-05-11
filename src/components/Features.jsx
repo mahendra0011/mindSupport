@@ -22,8 +22,8 @@ const Features = () => {
         {
             icon: BookOpen,
             title: "Resource Hub",
-            description: "Curated collection of mental wellness resources including videos, audio guides, and articles in multiple languages.",
-            features: ["Video Content", "Audio Guides", "Multi-language", "Categorized Resources"],
+            description: "Curated collection of mental wellness videos and articles for motivation, stress, sleep, confidence, and self-care.",
+            features: ["YouTube Videos", "Motivation Articles", "Multi-language", "Categorized Resources"],
             gradient: "from-accent/20 to-accent/5",
             glowClass: "glow-cyan"
         }

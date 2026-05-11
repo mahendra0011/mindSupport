@@ -69,6 +69,7 @@ mindSupport-main/
     .env.example               # Backend env reference
     scripts/
       create-admin.js          # Manual admin account creation
+      seed-resources.js        # Manual resource seed runner
     src/
       app.js                   # Express app, middleware, helpers
       config/
@@ -159,6 +160,7 @@ MONGODB_URI=mongodb://127.0.0.1:27017/mindsupport
 JWT_SECRET=replace-with-a-long-random-secret
 JWT_EXPIRES_IN=7d
 GOOGLE_MEET_DEFAULT_LINK=
+YOUTUBE_API_KEY=your-youtube-data-api-key
 ```
 
 ### 3. Start MongoDB
@@ -213,6 +215,7 @@ ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner N
 | `npm run server` | Start backend server |
 | `npm run start` | Start backend server |
 | `npm run create:admin` | Create or update an admin account |
+| `npm run seed:resources` | Seed video/article resources into the configured MongoDB |
 | `npm run build` | Build production frontend |
 | `npm run preview` | Preview production frontend |
 | `npm run lint` | Run ESLint |
@@ -260,6 +263,7 @@ ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner N
 | `POST` | `/api/reviews` | Add counsellor review |
 | `PATCH` | `/api/admin/reviews/:id` | Moderate review |
 | `GET` | `/api/resources` | List resources |
+| `GET` | `/api/resources/youtube` | Search YouTube wellness videos through backend proxy |
 | `POST` | `/api/wellness/mood` | Save mood entry |
 | `POST` | `/api/wellness/assessment` | Save wellness assessment |
 | `POST` | `/api/wellness/emergency` | Trigger emergency support record |
@@ -275,6 +279,20 @@ https://meet.google.com/new
 ```
 
 That lets a signed-in counsellor create or start a new Meet session.
+
+## YouTube Resources
+
+Set `YOUTUBE_API_KEY` to enable live YouTube Data API searches in the Resources page. The key is used only on the Express backend, so it is not exposed in the React bundle. If the key is missing or the YouTube request fails, the backend returns a small curated fallback video list.
+
+## Seed Data
+
+The backend seeds curated video and article resources on startup, so a Render deploy connected to MongoDB Atlas will show resources automatically. To seed manually into the MongoDB configured by `MONGODB_URI`, run:
+
+```bash
+npm run seed:resources
+```
+
+For Atlas, run the command with your Atlas connection string in the environment or set `MONGODB_URI` in Render.
 
 ## Safety Notice
 

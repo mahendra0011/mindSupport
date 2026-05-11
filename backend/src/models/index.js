@@ -80,7 +80,7 @@ applyJsonTransform(otpVerificationSchema);
 const resourceSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    type: { type: String, enum: ["video", "audio", "article"], default: "article" },
+    type: { type: String, enum: ["video", "article"], default: "article" },
     category: { type: String, default: "General" },
     language: { type: String, default: "English" },
     url: { type: String, required: true },

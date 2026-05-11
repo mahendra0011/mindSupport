@@ -36,7 +36,6 @@ import {
   Users,
   Video,
   VideoOff,
-  Volume2,
 } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
@@ -615,9 +614,9 @@ const UserDashboard = () => {
 
               <TabsContent value="care" className="space-y-6">
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-                  <ResourceTile icon={Volume2} title="Meditation Audios" text="Guided grounding and body-scan audios." />
+                  <ResourceTile icon={Sparkles} title="Motivation Articles" text="Confidence, mindset, and small-step growth reads." />
                   <ResourceTile icon={PlayCircle} title="Breathing Exercises" text="Box breathing and 4-7-8 calm routines." />
-                  <ResourceTile icon={FileText} title="Motivation Articles" text="Self-help, confidence, and study pressure reads." />
+                  <ResourceTile icon={FileText} title="Self-Care Articles" text="Stress, sleep, relationships, and study pressure guides." />
                   <ResourceTile icon={VideoOff} title="Wellness Videos" text="Mental wellness videos and therapy homework." />
                 </div>
                 <div className="grid lg:grid-cols-2 gap-6">
