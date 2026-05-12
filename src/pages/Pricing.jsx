@@ -59,7 +59,7 @@ function WellnessBlock({ included }) {
     </div>);
 }
 function PlanCard({ name, price, period, highlight, features, wellnessIncluded, onChoose, }) {
-    return (<Card className={"glass-card relative rounded-2xl transition-all duration-200 hover:-translate-y-1 hover:shadow-xl " +
+    return (<Card className={"dashboard-card-motion glass-card relative rounded-2xl transition-all duration-200 hover:-translate-y-1 hover:shadow-xl " +
             (highlight ? "ring-1 ring-primary/30" : "hover:ring-1 hover:ring-foreground/10")}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
@@ -120,10 +120,10 @@ const Pricing = () => {
       <Navigation />
 
       <main className="pt-16">
-        <section className="py-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="dashboard-motion py-10">
+          <div className="dashboard-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10">
-              <div className="mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+              <div className="dashboard-icon-float mx-auto h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
                 <Gauge className="h-6 w-6 text-primary"/>
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Choose the plan that fits you</h1>
@@ -132,7 +132,7 @@ const Pricing = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="dashboard-stagger grid grid-cols-1 md:grid-cols-3 gap-6">
               <PlanCard name="Care Starter" price={formatRupees(499)} period="month" features={starterFeatures} wellnessIncluded onChoose={() => toast({ title: "Care Starter selected", description: `Monthly access recorded at ${formatRupees(499)}.` })}/>
 
               <PlanCard name="Wellness Plus" price={formatRupees(999)} period="month" highlight features={plusFeatures} wellnessIncluded onChoose={() => toast({ title: "Wellness Plus selected", description: `Monthly access recorded at ${formatRupees(999)}.` })}/>
@@ -140,7 +140,7 @@ const Pricing = () => {
               <PlanCard name="Premium Care" price={formatRupees(1999)} period="month" features={premiumFeatures} wellnessIncluded onChoose={() => toast({ title: "Premium Care selected", description: `Monthly access recorded at ${formatRupees(1999)}.` })}/>
             </div>
 
-            <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-foreground/70">
+            <div className="dashboard-stagger mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-foreground/70">
               <div className="flex items-start gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary mt-0.5"/>
                 <span>Secure payments and data protection</span>

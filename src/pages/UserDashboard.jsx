@@ -482,9 +482,9 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-16">
-        <section className="py-6 md:py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <GlowPanel className="p-6">
+        <section className="dashboard-motion py-6 md:py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
+          <div className="dashboard-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <GlowPanel className="dashboard-panel p-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
                 <div>
                   <Badge className="bg-primary/15 text-primary border border-primary/25">User dashboard</Badge>
@@ -502,7 +502,7 @@ const UserDashboard = () => {
               </div>
             </GlowPanel>
 
-            <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
+            <div className="dashboard-stagger grid md:grid-cols-2 xl:grid-cols-5 gap-4">
               <Metric title="Upcoming sessions" value={data.stats.upcomingSessions} icon={CalendarDays} />
               <Metric title="Mood score" value={`${data.stats.moodScore}/5`} icon={Smile} />
               <Metric title="Wellness streak" value={`${data.stats.wellnessStreak} days`} icon={HeartPulse} />
@@ -511,7 +511,7 @@ const UserDashboard = () => {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-muted/60 p-2">
+              <TabsList className="dashboard-panel flex h-auto flex-wrap justify-start gap-2 bg-muted/60 p-2">
                 <TabsTrigger value="home">Home</TabsTrigger>
                 <TabsTrigger value="therapists">Therapists</TabsTrigger>
                 <TabsTrigger value="sessions">Sessions</TabsTrigger>
@@ -523,9 +523,9 @@ const UserDashboard = () => {
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="home" className="space-y-6">
-                <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-6">
-                  <Card className="glass-card">
+              <TabsContent value="home" className="dashboard-tab-motion space-y-6">
+                <div className="dashboard-stagger grid lg:grid-cols-[1.05fr_0.95fr] gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CalendarClock className="h-5 w-5 text-primary" />
@@ -538,7 +538,7 @@ const UserDashboard = () => {
                         <PanelText>No upcoming sessions yet. Book a confidential online or offline appointment.</PanelText>
                       ) : (
                         upcoming.map((appointment) => (
-                          <div key={appointment.id} className="rounded-lg border border-glass-border/40 bg-background/60 p-4">
+                          <div key={appointment.id} className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-4">
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                               <div>
                                 <div className="font-semibold">{appointment.counsellorName}</div>
@@ -568,7 +568,7 @@ const UserDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <LineChart className="h-5 w-5 text-secondary" />
@@ -589,13 +589,13 @@ const UserDashboard = () => {
                   </Card>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="dashboard-stagger grid md:grid-cols-3 gap-4">
                   <FeatureTile icon={EyeOff} title="Anonymous Therapy" text="Use anonymous mode during counselling when privacy matters most." />
                   <FeatureTile icon={ShieldCheck} title="Counsellor Care Plan" text="Keep session notes, wellness tasks, and follow-up reminders in one private place." />
                   <FeatureTile icon={Users} title="Community Support" text="Join anonymous support groups and healing discussions in peer support." />
                 </div>
 
-                <Card className="glass-card">
+                <Card className="dashboard-card-motion glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Bell className="h-5 w-5 text-primary" />
@@ -608,7 +608,7 @@ const UserDashboard = () => {
                       <PanelText>No notifications yet.</PanelText>
                     ) : (
                       data.notifications.slice(0, 4).map((notification) => (
-                        <div key={notification.id} className="rounded-lg bg-foreground/5 p-3">
+                        <div key={notification.id} className="dashboard-card-motion rounded-lg bg-foreground/5 p-3">
                           <div className="font-medium">{notification.title}</div>
                           <div className="text-sm text-foreground/70">{notification.message}</div>
                           <div className="text-xs text-foreground/50 mt-1">{notification.time}</div>
@@ -619,8 +619,8 @@ const UserDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="therapists" className="space-y-6">
-                <Card className="glass-card">
+              <TabsContent value="therapists" className="dashboard-tab-motion space-y-6">
+                <Card className="dashboard-card-motion glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Search className="h-5 w-5 text-primary" />
@@ -644,9 +644,9 @@ const UserDashboard = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="dashboard-stagger grid md:grid-cols-2 gap-4">
                       {filteredTherapists.map((therapist) => (
-                        <div key={therapist.id} className="rounded-lg border border-glass-border/40 bg-background/60 p-4">
+                        <div key={therapist.id} className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-4">
                           <div className="flex items-start justify-between gap-3">
                             <div>
                               <div className="font-semibold">{therapist.name}</div>
@@ -685,9 +685,9 @@ const UserDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="sessions" className="space-y-6">
-                <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-6">
-                  <Card className="glass-card">
+              <TabsContent value="sessions" className="dashboard-tab-motion space-y-6">
+                <div className="dashboard-stagger grid lg:grid-cols-[1.15fr_0.85fr] gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CalendarDays className="h-5 w-5 text-primary" />
@@ -707,7 +707,7 @@ const UserDashboard = () => {
                   </Card>
 
                   <div className="space-y-4">
-                    <Card className="glass-card">
+                    <Card className="dashboard-card-motion glass-card">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Video className="h-5 w-5 text-secondary" />
@@ -722,7 +722,7 @@ const UserDashboard = () => {
                       </CardContent>
                     </Card>
 
-                    <Card className="glass-card border-primary/25">
+                    <Card className="dashboard-card-motion glass-card border-primary/25">
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-center gap-2 font-semibold">
                           <ShieldCheck className="h-5 w-5 text-primary" />
@@ -737,9 +737,9 @@ const UserDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="wellness" className="space-y-6">
-                <div className="grid lg:grid-cols-[1fr_0.9fr] gap-6">
-                  <Card className="glass-card">
+              <TabsContent value="wellness" className="dashboard-tab-motion space-y-6">
+                <div className="dashboard-stagger grid lg:grid-cols-[1fr_0.9fr] gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Activity className="h-5 w-5 text-primary" />
@@ -748,7 +748,7 @@ const UserDashboard = () => {
                       <CardDescription>Daily mood, stress balance, sleep, anxiety, and progress in one place.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-5">
-                      <div className="grid sm:grid-cols-4 gap-3">
+                      <div className="dashboard-stagger grid sm:grid-cols-4 gap-3">
                         <Tracker label="Mood score" value={`${latestMood}/5`} />
                         <Tracker label="Entries" value={data.stats.moodEntries} />
                         <Tracker label="Streak" value={`${data.stats.wellnessStreak} days`} />
@@ -766,7 +766,7 @@ const UserDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CheckCircle2 className="h-5 w-5 text-secondary" />
@@ -775,7 +775,7 @@ const UserDashboard = () => {
                       <CardDescription>Simple daily habits that support sleep, calm, movement, and hydration.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="dashboard-stagger grid sm:grid-cols-2 gap-3">
                         <MiniHabit icon={Moon} label="Sleep" />
                         <MiniHabit icon={Heart} label="Meditation" />
                         <MiniHabit icon={Dumbbell} label="Exercise" />
@@ -795,9 +795,9 @@ const UserDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="journal" className="space-y-6">
-                <div className="grid lg:grid-cols-[1fr_0.9fr] gap-6">
-                  <Card className="glass-card">
+              <TabsContent value="journal" className="dashboard-tab-motion space-y-6">
+                <div className="dashboard-stagger grid lg:grid-cols-[1fr_0.9fr] gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <NotebookPen className="h-5 w-5 text-primary" />
@@ -821,7 +821,7 @@ const UserDashboard = () => {
                         </Select>
                       </div>
                       <Textarea rows={7} value={journalText} onChange={(event) => setJournalText(event.target.value)} placeholder="Write what happened, what you felt, and what you need next..." />
-                      <div className="grid md:grid-cols-2 gap-3">
+                      <div className="dashboard-stagger grid md:grid-cols-2 gap-3">
                         <Input value={journalGratitude} onChange={(event) => setJournalGratitude(event.target.value)} placeholder="One gratitude note" />
                         <Input value={journalTrigger} onChange={(event) => setJournalTrigger(event.target.value)} placeholder="Trigger or pattern noticed" />
                       </div>
@@ -837,7 +837,7 @@ const UserDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle>Recent Entries</CardTitle>
                       <CardDescription>Your latest private and shared reflections.</CardDescription>
@@ -847,7 +847,7 @@ const UserDashboard = () => {
                         <PanelText>No journal entries yet. Start with one honest sentence.</PanelText>
                       ) : (
                         data.journal.map((entry) => (
-                          <div key={entry.id} className="rounded-lg border border-glass-border/40 bg-background/60 p-4">
+                          <div key={entry.id} className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-4">
                             <div className="flex items-center justify-between gap-3">
                               <div>
                                 <div className="font-medium">{entry.title}</div>
@@ -864,15 +864,15 @@ const UserDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="care" className="space-y-6">
-                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <TabsContent value="care" className="dashboard-tab-motion space-y-6">
+                <div className="dashboard-stagger grid md:grid-cols-2 xl:grid-cols-4 gap-4">
                   <ResourceTile icon={Sparkles} title="Motivation Articles" text="Confidence, mindset, habit building, and small-step growth reads." />
                   <ResourceTile icon={PlayCircle} title="Breathing Practice" text="Box breathing and 4-7-8 calm routines with guided steps." />
                   <ResourceTile icon={BookOpen} title="Self-Care Guides" text="Stress, sleep, relationships, study pressure, and burnout articles." />
                   <ResourceTile icon={Video} title="Wellness Videos" text="Curated YouTube wellness videos from the resources page." />
                 </div>
-                <div className="grid lg:grid-cols-[1fr_0.9fr] gap-6">
-                  <Card className="glass-card">
+                <div className="dashboard-stagger grid lg:grid-cols-[1fr_0.9fr] gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5 text-primary" />
@@ -885,7 +885,7 @@ const UserDashboard = () => {
                         <PanelText>Open the resources page to browse motivation articles, wellness videos, and exercises.</PanelText>
                       ) : (
                         data.recommendedResources.slice(0, 5).map((resource) => (
-                          <div key={resource.id || resource.title} className="rounded-lg border border-glass-border/40 bg-background/60 p-3">
+                          <div key={resource.id || resource.title} className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-3">
                             <div className="font-medium">{resource.title}</div>
                             <div className="text-sm text-foreground/70">{resource.description || resource.category || "Self-care resource"}</div>
                           </div>
@@ -898,7 +898,7 @@ const UserDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card border-emergency/30">
+                  <Card className="dashboard-card-motion glass-card border-emergency/30">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Siren className="h-5 w-5 text-emergency" />
@@ -917,8 +917,8 @@ const UserDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="chat" className="space-y-6">
-                <Card className="glass-card overflow-hidden border-emerald-500/15">
+              <TabsContent value="chat" className="dashboard-tab-motion space-y-6">
+                <Card className="dashboard-card-motion glass-card overflow-hidden border-emerald-500/15">
                   <CardContent className="p-0">
                     <div className="grid min-h-[720px] lg:grid-cols-[360px_1fr]">
                       <aside className="border-b border-glass-border/40 bg-background/95 lg:border-b-0 lg:border-r">
@@ -1051,7 +1051,7 @@ const UserDashboard = () => {
                               </div>
 
                               {(showAttachmentPanel || showEmojiPanel) && (
-                                <div className="mb-3 rounded-2xl border border-white/10 bg-[#111b21] p-3">
+                                <div className="chat-panel-pop mb-3 rounded-2xl border border-white/10 bg-[#111b21] p-3">
                                   {showAttachmentPanel && (
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                       <AttachmentAction icon={File} label="Document" onClick={() => selectAttachmentType("Document")} />
@@ -1143,8 +1143,8 @@ const UserDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="payments" className="space-y-6">
-                <div className="grid md:grid-cols-3 gap-4">
+              <TabsContent value="payments" className="dashboard-tab-motion space-y-6">
+                <div className="dashboard-stagger grid md:grid-cols-3 gap-4">
                   {subscriptionPlans.map((plan) => (
                     <SubscriptionPlanCard
                       key={plan.id}
@@ -1156,8 +1156,8 @@ const UserDashboard = () => {
                     />
                   ))}
                 </div>
-                <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-6">
-                  <Card className="glass-card">
+                <div className="dashboard-stagger grid lg:grid-cols-[0.85fr_1.15fr] gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CreditCard className="h-5 w-5 text-primary" />
@@ -1177,7 +1177,7 @@ const UserDashboard = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  <Card className="glass-card">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle>Invoices</CardTitle>
                       <CardDescription>Session and subscription payment history.</CardDescription>
@@ -1187,7 +1187,7 @@ const UserDashboard = () => {
                         <PanelText>No invoices yet.</PanelText>
                       ) : (
                         (data.payments.invoices || []).map((invoice) => (
-                          <div key={invoice.id} className="rounded-lg bg-foreground/5 p-3 flex items-center justify-between gap-3">
+                          <div key={invoice.id} className="dashboard-card-motion rounded-lg bg-foreground/5 p-3 flex items-center justify-between gap-3">
                             <div>
                               <div className="font-medium">{invoice.id}</div>
                               <div className="text-sm text-foreground/70">{invoice.date}</div>
@@ -1204,9 +1204,9 @@ const UserDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="settings" className="space-y-6">
-                <div className="grid lg:grid-cols-[1fr_0.8fr] gap-6">
-                  <Card className="glass-card">
+              <TabsContent value="settings" className="dashboard-tab-motion space-y-6">
+                <div className="dashboard-stagger grid lg:grid-cols-[1fr_0.8fr] gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Palette className="h-5 w-5 text-primary" />
@@ -1214,13 +1214,13 @@ const UserDashboard = () => {
                       </CardTitle>
                       <CardDescription>Choose a calm, safe, minimal, emotionally comforting dashboard theme.</CardDescription>
                     </CardHeader>
-                    <CardContent className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <CardContent className="dashboard-stagger grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
                       {themeOptions.map((option) => (
                         <button
                           key={option.id}
                           type="button"
                           onClick={() => setTheme(option.id)}
-                          className={`rounded-lg border p-4 text-left transition ${
+                          className={`dashboard-card-motion rounded-lg border p-4 text-left transition ${
                             theme === option.id ? "border-primary bg-primary/10 shadow-sm" : "border-glass-border/40 bg-background/60 hover:border-primary/40"
                           }`}
                         >
@@ -1231,7 +1231,7 @@ const UserDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <IdCard className="h-5 w-5 text-primary" />
@@ -1255,8 +1255,8 @@ const UserDashboard = () => {
                   </Card>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <Card className="glass-card">
+                <div className="dashboard-stagger grid lg:grid-cols-2 gap-6">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Bell className="h-5 w-5 text-primary" />
@@ -1272,7 +1272,7 @@ const UserDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
+                  <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Settings className="h-5 w-5 text-primary" />
@@ -1288,7 +1288,7 @@ const UserDashboard = () => {
                   </Card>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="dashboard-stagger grid md:grid-cols-3 gap-4">
                   <FeatureTile icon={Lock} title="Security" text="JWT authentication, role-based access, and login tracking are enabled." />
                   <FeatureTile icon={Bell} title="Notifications" text="Session reminders, mood checks, counsellor messages, and payment alerts." />
                   <FeatureTile icon={Shield} title="Privacy" text="Journal and session data remain private unless you choose to share." />
@@ -1305,10 +1305,10 @@ const UserDashboard = () => {
 
 function Metric({ title, value, icon: Icon, compact = false }) {
   return (
-    <Card className="glass-card">
+    <Card className="dashboard-card-motion glass-card">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Icon className="h-4 w-4 text-primary" />
+          <Icon className="dashboard-icon-float h-4 w-4 text-primary" />
           {title}
         </CardTitle>
       </CardHeader>
@@ -1326,29 +1326,29 @@ function ProgressRow({ label, value }) {
         <span className="text-foreground/75">{label}</span>
         <span className="font-semibold">{value}%</span>
       </div>
-      <Progress value={value} />
+      <Progress value={value} className="dashboard-progress" />
     </div>
   );
 }
 
 function MiniBar({ label, value }) {
   return (
-    <div className="h-28 rounded-lg bg-foreground/5 p-2 flex flex-col justify-end">
-      <div className="rounded-md bg-primary/70" style={{ height: `${Math.max(12, value)}%` }} />
+    <div className="dashboard-card-motion h-28 rounded-lg bg-foreground/5 p-2 flex flex-col justify-end">
+      <div className="rounded-md bg-primary/70 transition-all duration-500" style={{ height: `${Math.max(12, value)}%` }} />
       <div className="text-center text-[10px] text-foreground/60 mt-2">{label}</div>
     </div>
   );
 }
 
 function PanelText({ children }) {
-  return <div className="rounded-lg border border-glass-border/40 bg-background/60 p-3 text-sm text-foreground/75">{children}</div>;
+  return <div className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-3 text-sm text-foreground/75">{children}</div>;
 }
 
 function FeatureTile({ icon: Icon, title, text }) {
   return (
-    <Card className="glass-card">
+    <Card className="dashboard-card-motion glass-card">
       <CardContent className="p-4">
-        <Icon className="h-5 w-5 text-primary mb-3" />
+        <Icon className="dashboard-icon-float h-5 w-5 text-primary mb-3" />
         <div className="font-semibold">{title}</div>
         <p className="text-sm text-foreground/70 mt-1">{text}</p>
       </CardContent>
@@ -1358,10 +1358,10 @@ function FeatureTile({ icon: Icon, title, text }) {
 
 function ResourceTile({ icon: Icon, title, text }) {
   return (
-    <Card className="glass-card">
+    <Card className="dashboard-card-motion glass-card">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Icon className="h-5 w-5 text-primary" />
+          <Icon className="dashboard-icon-float h-5 w-5 text-primary" />
           {title}
         </CardTitle>
       </CardHeader>
@@ -1372,7 +1372,7 @@ function ResourceTile({ icon: Icon, title, text }) {
 
 function ActionCard({ title, text, action, onClick }) {
   return (
-    <div className="rounded-lg border border-glass-border/40 bg-background/60 p-4">
+    <div className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-4">
       <div className="font-semibold">{title}</div>
       <p className="text-sm text-foreground/70 mt-1 min-h-10">{text}</p>
       <Button size="sm" variant="outline" className="mt-3" onClick={onClick}>
@@ -1384,7 +1384,7 @@ function ActionCard({ title, text, action, onClick }) {
 
 function Tracker({ label, value }) {
   return (
-    <div className="rounded-lg border border-glass-border/40 bg-background/60 p-4 text-center">
+    <div className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-4 text-center">
       <div className="text-xs text-foreground/60">{label}</div>
       <div className="font-semibold mt-1">{value}</div>
     </div>
@@ -1395,7 +1395,7 @@ function SessionCard({ appointment, onBook, onChat }) {
   const isOnline = appointment.mode === "online";
 
   return (
-    <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4">
+    <div className="dashboard-card-motion rounded-xl border border-glass-border/40 bg-background/60 p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1431,7 +1431,7 @@ function SessionCard({ appointment, onBook, onChat }) {
 
 function MiniHabit({ icon: Icon, label }) {
   return (
-    <div className="rounded-lg border border-glass-border/40 bg-background/60 p-3 flex items-center gap-3">
+    <div className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-3 flex items-center gap-3">
       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
         <Icon className="h-4 w-4 text-primary" />
       </span>
@@ -1472,7 +1472,7 @@ function IconButton({ children, title, onClick, dark = false }) {
       title={title}
       aria-label={title}
       onClick={onClick}
-      className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
+      className={`flex h-10 w-10 items-center justify-center rounded-full transition hover:scale-105 active:scale-95 ${
         dark ? "text-slate-200 hover:bg-white/10" : "text-foreground/70 hover:bg-foreground/10"
       }`}
     >
@@ -1483,7 +1483,7 @@ function IconButton({ children, title, onClick, dark = false }) {
 
 function AvatarBadge({ name, online = false }) {
   return (
-    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white shadow-sm">
+    <span className="animated-ring relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white shadow-sm">
       {getInitials(name)}
       {online && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#202c33] bg-emerald-300" />}
     </span>
@@ -1495,7 +1495,7 @@ function ConversationRow({ conversation, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center gap-3 border-b border-glass-border/30 p-4 text-left transition ${
+      className={`chat-row-motion flex w-full items-center gap-3 border-b border-glass-border/30 p-4 text-left transition ${
         active ? "bg-emerald-500/10" : "hover:bg-foreground/5"
       }`}
     >
@@ -1522,7 +1522,7 @@ function ConversationRow({ conversation, active, onClick }) {
 
 function EmptyChatState({ conversation, onQuickReply }) {
   return (
-    <div className="mx-auto flex min-h-[360px] max-w-md flex-col items-center justify-center text-center">
+    <div className="chat-panel-pop mx-auto flex min-h-[360px] max-w-md flex-col items-center justify-center text-center">
       <AvatarBadge name={conversation.name} online={conversation.online} />
       <h3 className="mt-4 text-lg font-semibold">Start chat with {conversation.name}</h3>
       <p className="mt-2 text-sm text-slate-300">
@@ -1548,7 +1548,7 @@ function DatePill({ message }) {
   const label = message?.createdAt ? new Date(message.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "Today";
   return (
     <div className="my-4 flex justify-center">
-      <span className="rounded-full bg-[#182229] px-3 py-1 text-[11px] font-medium text-slate-300 shadow-sm">{label}</span>
+      <span className="chat-panel-pop rounded-full bg-[#182229] px-3 py-1 text-[11px] font-medium text-slate-300 shadow-sm">{label}</span>
     </div>
   );
 }
@@ -1558,7 +1558,7 @@ function AttachmentAction({ icon: Icon, label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-200 transition hover:bg-white/10"
+      className="chat-panel-pop flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-200 transition hover:-translate-y-0.5 hover:bg-white/10"
     >
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-200">
         <Icon className="h-5 w-5" />
@@ -1575,7 +1575,7 @@ function ChatBubble({ message }) {
     : message.time || "";
 
   return (
-    <div className={`flex ${sent ? "justify-end" : "justify-start"}`}>
+    <div className={`flex ${sent ? "chat-bubble-sent justify-end" : "chat-bubble-received justify-start"}`}>
       <div className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-sm ${sent ? "bg-[#005c4b] text-white rounded-br-sm" : "bg-[#202c33] text-slate-100 rounded-bl-sm"}`}>
         <div className={`mb-1 text-xs font-semibold ${sent ? "text-emerald-100" : "text-slate-300"}`}>
           {sent ? "You" : message.from || "Counsellor"}
@@ -1600,7 +1600,7 @@ function ChatBubble({ message }) {
 
 function SubscriptionPlanCard({ plan, selected, onSelect, onPay, disabled }) {
   return (
-    <Card className={`glass-card relative overflow-hidden ${selected ? "border-primary/60 ring-1 ring-primary/30" : ""}`}>
+    <Card className={`dashboard-card-motion glass-card relative overflow-hidden ${selected ? "border-primary/60 ring-1 ring-primary/30" : ""}`}>
       {plan.popular && (
         <Badge className="absolute right-4 top-4 bg-primary/15 text-primary border border-primary/20">
           Popular
@@ -1644,7 +1644,7 @@ function PreferenceToggle({ title, text, checked, onToggle }) {
     <button
       type="button"
       onClick={onToggle}
-      className="flex w-full items-center justify-between gap-4 rounded-lg border border-glass-border/40 bg-background/60 p-4 text-left transition hover:border-primary/40"
+      className="dashboard-card-motion flex w-full items-center justify-between gap-4 rounded-lg border border-glass-border/40 bg-background/60 p-4 text-left transition hover:border-primary/40"
     >
       <span>
         <span className="block font-medium">{title}</span>

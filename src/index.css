@@ -248,6 +248,257 @@ All colors MUST be HSL for consistency.
       linear-gradient(0deg, hsl(225 84% 65% / 0.18) 1px, transparent 1px);
     background-size: 22px 22px;
   }
+
+  @keyframes dashboard-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes dashboard-fade-slide {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dashboard-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes dashboard-shimmer {
+    0% {
+      transform: translateX(-120%);
+    }
+    100% {
+      transform: translateX(120%);
+    }
+  }
+
+  @keyframes dashboard-soft-breathe {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+      box-shadow: 0 0 0 hsl(225 84% 65% / 0);
+    }
+    50% {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 12px 30px hsl(225 84% 65% / 0.16);
+    }
+  }
+
+  @keyframes chat-row-in {
+    from {
+      opacity: 0;
+      transform: translateX(-14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes chat-bubble-in-sent {
+    from {
+      opacity: 0;
+      transform: translateX(14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  @keyframes chat-bubble-in-received {
+    from {
+      opacity: 0;
+      transform: translateX(-14px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  .dashboard-motion {
+    animation: dashboard-fade-slide 0.56s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .dashboard-panel {
+    animation: dashboard-rise 0.58s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .dashboard-tab-motion {
+    animation: dashboard-fade-slide 0.42s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .dashboard-card-motion {
+    animation: dashboard-rise 0.5s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+    transition:
+      transform 0.28s ease,
+      box-shadow 0.28s ease,
+      border-color 0.28s ease,
+      background-color 0.28s ease;
+  }
+
+  .dashboard-card-motion:hover {
+    transform: translateY(-4px);
+    border-color: hsl(var(--primary) / 0.32);
+    box-shadow: 0 18px 50px hsl(225 84% 8% / 0.18);
+  }
+
+  .dashboard-stagger > * {
+    animation: dashboard-rise 0.52s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .dashboard-stagger > *:nth-child(1) {
+    animation-delay: 40ms;
+  }
+
+  .dashboard-stagger > *:nth-child(2) {
+    animation-delay: 90ms;
+  }
+
+  .dashboard-stagger > *:nth-child(3) {
+    animation-delay: 140ms;
+  }
+
+  .dashboard-stagger > *:nth-child(4) {
+    animation-delay: 190ms;
+  }
+
+  .dashboard-stagger > *:nth-child(5) {
+    animation-delay: 240ms;
+  }
+
+  .dashboard-stagger > *:nth-child(6) {
+    animation-delay: 290ms;
+  }
+
+  .dashboard-stagger > *:nth-child(7) {
+    animation-delay: 340ms;
+  }
+
+  .dashboard-stagger > *:nth-child(8) {
+    animation-delay: 390ms;
+  }
+
+  .dashboard-icon-float {
+    animation: dashboard-soft-breathe 3.2s ease-in-out infinite;
+  }
+
+  .dashboard-progress {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dashboard-progress::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.28), transparent);
+    transform: translateX(-120%);
+    animation: dashboard-shimmer 2.8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .dashboard-shell .glass-card {
+    transition:
+      transform 0.28s ease,
+      box-shadow 0.28s ease,
+      border-color 0.28s ease,
+      background-color 0.28s ease;
+  }
+
+  .dashboard-shell .glass-card:hover {
+    border-color: hsl(var(--primary) / 0.28);
+    box-shadow: 0 18px 50px hsl(225 84% 8% / 0.16);
+  }
+
+  .dashboard-shell [role="tab"] {
+    transition:
+      transform 0.22s ease,
+      background-color 0.22s ease,
+      color 0.22s ease,
+      box-shadow 0.22s ease;
+  }
+
+  .dashboard-shell [role="tab"]:hover {
+    transform: translateY(-1px);
+  }
+
+  .dashboard-shell [role="tab"][data-state="active"] {
+    box-shadow: 0 12px 28px hsl(225 84% 8% / 0.18);
+  }
+
+  .chat-row-motion {
+    animation: chat-row-in 0.38s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .chat-bubble-sent {
+    animation: chat-bubble-in-sent 0.32s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .chat-bubble-received {
+    animation: chat-bubble-in-received 0.32s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .chat-panel-pop {
+    animation: dashboard-pop 0.24s cubic-bezier(0.2, 0.75, 0.22, 1) both;
+  }
+
+  .animated-ring {
+    position: relative;
+  }
+
+  .animated-ring::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    border: 1px solid hsl(154 54% 56% / 0.34);
+    opacity: 0.7;
+    animation: dashboard-soft-breathe 3s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dashboard-motion,
+    .dashboard-panel,
+    .dashboard-tab-motion,
+    .dashboard-card-motion,
+    .dashboard-stagger > *,
+    .dashboard-icon-float,
+    .dashboard-progress::after,
+    .chat-row-motion,
+    .chat-bubble-sent,
+    .chat-bubble-received,
+    .chat-panel-pop,
+    .animated-ring::after {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .dashboard-card-motion:hover,
+    .dashboard-shell [role="tab"]:hover {
+      transform: none;
+    }
+  }
 }
 
 @layer base {
