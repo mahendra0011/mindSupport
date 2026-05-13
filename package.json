@@ -12,7 +12,7 @@
     "create:admin": "node backend/scripts/create-admin.js",
     "seed:resources": "node backend/scripts/seed-resources.js",
     "seed:counsellors": "node backend/scripts/seed-counsellors.js",
-    "seed:all": "npm run seed:resources && npm run seed:counsellors",
+    "seed:all": "node backend/scripts/seed-all.js",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

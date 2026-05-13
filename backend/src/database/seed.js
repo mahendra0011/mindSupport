@@ -1,6 +1,22 @@
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
-import { CounsellorApplication, Resource, User } from "../models/index.js";
+import {
+  Appointment,
+  Assessment,
+  CounsellorApplication,
+  Journal,
+  Message,
+  MoodEntry,
+  Notification,
+  OtpVerification,
+  Payment,
+  PeerComment,
+  PeerPost,
+  PeerReport,
+  Resource,
+  Review,
+  User,
+} from "../models/index.js";
 
 const curatedResources = [
   {
@@ -322,22 +338,180 @@ const seededCounsellors = [
   },
 ];
 
-async function seedDatabase() {
-  await Resource.deleteMany({ type: "audio" });
+const SEED_BATCH = "mindsupport-demo-v2";
 
-  for (const resource of curatedResources) {
-    await Resource.updateOne(
-      { title: resource.title },
-      {
-        $set: resource,
-        $setOnInsert: { createdAt: new Date() },
+const collectionModels = [
+  User,
+  CounsellorApplication,
+  Resource,
+  Appointment,
+  Review,
+  Journal,
+  Message,
+  Payment,
+  Notification,
+  PeerPost,
+  PeerComment,
+  PeerReport,
+  MoodEntry,
+  Assessment,
+  OtpVerification,
+];
+
+const seededUsers = [
+  {
+    name: "Ananya Sharma",
+    email: "ananya.sharma@mindsupport.seed",
+    phone: "+91-90000-11001",
+  },
+  {
+    name: "Rohan Patel",
+    email: "rohan.patel@mindsupport.seed",
+    phone: "+91-90000-11002",
+  },
+  {
+    name: "Isha Kapoor",
+    email: "isha.kapoor@mindsupport.seed",
+    phone: "+91-90000-11003",
+  },
+  {
+    name: "Kavya Menon",
+    email: "kavya.menon@mindsupport.seed",
+    phone: "+91-90000-11004",
+  },
+];
+
+const pendingCounsellorApplicants = [
+  {
+    name: "Nitin Bansal",
+    email: "nitin.bansal.pending@mindsupport.seed",
+    phone: "+91-90000-12001",
+    requestedType: "professional",
+    specialization: "Anxiety and adolescent counselling",
+    bio: "Clinical psychology graduate applying to support students with anxiety, panic symptoms, and study pressure.",
+    experience: "3 years",
+    languages: ["English", "Hindi"],
+    sessionPricing: 800,
+    certificateLinks: ["https://example.com/certificates/nitin-bansal"],
+    linkedin: "https://www.linkedin.com/in/nitin-bansal",
+    idDocumentType: "Aadhaar",
+    idDocumentNumber: "SEED-ID-1001",
+    licenseNumber: "PENDING-PSY-2201",
+    education: "MA Clinical Psychology",
+    categories: ["Anxiety", "Student Pressure", "Stress"],
+    availability: ["Tue 10:00-13:00", "Thu 15:00-18:00"],
+    approach: "CBT-informed, structured, and student-friendly support.",
+    emergencyTraining: "Basic crisis response workshop completed",
+    referenceContact: "reference.nitin@example.com",
+    verificationNotes: "Pending license and identity document review.",
+  },
+  {
+    name: "Pooja Kulkarni",
+    email: "pooja.kulkarni.pending@mindsupport.seed",
+    phone: "+91-90000-12002",
+    requestedType: "mentor",
+    specialization: "Breakup recovery and loneliness",
+    bio: "Peer mentor applying to support people through breakup recovery, loneliness, and confidence rebuilding.",
+    experience: "2 years",
+    languages: ["English", "Hindi", "Marathi"],
+    sessionPricing: 350,
+    certificateLinks: [],
+    linkedin: "https://www.linkedin.com/in/pooja-kulkarni",
+    idDocumentType: "Passport",
+    idDocumentNumber: "SEED-ID-1002",
+    licenseNumber: "",
+    education: "Peer support facilitation course",
+    categories: ["Relationships", "Loneliness", "Self Confidence"],
+    availability: ["Mon 18:00-21:00", "Sat 10:00-13:00"],
+    approach: "Empathetic peer support with privacy-first check-ins.",
+    emergencyTraining: "Platform safety and escalation training pending",
+    referenceContact: "reference.pooja@example.com",
+    verificationNotes: "Pending identity verification and mentor interview.",
+  },
+];
+
+function daysFromToday(offset) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return date.toISOString().slice(0, 10);
+}
+
+function seedAvatar(name) {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8b5cf6&color=fff`;
+}
+
+async function ensureMongoCollections() {
+  for (const model of collectionModels) {
+    try {
+      await model.createCollection();
+    } catch (error) {
+      if (error?.code !== 48 && !String(error?.message || "").toLowerCase().includes("already exists")) {
+        throw error;
+      }
+    }
+  }
+}
+
+async function upsertSeedUser(profile, password = crypto.randomUUID()) {
+  const email = profile.email.trim().toLowerCase();
+  const passwordHash = await bcrypt.hash(password, 12);
+  await User.updateOne(
+    { email },
+    {
+      $set: {
+        ...profile,
+        email,
+        role: profile.role || "user",
+        status: profile.status || "active",
+        otpVerified: true,
+        otpVerifiedAt: new Date(),
       },
-      { upsert: true }
-    );
+      $setOnInsert: { passwordHash, createdAt: new Date() },
+    },
+    { upsert: true }
+  );
+  return User.findOne({ email });
+}
+
+async function seedAdminAccount() {
+  const email = (process.env.ADMIN_EMAIL || process.env.SEED_ADMIN_EMAIL || "").trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD || process.env.SEED_ADMIN_PASSWORD || "";
+  const name = (process.env.ADMIN_NAME || process.env.SEED_ADMIN_NAME || "MindSupport Admin").trim();
+
+  if (!email || !password) {
+    return { seeded: false, reason: "ADMIN_EMAIL and ADMIN_PASSWORD were not provided" };
   }
 
+  if (password.length < 8) {
+    return { seeded: false, reason: "ADMIN_PASSWORD must be at least 8 characters" };
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  await User.updateOne(
+    { email },
+    {
+      $set: {
+        name,
+        email,
+        passwordHash,
+        role: "admin",
+        status: "active",
+        verificationStatus: "approved",
+        otpVerified: true,
+        otpVerifiedAt: new Date(),
+      },
+      $setOnInsert: { createdAt: new Date() },
+    },
+    { upsert: true }
+  );
+
+  return { seeded: true, email };
+}
+
+async function seedApprovedCounsellors() {
+  const counsellorDocs = [];
+
   for (const counsellor of seededCounsellors) {
-    const passwordHash = await bcrypt.hash(crypto.randomUUID(), 12);
     const userUpdate = {
       ...counsellor,
       role: "counsellor",
@@ -346,19 +520,12 @@ async function seedDatabase() {
       otpVerified: true,
       otpVerifiedAt: new Date(),
       platformCommission: 15,
-      meetLink: "https://meet.google.com/new",
-      profilePhotoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(counsellor.name)}&background=8b5cf6&color=fff`,
+      meetLink: process.env.GOOGLE_MEET_DEFAULT_LINK || "https://meet.google.com/new",
+      profilePhotoUrl: seedAvatar(counsellor.name),
       idVerification: "Seed verification record",
     };
-    await User.updateOne(
-      { email: counsellor.email },
-      {
-        $set: userUpdate,
-        $setOnInsert: { passwordHash, createdAt: new Date() },
-      },
-      { upsert: true }
-    );
-    const user = await User.findOne({ email: counsellor.email });
+    const user = await upsertSeedUser(userUpdate);
+    counsellorDocs.push(user);
     await CounsellorApplication.updateOne(
       { user: user._id },
       {
@@ -392,6 +559,497 @@ async function seedDatabase() {
       { upsert: true }
     );
   }
+
+  return counsellorDocs;
+}
+
+async function seedPendingCounsellorApplications() {
+  const applicantDocs = [];
+
+  for (const applicant of pendingCounsellorApplicants) {
+    const user = await upsertSeedUser({
+      name: applicant.name,
+      email: applicant.email,
+      phone: applicant.phone,
+      role: "counsellor",
+      status: "pending",
+      specialization: applicant.specialization,
+      bio: applicant.bio,
+      counsellorType: applicant.requestedType,
+      verificationStatus: "pending",
+      experience: applicant.experience,
+      languages: applicant.languages,
+      sessionPricing: applicant.sessionPricing,
+      profilePhotoUrl: seedAvatar(applicant.name),
+      certificateLinks: applicant.certificateLinks,
+      linkedin: applicant.linkedin,
+      licenseNumber: applicant.licenseNumber,
+      idVerification: `${applicant.idDocumentType}: ${applicant.idDocumentNumber}`,
+      categories: applicant.categories,
+      availability: applicant.availability,
+    });
+    applicantDocs.push(user);
+
+    await CounsellorApplication.updateOne(
+      { user: user._id },
+      {
+        $set: {
+          user: user._id,
+          status: "pending",
+          requestedType: applicant.requestedType,
+          fullName: applicant.name,
+          bio: applicant.bio,
+          specialization: applicant.specialization,
+          experience: applicant.experience,
+          languages: applicant.languages,
+          sessionPricing: applicant.sessionPricing,
+          profilePhotoUrl: seedAvatar(applicant.name),
+          certificateLinks: applicant.certificateLinks,
+          linkedin: applicant.linkedin,
+          idDocumentType: applicant.idDocumentType,
+          idDocumentNumber: applicant.idDocumentNumber,
+          licenseNumber: applicant.licenseNumber,
+          education: applicant.education,
+          categories: applicant.categories,
+          availability: applicant.availability,
+          approach: applicant.approach,
+          emergencyTraining: applicant.emergencyTraining,
+          referenceContact: applicant.referenceContact,
+          verificationNotes: applicant.verificationNotes,
+          adminNotes: "",
+        },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true }
+    );
+  }
+
+  return applicantDocs;
+}
+
+async function resetSeededActivity(seedUsers, seedCounsellors, adminResult) {
+  const userIds = seedUsers.map((user) => user._id);
+  const counsellorIds = seedCounsellors.map((user) => user._id);
+  const participantIds = [...userIds, ...counsellorIds];
+
+  if (adminResult?.email) {
+    const admin = await User.findOne({ email: adminResult.email }).select("_id");
+    if (admin) participantIds.push(admin._id);
+  }
+
+  await Promise.all([
+    Review.deleteMany({ $or: [{ student: { $in: userIds } }, { counsellor: { $in: counsellorIds } }] }),
+    Appointment.deleteMany({ $or: [{ student: { $in: userIds } }, { counsellor: { $in: counsellorIds } }] }),
+    Journal.deleteMany({ user: { $in: userIds } }),
+    Message.deleteMany({ $or: [{ from: { $in: participantIds } }, { to: { $in: participantIds } }] }),
+    Payment.deleteMany({ user: { $in: userIds } }),
+    Notification.deleteMany({ $or: [{ user: { $in: participantIds } }, { "metadata.seedBatch": SEED_BATCH }] }),
+    OtpVerification.deleteMany({ user: { $in: participantIds } }),
+    MoodEntry.deleteMany({ user: { $in: userIds } }),
+    Assessment.deleteMany({ user: { $in: userIds } }),
+    PeerReport.deleteMany({ reporter_uid: /^seed:/ }),
+    PeerComment.deleteMany({ author_uid: /^seed:/ }),
+    PeerPost.deleteMany({ author_uid: /^seed:/ }),
+  ]);
+}
+
+async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
+  const [ananya, rohan, isha, kavya] = seedUsers;
+  const counsellorByEmail = Object.fromEntries(seedCounsellors.map((counsellor) => [counsellor.email, counsellor]));
+  const aisha = counsellorByEmail["aisha.mehra@mindsupport.seed"];
+  const rahul = counsellorByEmail["rahul.verma@mindsupport.seed"];
+  const neha = counsellorByEmail["neha.iyer@mindsupport.seed"];
+  const priya = counsellorByEmail["priya.nair@mindsupport.seed"];
+  const arjun = counsellorByEmail["arjun.sen@mindsupport.seed"];
+
+  const appointments = await Appointment.insertMany([
+    {
+      student: ananya._id,
+      studentEmail: ananya.email,
+      counsellor: aisha._id,
+      counsellorName: aisha.name,
+      date: daysFromToday(1),
+      time: "15:00",
+      mode: "google-meet",
+      status: "confirmed",
+      concern: "Exam anxiety and sleep disruption",
+      notes: "Prepare grounding exercise and follow-up plan.",
+      meetingProvider: "google-meet",
+      meetingLink: aisha.meetLink || "https://meet.google.com/new",
+    },
+    {
+      student: ananya._id,
+      studentEmail: ananya.email,
+      counsellor: neha._id,
+      counsellorName: neha.name,
+      date: daysFromToday(-5),
+      time: "11:30",
+      mode: "google-meet",
+      status: "completed",
+      concern: "Low motivation and social withdrawal",
+      notes: "Completed session. Continue daily mood tracking.",
+      meetingProvider: "google-meet",
+      meetingLink: neha.meetLink || "https://meet.google.com/new",
+    },
+    {
+      student: rohan._id,
+      studentEmail: rohan.email,
+      counsellor: rahul._id,
+      counsellorName: rahul.name,
+      date: daysFromToday(2),
+      time: "18:30",
+      mode: "google-meet",
+      status: "pending",
+      concern: "Career pressure and interview stress",
+      notes: "Awaiting counsellor confirmation.",
+      meetingProvider: "google-meet",
+      meetingLink: rahul.meetLink || "https://meet.google.com/new",
+    },
+    {
+      student: isha._id,
+      studentEmail: isha.email,
+      counsellor: priya._id,
+      counsellorName: priya.name,
+      date: daysFromToday(-12),
+      time: "09:30",
+      mode: "google-meet",
+      status: "completed",
+      concern: "Grounding support for trauma triggers",
+      notes: "Safety plan reviewed and resources shared.",
+      meetingProvider: "google-meet",
+      meetingLink: priya.meetLink || "https://meet.google.com/new",
+    },
+    {
+      student: kavya._id,
+      studentEmail: kavya.email,
+      counsellor: arjun._id,
+      counsellorName: arjun.name,
+      date: daysFromToday(4),
+      time: "12:00",
+      mode: "in-person",
+      status: "confirmed",
+      concern: "Burnout, sleep routine, and workload balance",
+      notes: "Bring sleep log for review.",
+      meetingProvider: "in-person",
+      meetingLink: "",
+    },
+  ]);
+
+  await Review.insertMany([
+    {
+      appointment: appointments[1]._id,
+      student: ananya._id,
+      counsellor: neha._id,
+      professionalism: 5,
+      helpfulness: 5,
+      communication: 4,
+      averageRating: 4.7,
+      comment: "Clear recommendations and very calm follow-up.",
+      anonymous: true,
+      status: "approved",
+    },
+    {
+      appointment: appointments[3]._id,
+      student: isha._id,
+      counsellor: priya._id,
+      professionalism: 5,
+      helpfulness: 5,
+      communication: 5,
+      averageRating: 5,
+      comment: "Helped me create a realistic safety plan.",
+      anonymous: true,
+      status: "approved",
+    },
+  ]);
+
+  await Journal.insertMany([
+    {
+      user: ananya._id,
+      title: "Before tomorrow's session",
+      content: "I feel nervous about exams, but the breathing exercise helped tonight.",
+      mood: "anxious",
+      gratitude: "My friend checked in after class.",
+      trigger: "Late-night study pressure",
+      sharedWithCounsellor: true,
+      sharedAt: new Date(),
+    },
+    {
+      user: ananya._id,
+      title: "Small win",
+      content: "Finished one chapter and took a walk instead of skipping lunch.",
+      mood: "hopeful",
+      gratitude: "A quiet evening.",
+      trigger: "Revision backlog",
+      sharedWithCounsellor: false,
+    },
+    {
+      user: rohan._id,
+      title: "Interview pressure",
+      content: "I keep comparing myself with classmates. Need to plan one practical next step.",
+      mood: "stressed",
+      gratitude: "Updated my resume.",
+      trigger: "Placement group messages",
+      sharedWithCounsellor: false,
+    },
+    {
+      user: isha._id,
+      title: "Grounding worked",
+      content: "The 5-4-3-2-1 grounding technique helped when I felt overwhelmed.",
+      mood: "steady",
+      gratitude: "Music and a supportive teacher.",
+      trigger: "Crowded hallway",
+      sharedWithCounsellor: true,
+      sharedAt: new Date(),
+    },
+  ]);
+
+  const moodDocs = [];
+  const moodPatterns = [
+    { user: ananya, moods: [4, 3, 4, 4, 5, 3, 4] },
+    { user: rohan, moods: [3, 3, 4, 2, 3, 4, 3] },
+    { user: isha, moods: [4, 4, 5, 4, 3, 4, 5] },
+    { user: kavya, moods: [3, 4, 3, 4, 4, 5, 4] },
+  ];
+  for (const pattern of moodPatterns) {
+    pattern.moods.forEach((mood, index) => {
+      moodDocs.push({
+        user: pattern.user._id,
+        userKey: pattern.user.email,
+        mood,
+        note: ["Good day overall", "A bit stressed", "Used breathing practice", "Slept better"][index % 4],
+        date: daysFromToday(index - 6),
+      });
+    });
+  }
+  await MoodEntry.insertMany(moodDocs);
+
+  await Assessment.insertMany([
+    {
+      user: ananya._id,
+      userKey: ananya.email,
+      type: "phq9",
+      responses: { q1: 1, q2: 1, q3: 2, q4: 1, q5: 0, q6: 1, q7: 1, q8: 0, q9: 0 },
+      score: 7,
+      level: "low",
+      recommendations: ["Continue daily mood tracking", "Book a follow-up if sleep worsens"],
+    },
+    {
+      user: rohan._id,
+      userKey: rohan.email,
+      type: "gad7",
+      responses: { q1: 2, q2: 2, q3: 1, q4: 2, q5: 1, q6: 1, q7: 1 },
+      score: 10,
+      level: "moderate",
+      recommendations: ["Try the stress management guide", "Discuss interview anxiety in the next session"],
+    },
+    {
+      user: isha._id,
+      userKey: isha.email,
+      type: "phq9",
+      responses: { q1: 1, q2: 0, q3: 1, q4: 1, q5: 0, q6: 0, q7: 1, q8: 0, q9: 0 },
+      score: 4,
+      level: "low",
+      recommendations: ["Keep grounding resources available", "Share triggers when comfortable"],
+    },
+  ]);
+
+  await OtpVerification.create({
+    user: ananya._id,
+    channel: "email",
+    destination: ananya.email,
+    codeHash: await bcrypt.hash(crypto.randomUUID(), 10),
+    purpose: "seed-expired-verification-demo",
+    expiresAt: new Date(Date.now() - 60 * 60 * 1000),
+    consumedAt: new Date(),
+  });
+
+  await Message.insertMany([
+    {
+      from: aisha._id,
+      to: ananya._id,
+      appointment: appointments[0]._id,
+      subject: "Session reminder",
+      text: "Hi Ananya, your Google Meet session is confirmed for tomorrow at 3:00 PM.",
+      readBy: [aisha._id],
+    },
+    {
+      from: ananya._id,
+      to: aisha._id,
+      appointment: appointments[0]._id,
+      subject: "Sleep question",
+      text: "Thank you. I will bring my mood notes. Sleep was difficult yesterday.",
+      readBy: [ananya._id, aisha._id],
+    },
+    {
+      from: rahul._id,
+      to: rohan._id,
+      appointment: appointments[2]._id,
+      subject: "Booking request",
+      text: "I received your request. Please share one interview situation you want to practice.",
+      task: "Write down one interview question that feels difficult.",
+      readBy: [rahul._id],
+    },
+    {
+      from: priya._id,
+      to: isha._id,
+      appointment: appointments[3]._id,
+      subject: "Grounding plan",
+      text: "Keep the grounding card nearby. Message me after trying it twice this week.",
+      fileName: "grounding-plan.pdf",
+      fileUrl: "https://example.com/resources/grounding-plan.pdf",
+      readBy: [priya._id, isha._id],
+    },
+  ]);
+
+  await Payment.insertMany([
+    {
+      user: ananya._id,
+      appointment: appointments[0]._id,
+      invoiceNumber: "MS-SEED-INV-1001",
+      amount: 900,
+      currency: "INR",
+      kind: "session",
+      plan: "Google Meet session",
+      description: "Confirmed anxiety counselling session",
+      status: "paid",
+      paidAt: new Date(),
+    },
+    {
+      user: ananya._id,
+      invoiceNumber: "MS-SEED-INV-1002",
+      amount: 999,
+      currency: "INR",
+      kind: "subscription",
+      plan: "Premium Care Monthly",
+      description: "Unlimited chat, discounted sessions, and priority booking",
+      status: "paid",
+      paidAt: new Date(),
+    },
+    {
+      user: isha._id,
+      appointment: appointments[3]._id,
+      invoiceNumber: "MS-SEED-INV-1003",
+      amount: 1300,
+      currency: "INR",
+      kind: "session",
+      plan: "Trauma support session",
+      description: "Completed Google Meet counselling session",
+      status: "paid",
+      paidAt: new Date(),
+    },
+  ]);
+
+  await Notification.insertMany([
+    {
+      user: ananya._id,
+      type: "session",
+      title: "Upcoming Google Meet session",
+      message: "Your session with Dr. Aisha Mehra starts tomorrow at 3:00 PM.",
+      metadata: { seedBatch: SEED_BATCH },
+    },
+    {
+      user: rohan._id,
+      type: "booking",
+      title: "Booking request pending",
+      message: "Rahul Verma will accept or reschedule your career pressure session soon.",
+      metadata: { seedBatch: SEED_BATCH },
+    },
+    {
+      audienceRole: "admin",
+      type: "application",
+      title: "Counsellor applications waiting",
+      message: "Two seeded counsellor verification requests are pending review.",
+      metadata: { seedBatch: SEED_BATCH },
+    },
+    {
+      audienceRole: "all",
+      type: "announcement",
+      title: "Safety reminder",
+      message: "MindSupport provides emotional support and does not replace emergency medical care.",
+      metadata: { seedBatch: SEED_BATCH },
+    },
+  ]);
+
+  const post = await PeerPost.create({
+    author_uid: "seed:ananya",
+    alias: "QuietStar",
+    category: "Student Pressure",
+    content: "Sharing a tiny win: I studied for 25 minutes and then actually rested.",
+    up: 18,
+    down: 0,
+  });
+  const comment = await PeerComment.create({
+    post_id: post._id,
+    author_uid: "seed:rohan",
+    alias: "SteadySteps",
+    content: "This helped me try the same 25 minute focus block today.",
+  });
+  await PeerReport.create({
+    post_id: post._id,
+    comment_id: comment._id,
+    reporter_uid: "seed:moderation",
+    reason: "Seed report for admin moderation workflow",
+    status: "reviewing",
+  });
+
+  if (adminResult?.email) {
+    const admin = await User.findOne({ email: adminResult.email });
+    if (admin) {
+      await Notification.create({
+        user: admin._id,
+        type: "security",
+        title: "Admin account ready",
+        message: "Manual admin login has been seeded from environment variables.",
+        metadata: { seedBatch: SEED_BATCH },
+      });
+    }
+  }
+}
+
+async function getCollectionCounts() {
+  const entries = await Promise.all(
+    collectionModels.map(async (model) => [model.collection.collectionName, await model.countDocuments()])
+  );
+  return Object.fromEntries(entries);
+}
+
+async function seedDatabase() {
+  await ensureMongoCollections();
+  await Resource.deleteMany({ type: "audio" });
+
+  for (const resource of curatedResources) {
+    await Resource.updateOne(
+      { title: resource.title },
+      {
+        $set: resource,
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true }
+    );
+  }
+
+  const admin = await seedAdminAccount();
+  const seedUserDocs = [];
+  for (const user of seededUsers) {
+    seedUserDocs.push(
+      await upsertSeedUser({
+        ...user,
+        role: "user",
+        status: "active",
+        verificationStatus: "none",
+      })
+    );
+  }
+
+  const approvedCounsellors = await seedApprovedCounsellors();
+  const pendingApplicants = await seedPendingCounsellorApplications();
+  await resetSeededActivity(seedUserDocs, [...approvedCounsellors, ...pendingApplicants], admin);
+  await seedPlatformActivity(seedUserDocs, approvedCounsellors, admin);
+
+  return {
+    admin,
+    collections: await getCollectionCounts(),
+  };
 }
 
 export { seedDatabase };

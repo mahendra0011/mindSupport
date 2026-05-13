@@ -9,13 +9,14 @@ mindSupport-main/
       create-admin.js            # Manual admin account creation
       seed-resources.js          # Manual resource seed runner for Atlas/Render data
       seed-counsellors.js        # Manual approved counsellor seed runner
+      seed-all.js                # Full MongoDB Atlas/Render seed runner
     src/
       app.js                     # Express app assembly and shared helpers
       config/
         env.js                   # Environment variables
       database/
         connect.js               # MongoDB connection lifecycle
-        seed.js                  # Starter wellness resource seeding
+        seed.js                  # Idempotent collection and launch-data seeding
       models/
         index.js                 # Mongoose schemas/models
       realtime/

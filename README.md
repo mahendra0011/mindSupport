@@ -71,13 +71,14 @@ mindSupport-main/
       create-admin.js          # Manual admin account creation
       seed-resources.js        # Manual resource seed runner
       seed-counsellors.js      # Manual approved counsellor seed runner
+      seed-all.js              # Full Atlas/Render seed runner
     src/
       app.js                   # Express app, middleware, helpers
       config/
         env.js                 # Environment config
       database/
         connect.js             # MongoDB connection
-        seed.js                # Starter resource seeding
+        seed.js                # Idempotent collection and demo-data seed
       models/
         index.js               # Mongoose schemas and models
       realtime/
@@ -160,6 +161,9 @@ CLIENT_ORIGIN=http://localhost:8080
 MONGODB_URI=mongodb://127.0.0.1:27017/mindsupport
 JWT_SECRET=replace-with-a-long-random-secret
 JWT_EXPIRES_IN=7d
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+ADMIN_NAME=MindSupport Admin
 GOOGLE_MEET_DEFAULT_LINK=
 YOUTUBE_API_KEY=your-youtube-data-api-key
 ```
@@ -206,6 +210,12 @@ Or with environment variables:
 ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner Name" npm run create:admin
 ```
 
+On Windows PowerShell:
+
+```powershell
+$env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $env:ADMIN_NAME="Owner Name"; npm run create:admin
+```
+
 ## Scripts
 
 | Script | Purpose |
@@ -218,7 +228,7 @@ ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner N
 | `npm run create:admin` | Create or update an admin account |
 | `npm run seed:resources` | Seed video/article resources into the configured MongoDB |
 | `npm run seed:counsellors` | Seed approved counsellors into the configured MongoDB |
-| `npm run seed:all` | Seed resources and counsellors |
+| `npm run seed:all` | Create MongoDB collections and seed full launch data |
 | `npm run build` | Build production frontend |
 | `npm run preview` | Preview production frontend |
 | `npm run lint` | Run ESLint |
@@ -289,13 +299,27 @@ Set `YOUTUBE_API_KEY` to enable live YouTube Data API searches in the Resources 
 
 ## Seed Data
 
-The backend seeds curated video/article resources and approved counsellor marketplace profiles on startup, so a Render deploy connected to MongoDB Atlas will show useful launch data automatically. To seed manually into the MongoDB configured by `MONGODB_URI`, run:
+The backend creates the MongoDB collections and seeds launch data on startup, so a Render deploy connected to MongoDB Atlas will show useful data automatically. The full seed covers separate collections for users, counsellor applications, resources, appointments, reviews, journals, messages, payments, notifications, peer support, mood entries, assessments, and OTP records.
+
+To seed manually into the MongoDB configured by `MONGODB_URI`, run:
 
 ```bash
 npm run seed:all
 ```
 
-For Atlas, run the command with your Atlas connection string in the environment or set `MONGODB_URI` in Render.
+To include a manual admin account in the seed, provide admin credentials through environment variables:
+
+```bash
+ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner Name" npm run seed:all
+```
+
+On Windows PowerShell:
+
+```powershell
+$env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $env:ADMIN_NAME="Owner Name"; npm run seed:all
+```
+
+For Atlas, set `MONGODB_URI` to your Atlas connection string locally or in Render. Never commit real passwords or API keys to GitHub.
 
 ## Safety Notice
 
