@@ -23,9 +23,9 @@ This project is JavaScript-only and MongoDB-only.
 - User signup and counsellor signup only.
 - Counsellor accounts are created in a pending state and cannot access the counsellor dashboard until an admin approves them.
 - Admin dashboard for users, counsellor approvals, reports, sessions, revenue, resources, notifications, analytics, and review moderation.
-- User dashboard for booking, wellness status, mood tracking, journal, resources, payments, notifications, chat, anonymous counselling, and emergency support.
+- User dashboard for booking, wellness status, mood tracking, journal, resources, session payments, notifications, chat, anonymous counselling, and emergency support.
 - Counsellor dashboard for booking requests, patient management, session notes, schedule, messaging, reviews, earnings, and Google Meet sessions.
-- Public counsellor marketplace with filters, badges, reviews, and booking.
+- Counselling marketplace with full counsellor profiles, profile photos, locations, short/medium/long-term plans, booking modes, and support progress tracking.
 - Wellness dashboard with mood tracking, PHQ-9/GAD-7 style assessments, resources, breathing support, emergency hotlines, and notifications.
 - MongoDB-only persistence through structured Mongoose models.
 - Proper backend folder structure with route modules instead of putting everything in one `server.js`.
@@ -110,14 +110,13 @@ mindSupport-main/
       utils.js                 # UI utilities
     pages/
       AdminDashboard.jsx
-      ConfidentialBooking.jsx
+      Counselling.jsx
       CounsellorDashboard.jsx
       Dashboard.jsx
       Index.jsx
       Login.jsx
       MyWellness.jsx
       PeerSupport.jsx
-      Pricing.jsx
       ResourceHub.jsx
       Signup.jsx
       UserDashboard.jsx
@@ -254,11 +253,11 @@ $env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $en
 | `/user` | User only |
 | `/counsellor` | Approved counsellor only |
 | `/admin` | Admin only |
-| `/book` | User and admin |
+| `/counselling` | User only |
+| `/book` | User only, redirects to the counselling booking experience |
 | `/wellness` | User and admin |
 | `/peer` | User and admin |
 | `/resources` | Public resources |
-| `/pricing` | Public pricing |
 
 ## API Highlights
 
@@ -276,8 +275,9 @@ $env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $en
 | `POST` | `/api/counsellor-applications` | Submit counsellor verification request |
 | `GET` | `/api/admin/counsellor-applications` | List counsellor applications |
 | `PATCH` | `/api/admin/counsellor-applications/:id` | Approve or reject counsellor |
-| `GET` | `/api/counsellors` | Browse counsellors |
-| `POST` | `/api/appointments` | Book a session |
+| `GET` | `/api/counsellors` | Browse counsellors and support plans |
+| `GET` | `/api/counsellors/:id` | View one counsellor profile |
+| `POST` | `/api/appointments` | Book a session with plan, mode, date, and time |
 | `PUT` | `/api/appointments/:id` | Update session status |
 | `POST` | `/api/meet/create` | Create or open Google Meet session |
 | `POST` | `/api/messages` | Send secure message |
@@ -295,13 +295,13 @@ $env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $en
 
 Set `GOOGLE_MEET_DEFAULT_LINK` if you want all online sessions to use a fixed institutional Meet room.
 
-If it is empty, the app uses:
+Use a reusable Google Meet room link such as:
 
 ```text
-https://meet.google.com/new
+https://meet.google.com/abc-defg-hij
 ```
 
-That lets a signed-in counsellor create or start a new Meet session.
+Do not use `https://meet.google.com/new` as a saved link. That URL creates a different new room for each person, so the counsellor and user may not meet each other. Counsellors can also paste a shared room link in their dashboard settings or on an individual session before opening the Meet.
 
 ## YouTube Resources
 

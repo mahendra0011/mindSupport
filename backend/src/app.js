@@ -66,7 +66,31 @@ function todayYMD() {
 }
 
 function buildMeetLink() {
-  return process.env.GOOGLE_MEET_DEFAULT_LINK?.trim() || "https://meet.google.com/new";
+  return normalizeMeetLink(process.env.GOOGLE_MEET_DEFAULT_LINK);
+}
+
+function normalizeMeetLink(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(candidate);
+    if (url.hostname !== "meet.google.com") return "";
+    const pathname = url.pathname.replace(/\/+$/, "");
+    if (!pathname || pathname === "/new") return "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
+function resolveSharedMeetLink(...candidates) {
+  for (const candidate of candidates) {
+    const link = normalizeMeetLink(candidate);
+    if (link) return link;
+  }
+  return "";
 }
 
 function publicUser(user) {
@@ -74,6 +98,27 @@ function publicUser(user) {
   const raw = user.toJSON ? user.toJSON() : user;
   delete raw.passwordHash;
   return raw;
+}
+
+function normalizeUsername(value, fallback = "") {
+  const base = String(value || fallback || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "")
+    .slice(0, 24);
+  return base && base.length >= 3 ? base : "";
+}
+
+async function makeUniqueUsername(seed, excludeId) {
+  const base = normalizeUsername(seed, "mindsupport");
+  const root = base || `user${Math.floor(1000 + Math.random() * 9000)}`;
+  for (let index = 0; index < 20; index += 1) {
+    const candidate = index === 0 ? root : `${root}${index + 1}`;
+    const query = { username: candidate };
+    if (excludeId) query._id = { $ne: excludeId };
+    const exists = await User.exists(query);
+    if (!exists) return candidate;
+  }
+  return `${root}${Date.now().toString().slice(-5)}`;
 }
 
 function listFromInput(value) {
@@ -204,6 +249,11 @@ function normalizeAppointment(appointment, viewer) {
     mode: raw.mode,
     status: raw.status,
     concern: raw.concern || "",
+    supportPlanId: raw.supportPlanId || "",
+    supportPlanName: raw.supportPlanName || "",
+    supportPlanDuration: raw.supportPlanDuration || "",
+    supportPlanCadence: raw.supportPlanCadence || "",
+    supportPlanBestFor: raw.supportPlanBestFor || [],
     notes: raw.notes || "",
     isAnonymous: Boolean(raw.isAnonymous),
     anonymousAlias: raw.anonymousAlias || "Anonymous user",
@@ -277,19 +327,48 @@ function normalizeMessage(message, viewer) {
   const raw = message.toObject ? message.toObject({ virtuals: true }) : message;
   const from = raw.from && typeof raw.from === "object" ? raw.from : null;
   const to = raw.to && typeof raw.to === "object" ? raw.to : null;
+  const replyTo = raw.replyTo && typeof raw.replyTo === "object" ? raw.replyTo : null;
   const viewerId = viewer?._id ? String(viewer._id) : "";
   const readBy = (raw.readBy || []).map((item) => String(item?._id || item));
+  const deleted = Boolean(raw.deletedAt);
+  const reactions = (raw.reactions || []).map((reaction) => ({
+    userId: String(reaction.user?._id || reaction.user || ""),
+    emoji: reaction.emoji || "",
+    createdAt: reaction.createdAt,
+    mine: viewerId ? String(reaction.user?._id || reaction.user || "") === viewerId : false,
+  }));
   return {
     id: String(raw._id || raw.id),
     fromId: from?._id ? String(from._id) : String(raw.from || ""),
     toId: to?._id ? String(to._id) : String(raw.to || ""),
     from: from?.name || "User",
+    fromUsername: from?.username || "",
     to: to?.name || "User",
+    toUsername: to?.username || "",
     subject: raw.subject || "Message",
-    text: raw.text || "",
+    text: deleted ? "This message was deleted" : raw.text || "",
     task: raw.task || "",
     fileName: raw.fileName || "",
     fileUrl: raw.fileUrl || "",
+    replyTo: replyTo
+      ? {
+          id: String(replyTo._id || replyTo.id),
+          from: replyTo.from?.name || "User",
+          text: replyTo.deletedAt ? "Deleted message" : String(replyTo.text || "").slice(0, 180),
+        }
+      : null,
+    reactions,
+    reactionSummary: reactions.reduce((summary, reaction) => {
+      if (!reaction.emoji) return summary;
+      summary[reaction.emoji] = (summary[reaction.emoji] || 0) + 1;
+      return summary;
+    }, {}),
+    edited: Boolean(raw.editedAt),
+    editedAt: raw.editedAt,
+    deleted,
+    deletedAt: raw.deletedAt,
+    canEdit: viewerId ? String(raw.from?._id || raw.from) === viewerId && !deleted : false,
+    canDelete: viewerId ? [String(raw.from?._id || raw.from), String(raw.to?._id || raw.to)].includes(viewerId) && !deleted : false,
     unread: viewerId ? !readBy.includes(viewerId) && String(raw.to?._id || raw.to) === viewerId : false,
     direction: viewerId && String(raw.from?._id || raw.from) === viewerId ? "sent" : "received",
     createdAt: raw.createdAt,
@@ -307,6 +386,9 @@ function normalizePayment(payment) {
     amount: raw.amount || 0,
     currency: raw.currency || "INR",
     kind: raw.kind || "session",
+    platformCommissionRate: raw.platformCommissionRate || 20,
+    platformFee: raw.platformFee || 0,
+    counsellorPayout: raw.counsellorPayout || 0,
     plan: raw.plan || "Session",
     description: raw.description || "",
     status: raw.status || "paid",
@@ -383,7 +465,8 @@ async function findUserByIdentifier(identifier) {
   const value = String(identifier || "").trim();
   if (!value) return null;
   if (mongoose.isValidObjectId(value)) return User.findById(value);
-  return User.findOne({ email: value.toLowerCase() });
+  const normalized = value.toLowerCase();
+  return User.findOne({ $or: [{ email: normalized }, { username: normalized }] });
 }
 
 async function findCounsellor(counsellorId) {
@@ -477,6 +560,8 @@ registerRoutes(app, {
   badgeForCounsellorType,
   bcrypt,
   buildMeetLink,
+  normalizeMeetLink,
+  resolveSharedMeetLink,
   canAccessAppointment,
   canMessageUser,
   createNotification,
@@ -488,6 +573,7 @@ registerRoutes(app, {
   io,
   isDatabaseReady,
   listFromInput,
+  makeUniqueUsername,
   mongoose,
   normalizeRole,
   clampRating,

@@ -3,9 +3,9 @@ const Footer = () => {
     const footerLinks = {
         Platform: [
             { name: "Wellness Dashboard", href: "/wellness" },
-            { name: "Resources", href: "#resources" },
-            { name: "Book Session", href: "#booking" },
-            { name: "Peer Support", href: "#peer-support" }
+            { name: "Resources", href: "/resources" },
+            { name: "Counselling", href: "/counselling" },
+            { name: "Peer Support", href: "/peer" }
         ],
         Support: [
             { name: "Help Center", href: "#help" },

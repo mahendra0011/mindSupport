@@ -85,14 +85,20 @@ app.post(
         .populate("counsellor");
     }
     const amount = Number(req.body?.amount || appointment?.counsellor?.sessionPricing || 700);
+    const commissionRate = 20;
+    const platformFee = Math.round(amount * (commissionRate / 100));
+    const counsellorPayout = Math.max(0, amount - platformFee);
     const payment = await Payment.create({
       user: user._id,
       appointment: appointment?._id,
       invoiceNumber: `INV-${Date.now().toString().slice(-8)}`,
       amount,
-      kind: req.body?.kind === "subscription" ? "subscription" : "session",
-      plan: req.body?.plan || (appointment ? "Counselling session" : "Premium Care"),
-      description: req.body?.description || "MindSupport payment",
+      kind: "session",
+      platformCommissionRate: commissionRate,
+      platformFee,
+      counsellorPayout,
+      plan: req.body?.plan || (appointment?.supportPlanName || "Counselling session"),
+      description: req.body?.description || "MindSupport counselling payment",
       status: "paid",
       paidAt: new Date(),
     });
@@ -100,7 +106,23 @@ app.post(
       user: user._id,
       type: "payment",
       title: "Payment confirmed",
-      message: `Invoice ${payment.invoiceNumber} for ₹${payment.amount} is paid.`,
+      message: `Invoice ${payment.invoiceNumber} for Rs. ${payment.amount} is paid.`,
+      metadata: { paymentId: String(payment._id) },
+    });
+    if (appointment?.counsellor?._id) {
+      await createNotification({
+        user: appointment.counsellor._id,
+        type: "payment",
+        title: "Session payout updated",
+        message: `Rs. ${counsellorPayout} is marked for counsellor payout after 20% platform fee.`,
+        metadata: { paymentId: String(payment._id), appointmentId: String(appointment._id) },
+      });
+    }
+    await createNotification({
+      audienceRole: "admin",
+      type: "payment",
+      title: "Platform commission received",
+      message: `20% platform fee recorded: Rs. ${platformFee} from invoice ${payment.invoiceNumber}.`,
       metadata: { paymentId: String(payment._id) },
     });
     res.status(201).json(normalizePayment(payment));

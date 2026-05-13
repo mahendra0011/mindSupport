@@ -67,15 +67,15 @@ const Login = () => {
                   <Brain className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <CardTitle>Sign in</CardTitle>
-                <CardDescription>Use your registered email and password.</CardDescription>
+                <CardDescription>Use your registered email or username with your password.</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={submit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Email or username</Label>
                     <div className="relative">
                       <Mail className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50" />
-                      <Input id="email" type="text" inputMode="email" className="pl-9" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" />
+                      <Input id="email" type="text" className="pl-9" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com or username" autoComplete="username" />
                     </div>
                   </div>
                   <div className="space-y-2">

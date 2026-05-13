@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -15,19 +15,35 @@ import {
   FileText,
   IndianRupee,
   Link as LinkIcon,
+  Lock,
   MessageCircle,
   MessageSquareText,
   NotebookPen,
+  Pencil,
+  Reply,
   RefreshCw,
   Search,
   Send,
   ShieldCheck,
   Sparkles,
   Star,
+  SmilePlus,
+  Trash2,
   UserCheck,
   Users,
   Video,
 } from "lucide-react";
+import {
+  Bar,
+  BarChart as RechartsBarChart,
+  CartesianGrid,
+  Line,
+  LineChart as RechartsLineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import GlowPanel from "@/components/reactbits/GlowPanel";
@@ -86,6 +102,20 @@ const riskTone = {
   high: "bg-rose-500/15 text-rose-600 border-rose-500/20",
 };
 
+const defaultPrivacySettings = {
+  showOnlineStatus: true,
+  allowMessages: true,
+  shareProgressWithCounsellor: true,
+  anonymousDisplayName: "",
+};
+
+const defaultNotificationSettings = {
+  session: true,
+  messages: true,
+  payments: true,
+  platform: true,
+};
+
 function todayYMD() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -122,6 +152,12 @@ const CounsellorDashboard = () => {
   const [sessionDrafts, setSessionDrafts] = useState({});
   const [messageText, setMessageText] = useState("");
   const [messageFileUrl, setMessageFileUrl] = useState("");
+  const [replyToMessage, setReplyToMessage] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState("");
+  const [editingMessageText, setEditingMessageText] = useState("");
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [privacySettings, setPrivacySettings] = useState(defaultPrivacySettings);
+  const [notificationSettings, setNotificationSettings] = useState(defaultNotificationSettings);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -131,6 +167,9 @@ const CounsellorDashboard = () => {
       setData(next);
       setAvailability((next.profile?.availability || []).join(", "));
       setMeetLink(next.profile?.meetLink || "");
+      setUsernameDraft(next.profile?.username || "");
+      setPrivacySettings({ ...defaultPrivacySettings, ...(next.profile?.privacySettings || {}) });
+      setNotificationSettings({ ...defaultNotificationSettings, ...(next.profile?.notificationSettings || {}) });
       setSelectedPatientId((current) => current || next.patients?.[0]?.id || "");
       setActiveConversationId((current) => current || next.patients?.[0]?.id || "");
     } catch (error) {
@@ -217,13 +256,13 @@ const CounsellorDashboard = () => {
     }
   };
 
-  const createMeet = async (appointmentId) => {
+  const createMeet = async (appointmentId, sharedLink = "") => {
     try {
       const response = await apiFetch("/api/meet/create", {
         method: "POST",
-        body: JSON.stringify({ appointmentId }),
+        body: JSON.stringify({ appointmentId, meetingLink: sharedLink }),
       });
-      toast({ title: "Google Meet ready", description: response.meetingLink });
+      toast({ title: "Shared Google Meet ready", description: "User Join and counsellor Open Meet now use the same room." });
       await load();
     } catch (error) {
       toast({ variant: "destructive", title: "Meet link failed", description: error?.message || "" });
@@ -232,16 +271,28 @@ const CounsellorDashboard = () => {
 
   const saveProfileTools = async () => {
     try {
-      await apiFetch("/api/counsellor/availability", {
-        method: "PUT",
-        body: JSON.stringify({
-          availability: availability
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean),
-          meetLink: meetLink.trim(),
+      await Promise.all([
+        apiFetch("/api/users/me", {
+          method: "PUT",
+          body: JSON.stringify({
+            username: usernameDraft.trim(),
+            privacySettings,
+            notificationSettings,
+          }),
         }),
-      });
+        apiFetch("/api/counsellor/availability", {
+          method: "PUT",
+          body: JSON.stringify({
+            availability: availability
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean),
+            meetLink: meetLink.trim(),
+            privacySettings,
+            notificationSettings,
+          }),
+        }),
+      ]);
       toast({ title: "Profile tools updated" });
       await load();
     } catch (error) {
@@ -262,6 +313,7 @@ const CounsellorDashboard = () => {
           subject: "Counsellor follow-up",
           text: messageText,
           task: messageText,
+          replyTo: replyToMessage?.id,
           fileUrl: messageFileUrl.trim(),
           fileName: messageFileUrl.trim() ? "Shared resource" : "",
         }),
@@ -269,9 +321,53 @@ const CounsellorDashboard = () => {
       toast({ title: "Message sent", description: "The user will see it in secure chat." });
       setMessageText("");
       setMessageFileUrl("");
+      setReplyToMessage(null);
       await load();
     } catch (error) {
       toast({ variant: "destructive", title: "Message failed", description: error?.message || "" });
+    }
+  };
+
+  const startEditMessage = (message) => {
+    setEditingMessageId(message.id);
+    setEditingMessageText(message.text || "");
+  };
+
+  const saveEditedMessage = async () => {
+    if (!editingMessageId || !editingMessageText.trim()) return;
+    try {
+      await apiFetch(`/api/messages/${editingMessageId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ text: editingMessageText, task: editingMessageText }),
+      });
+      toast({ title: "Message edited" });
+      setEditingMessageId("");
+      setEditingMessageText("");
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Edit failed", description: error?.message || "" });
+    }
+  };
+
+  const deleteMessage = async (message) => {
+    try {
+      await apiFetch(`/api/messages/${message.id}`, { method: "DELETE" });
+      toast({ title: "Message deleted" });
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Delete failed", description: error?.message || "" });
+    }
+  };
+
+  const reactToMessage = async (message, emoji) => {
+    try {
+      await apiFetch(`/api/messages/${message.id}/reactions`, {
+        method: "POST",
+        body: JSON.stringify({ emoji }),
+      });
+      await load();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Reaction failed", description: error?.message || "" });
     }
   };
 
@@ -526,7 +622,7 @@ const CounsellorDashboard = () => {
                               )
                             }
                             onCancel={() => updateAppointment(appointment.id, { status: "cancelled" }, "Session cancelled")}
-                            onMeet={() => createMeet(appointment.id)}
+                            onMeet={() => createMeet(appointment.id, sessionDrafts[appointment.id]?.meetingLink || "")}
                           />
                         ))
                       ) : (
@@ -601,6 +697,25 @@ const CounsellorDashboard = () => {
                             <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4">
                               <h3 className="font-semibold">Care Plan</h3>
                               <div className="mt-3 space-y-3">
+                                <div className="h-44 rounded-xl border border-glass-border/30 bg-background/50 p-3">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <RechartsLineChart
+                                      data={[
+                                        { label: "Start", progress: Math.max(20, (selectedPatient.progress || 0) - 28) },
+                                        { label: "Week 2", progress: Math.max(30, (selectedPatient.progress || 0) - 18) },
+                                        { label: "Week 4", progress: Math.max(40, (selectedPatient.progress || 0) - 8) },
+                                        { label: "Now", progress: selectedPatient.progress || 0 },
+                                      ]}
+                                      margin={{ top: 8, right: 8, left: -20, bottom: 0 }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
+                                      <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                                      <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                                      <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }} />
+                                      <Line type="monotone" dataKey="progress" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4 }} />
+                                    </RechartsLineChart>
+                                  </ResponsiveContainer>
+                                </div>
                                 <ProgressRow label="Mood improvement" value={selectedPatient.progress || 0} />
                                 <ProgressRow label="Attendance consistency" value={averageAttendance} />
                                 <PanelText>Recommended next step: confirm follow-up and send one wellness task.</PanelText>
@@ -683,99 +798,137 @@ const CounsellorDashboard = () => {
               </TabsContent>
 
               <TabsContent value="chat" className="dashboard-tab-motion space-y-6">
-                <Card className="glass-card overflow-hidden">
-                  <div className="grid min-h-[640px] lg:grid-cols-[340px_1fr]">
-                    <aside className="border-b border-glass-border/40 bg-background/60 p-4 lg:border-b-0 lg:border-r">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h2 className="font-semibold">Secure Chat</h2>
-                          <p className="text-xs text-foreground/60">{unreadCount} unread messages</p>
+                <Card className="glass-card overflow-hidden border-emerald-500/15">
+                  <div className="grid min-h-[720px] lg:grid-cols-[360px_1fr]">
+                    <aside className="border-b border-glass-border/40 bg-background/95 lg:border-b-0 lg:border-r">
+                      <div className="border-b border-glass-border/40 p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className="font-semibold">Chats</h2>
+                            <p className="text-xs text-foreground/60">{unreadCount} unread secure messages</p>
+                          </div>
+                          <MessageCircle className="h-5 w-5 text-primary" />
                         </div>
-                        <MessageCircle className="h-5 w-5 text-primary" />
                       </div>
-                      <div className="mt-4 space-y-2">
-                        {patients.map((patient) => {
-                          const lastMessage = messages.find((message) => message.fromId === patient.id || message.toId === patient.id);
-                          return (
-                            <button
-                              type="button"
-                              key={patient.id}
-                              onClick={() => setActiveConversationId(patient.id)}
-                              className={`w-full rounded-xl p-3 text-left transition ${
-                                activePatient?.id === patient.id ? "bg-primary text-primary-foreground" : "bg-foreground/5 hover:bg-foreground/10"
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background/80 font-semibold text-foreground">
+                      <div className="max-h-[650px] overflow-y-auto">
+                        {patients.length ? (
+                          patients.map((patient) => {
+                            const lastMessage = messages.find((message) => message.fromId === patient.id || message.toId === patient.id);
+                            return (
+                              <button
+                                type="button"
+                                key={patient.id}
+                                onClick={() => setActiveConversationId(patient.id)}
+                                className={`chat-row-motion flex w-full items-center gap-3 border-b border-glass-border/30 p-4 text-left transition ${
+                                  activePatient?.id === patient.id ? "bg-emerald-500/10" : "hover:bg-foreground/5"
+                                }`}
+                              >
+                                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white">
                                   {initials(patient.name)}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="truncate font-semibold">{patient.name}</div>
-                                  <div className="truncate text-xs opacity-75">{lastMessage?.text || patient.moodReport || "No messages yet"}</div>
-                                </div>
-                                <ChevronRight className="h-4 w-4 opacity-60" />
-                              </div>
-                            </button>
-                          );
-                        })}
+                                  {privacySettings.showOnlineStatus && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-emerald-300" />}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex items-center justify-between gap-2">
+                                    <span className="truncate font-semibold">{patient.name}</span>
+                                    <span className="shrink-0 text-[11px] text-foreground/50">{lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}</span>
+                                  </span>
+                                  <span className="mt-1 block truncate text-xs text-foreground/55">{lastMessage?.text || patient.moodReport || "No messages yet"}</span>
+                                </span>
+                                <ChevronRight className="h-4 w-4 text-foreground/40" />
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <div className="p-4">
+                            <PanelText>Patients appear here after users book sessions.</PanelText>
+                          </div>
+                        )}
                       </div>
                     </aside>
 
-                    <section className="flex min-h-[640px] flex-col">
-                      <div className="flex items-center justify-between border-b border-glass-border/40 bg-background/70 p-4">
-                        <div>
-                          <h3 className="font-semibold">{activePatient?.name || "Choose a patient"}</h3>
-                          <p className="text-xs text-foreground/60">{activePatient?.email || "Secure follow-up messages"}</p>
+                    <section className="flex min-h-[720px] flex-col bg-[#0b141a] text-slate-50">
+                      <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#202c33] p-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500 font-semibold text-white">
+                            {initials(activePatient?.name || "User")}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="truncate font-semibold">{activePatient?.name || "Choose a patient"}</div>
+                            <div className="truncate text-xs text-slate-300">{activePatient?.email || "Secure follow-up messages"}</div>
+                          </div>
                         </div>
-                        <Badge className={riskTone[activePatient?.risk] || "bg-foreground/10 text-foreground"}>{activePatient?.risk || "safe"}</Badge>
+                        <Badge className={riskTone[activePatient?.risk] || "bg-slate-700 text-slate-100"}>{activePatient?.risk || "safe"}</Badge>
                       </div>
 
-                      <div className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-emerald-500/5 to-primary/5 p-4">
+                      <div className="border-b border-white/10 bg-[#111b21] px-4 py-2 text-center text-xs text-slate-300">
+                        <Lock className="mr-1 inline h-3.5 w-3.5 text-emerald-300" />
+                        Edit, delete, reply, and reactions are available for secure follow-up messages.
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_28%),linear-gradient(135deg,#0b141a,#111b21)] p-4 md:p-6">
                         {conversationMessages.length ? (
-                          conversationMessages.map((message) => (
-                            <div key={message.id} className={`flex ${message.direction === "sent" ? "justify-end" : "justify-start"}`}>
-                              <div
-                                className={`chat-panel-pop max-w-[78%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                                  message.direction === "sent"
-                                    ? "rounded-br-sm bg-emerald-500 text-white"
-                                    : "rounded-bl-sm border border-glass-border/40 bg-background"
-                                }`}
-                              >
-                                <div>{message.text}</div>
-                                {message.task && <div className="mt-2 rounded-lg bg-black/10 px-2 py-1 text-xs">Task: {message.task}</div>}
-                                {message.fileUrl && (
-                                  <a className="mt-2 block text-xs underline" href={message.fileUrl} target="_blank" rel="noreferrer">
-                                    {message.fileName || "Open shared resource"}
-                                  </a>
-                                )}
-                                <div className="mt-1 text-[10px] opacity-75">{message.time}</div>
-                              </div>
-                            </div>
-                          ))
+                          <div className="space-y-3">
+                            {conversationMessages.map((message) => (
+                              <CounsellorChatBubble
+                                key={message.id}
+                                message={message}
+                                editing={editingMessageId === message.id}
+                                editingText={editingMessageText}
+                                onEditText={setEditingMessageText}
+                                onStartEdit={() => startEditMessage(message)}
+                                onSaveEdit={saveEditedMessage}
+                                onCancelEdit={() => {
+                                  setEditingMessageId("");
+                                  setEditingMessageText("");
+                                }}
+                                onDelete={() => deleteMessage(message)}
+                                onReply={() => setReplyToMessage(message)}
+                                onReact={(emoji) => reactToMessage(message, emoji)}
+                              />
+                            ))}
+                          </div>
                         ) : (
                           <EmptyState icon={MessageSquareText} title="No conversation yet" text="Send a follow-up, wellness task, or resource." />
                         )}
                       </div>
 
-                      <div className="border-t border-glass-border/40 bg-background/75 p-4">
-                        <div className="mb-3 grid gap-2 md:grid-cols-[1fr_220px]">
-                          <Input value={messageFileUrl} onChange={(event) => setMessageFileUrl(event.target.value)} placeholder="Optional resource or file URL" />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setMessageText("Please complete today's breathing exercise and update your mood tracker before our next session.")}
-                          >
+                      <div className="border-t border-white/10 bg-[#202c33] p-3">
+                        {replyToMessage && (
+                          <div className="mb-3 rounded-xl border-l-4 border-emerald-400 bg-[#111b21] p-3 text-xs text-slate-300">
+                            <div className="flex items-center justify-between gap-3">
+                              <span>Replying to {replyToMessage.direction === "sent" ? "your message" : replyToMessage.from}</span>
+                              <button type="button" className="text-slate-400 hover:text-white" onClick={() => setReplyToMessage(null)}>Cancel</button>
+                            </div>
+                            <div className="mt-1 truncate text-slate-100">{replyToMessage.text}</div>
+                          </div>
+                        )}
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {["Please update your mood tracker", "Try the breathing task today", "Can we review this next session?"].map((reply) => (
+                            <button
+                              key={reply}
+                              type="button"
+                              onClick={() => setMessageText((current) => (current ? `${current}\n${reply}` : reply))}
+                              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 hover:bg-white/10"
+                            >
+                              {reply}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="mb-2 grid gap-2 md:grid-cols-[1fr_220px]">
+                          <Input className="border-white/10 bg-[#111b21] text-slate-100 placeholder:text-slate-400" value={messageFileUrl} onChange={(event) => setMessageFileUrl(event.target.value)} placeholder="Optional resource or file URL" />
+                          <Button type="button" variant="outline" onClick={() => setMessageText("Please complete today's breathing exercise and update your mood tracker before our next session.")}>
                             Wellness task
                           </Button>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-end gap-2">
                           <Textarea
                             rows={2}
                             value={messageText}
                             onChange={(event) => setMessageText(event.target.value)}
                             placeholder="Write a secure follow-up message..."
+                            className="min-h-[46px] resize-none rounded-2xl border-white/10 bg-[#111b21] text-slate-100 placeholder:text-slate-400"
                           />
-                          <Button className="self-stretch px-4" onClick={sendCounsellorMessage} aria-label="Send message">
+                          <Button className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600" onClick={sendCounsellorMessage} aria-label="Send message" disabled={!messageText.trim() || !activePatient}>
                             <Send className="h-5 w-5" />
                           </Button>
                         </div>
@@ -800,14 +953,25 @@ const CounsellorDashboard = () => {
                     <CardDescription>Revenue trend, payout status, and platform commission view.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid h-72 grid-cols-5 items-end gap-3">
-                      {(data.earnings.monthly || []).map((item) => (
-                        <MiniBar key={item.month} label={item.month} value={item.revenue} max={16000} />
-                      ))}
+                    <div className="h-80 rounded-2xl border border-glass-border/40 bg-background/60 p-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={data.earnings.monthly || []} margin={{ top: 10, right: 18, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
+                          <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                          <YAxis stroke="hsl(var(--muted-foreground))" tickFormatter={(value) => `Rs.${Math.round(value / 1000)}k`} />
+                          <Tooltip
+                            cursor={{ fill: "hsl(var(--primary) / 0.08)" }}
+                            contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }}
+                            formatter={(value) => formatMoney(value)}
+                          />
+                          <Bar dataKey="payout" name="Counsellor payout" radius={[8, 8, 0, 0]} fill="hsl(var(--primary))" />
+                          <Bar dataKey="platformFee" name="Admin platform fee" radius={[8, 8, 0, 0]} fill="hsl(var(--secondary))" />
+                        </RechartsBarChart>
+                      </ResponsiveContainer>
                     </div>
                     <div className="mt-5 grid gap-3 md:grid-cols-3">
-                      <PanelText>Platform commission: {data.profile?.platformCommission || 15}%</PanelText>
-                      <PanelText>Completed paid sessions: {completedSessions.length}</PanelText>
+                      <PanelText>Platform admin commission: {data.earnings.platformCommissionRate || data.profile?.platformCommission || 20}%</PanelText>
+                      <PanelText>Counsellor payout: {formatMoney(data.earnings.total)} after platform fee.</PanelText>
                       <PanelText>Pending payout queue: {formatMoney(data.earnings.pendingPayouts)}</PanelText>
                     </div>
                   </CardContent>
@@ -856,9 +1020,21 @@ const CounsellorDashboard = () => {
                         <Video className="h-5 w-5 text-primary" />
                         Availability & Google Meet
                       </CardTitle>
-                      <CardDescription>Set working slots and a default Google Meet room for online sessions.</CardDescription>
+                      <CardDescription>
+                        Set working slots and a reusable Google Meet room. User Join and counsellor Open Meet must use the same saved room link.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium">Secure username</label>
+                        <Input
+                          className="mt-2"
+                          value={usernameDraft}
+                          onChange={(event) => setUsernameDraft(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                          placeholder="dr_support_01"
+                        />
+                        <p className="mt-2 text-xs text-foreground/60">Use 3-24 lowercase letters, numbers, or underscores. Users can sign in with username or email.</p>
+                      </div>
                       <div>
                         <label className="text-sm font-medium">Availability</label>
                         <Textarea
@@ -871,9 +1047,69 @@ const CounsellorDashboard = () => {
                       </div>
                       <div>
                         <label className="text-sm font-medium">Default Google Meet link</label>
-                        <Input className="mt-2" value={meetLink} onChange={(event) => setMeetLink(event.target.value)} placeholder="https://meet.google.com/..." />
+                        <Input className="mt-2" value={meetLink} onChange={(event) => setMeetLink(event.target.value)} placeholder="https://meet.google.com/abc-defg-hij" />
+                        <p className="mt-2 text-xs text-foreground/60">
+                          Paste the real room link after creating it in Google Meet. Do not use https://meet.google.com/new because it creates a different room for each person.
+                        </p>
                       </div>
                       <Button onClick={saveProfileTools}>Save dashboard settings</Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Lock className="h-5 w-5 text-secondary" />
+                        Privacy Controls
+                      </CardTitle>
+                      <CardDescription>Control visibility, messaging, and anonymous display behavior.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <SettingToggle
+                        title="Show online status"
+                        text="Show a small active indicator in secure chat."
+                        checked={privacySettings.showOnlineStatus}
+                        onToggle={() => setPrivacySettings((current) => ({ ...current, showOnlineStatus: !current.showOnlineStatus }))}
+                      />
+                      <SettingToggle
+                        title="Allow patient messages"
+                        text="Let approved patients send secure follow-up messages."
+                        checked={privacySettings.allowMessages}
+                        onToggle={() => setPrivacySettings((current) => ({ ...current, allowMessages: !current.allowMessages }))}
+                      />
+                      <SettingToggle
+                        title="Share progress insights"
+                        text="Use patient progress signals inside your care planning cards."
+                        checked={privacySettings.shareProgressWithCounsellor}
+                        onToggle={() => setPrivacySettings((current) => ({ ...current, shareProgressWithCounsellor: !current.shareProgressWithCounsellor }))}
+                      />
+                      <div>
+                        <label className="text-sm font-medium">Anonymous display alias</label>
+                        <Input
+                          className="mt-2"
+                          value={privacySettings.anonymousDisplayName || ""}
+                          onChange={(event) => setPrivacySettings((current) => ({ ...current, anonymousDisplayName: event.target.value }))}
+                          placeholder="MindSupport Counsellor"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Bell className="h-5 w-5 text-primary" />
+                        Notification Preferences
+                      </CardTitle>
+                      <CardDescription>Choose which dashboard alerts should stay active.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <SettingToggle title="Session reminders" text="Bookings, reschedules, cancellations, and Google Meet alerts." checked={notificationSettings.session} onToggle={() => setNotificationSettings((current) => ({ ...current, session: !current.session }))} />
+                      <SettingToggle title="Chat messages" text="New patient messages, replies, reactions, and shared resources." checked={notificationSettings.messages} onToggle={() => setNotificationSettings((current) => ({ ...current, messages: !current.messages }))} />
+                      <SettingToggle title="Payment updates" text="Counsellor payout and 20% platform fee notices." checked={notificationSettings.payments} onToggle={() => setNotificationSettings((current) => ({ ...current, payments: !current.payments }))} />
+                      <SettingToggle title="Platform announcements" text="Admin wellness campaigns, moderation alerts, and maintenance notices." checked={notificationSettings.platform} onToggle={() => setNotificationSettings((current) => ({ ...current, platform: !current.platform }))} />
                     </CardContent>
                   </Card>
 
@@ -884,10 +1120,12 @@ const CounsellorDashboard = () => {
                         Public Profile Snapshot
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-3">
+                    <CardContent className="grid gap-3 md:grid-cols-2">
+                      <ProfileLine label="Username" value={usernameDraft ? `@${usernameDraft}` : "Not set"} />
                       <ProfileLine label="Badge" value={data.profile?.verificationBadge || "Verified Professional"} />
                       <ProfileLine label="Type" value={data.profile?.counsellorType || "professional"} />
                       <ProfileLine label="Pricing" value={formatMoney(data.profile?.sessionPricing)} />
+                      <ProfileLine label="Platform fee" value={`${data.earnings.platformCommissionRate || data.profile?.platformCommission || 20}% to admin`} />
                       <ProfileLine label="Categories" value={(data.profile?.categories || []).join(", ") || "General counselling"} />
                       <ProfileLine label="Meet readiness" value={data.stats.googleMeetReady ? "Ready" : "Needs link"} />
                       <ProfileLine label="Reviews" value={`${data.profile?.reviews || data.reviews.length || 0} reviews`} />
@@ -999,19 +1237,26 @@ function SessionCard({ appointment, draft, onDraft, onReschedule, onComplete, on
             <Input type="date" value={draft.date || ""} onChange={(event) => onDraft("date", event.target.value)} />
             <Input type="time" value={draft.time || ""} onChange={(event) => onDraft("time", event.target.value)} />
           </div>
+          {!appointment.meetingLink && appointment.mode !== "in-person" && (
+            <Input
+              value={draft.meetingLink || ""}
+              onChange={(event) => onDraft("meetingLink", event.target.value)}
+              placeholder="Paste shared Google Meet room link"
+            />
+          )}
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={onReschedule}>Reschedule</Button>
             {appointment.meetingLink ? (
               <Button size="sm" variant="outline" asChild>
                 <a href={appointment.meetingLink} target="_blank" rel="noreferrer">
                   <LinkIcon className="mr-1 h-4 w-4" />
-                  Open Meet
+                  Open same Meet
                 </a>
               </Button>
             ) : (
               <Button size="sm" variant="outline" onClick={onMeet}>
                 <Video className="mr-1 h-4 w-4" />
-                Add Meet
+                Save Meet
               </Button>
             )}
             {appointment.status !== "completed" && <Button size="sm" onClick={onComplete}>Complete</Button>}
@@ -1051,14 +1296,119 @@ function ProgressRow({ label, value }) {
   );
 }
 
-function MiniBar({ label, value, max }) {
-  const height = Math.max(10, Math.min(100, ((Number(value) || 0) / max) * 100));
+function CounsellorChatBubble({
+  message,
+  editing,
+  editingText,
+  onEditText,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onDelete,
+  onReply,
+  onReact,
+}) {
+  const sent = message.direction === "sent";
+  const timeLabel = message.createdAt
+    ? new Date(message.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+    : message.time || "";
+  const reactions = Object.entries(message.reactionSummary || {});
+
   return (
-    <div className="flex h-full flex-col justify-end rounded-xl bg-foreground/5 p-3">
-      <div className="rounded-lg bg-gradient-to-t from-primary to-secondary" style={{ height: `${height}%` }} />
-      <div className="mt-2 text-center text-xs text-foreground/60">{label}</div>
-      <div className="text-center text-xs font-semibold">{formatMoney(value)}</div>
+    <div className={`group flex ${sent ? "justify-end" : "justify-start"}`}>
+      <div className={`max-w-[86%] rounded-2xl px-4 py-3 shadow-sm ${sent ? "rounded-br-sm bg-[#005c4b] text-white" : "rounded-bl-sm bg-[#202c33] text-slate-100"}`}>
+        {message.replyTo && (
+          <div className={`mb-2 rounded-lg border-l-4 p-2 text-xs ${sent ? "border-emerald-200 bg-white/10" : "border-emerald-300 bg-black/15"}`}>
+            <div className="font-semibold">{message.replyTo.from}</div>
+            <div className="truncate opacity-80">{message.replyTo.text}</div>
+          </div>
+        )}
+        <div className={`mb-1 text-xs font-semibold ${sent ? "text-emerald-100" : "text-slate-300"}`}>
+          {sent ? "You" : message.from || "Patient"}
+          {message.fromUsername && !sent ? <span className="ml-1 font-normal opacity-70">@{message.fromUsername}</span> : null}
+        </div>
+        {editing ? (
+          <div className="space-y-2">
+            <Textarea
+              rows={3}
+              value={editingText}
+              onChange={(event) => onEditText(event.target.value)}
+              className="border-white/10 bg-[#111b21] text-slate-100"
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="outline" onClick={onCancelEdit}>Cancel</Button>
+              <Button size="sm" onClick={onSaveEdit}>Save</Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>
+            {message.task && <div className="mt-2 rounded-lg bg-white/10 p-2 text-xs">Task: {message.task}</div>}
+            {message.fileUrl && (
+              <a className={`mt-2 inline-flex items-center gap-1 text-xs underline ${sent ? "text-emerald-100" : "text-emerald-300"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
+                <LinkIcon className="h-3 w-3" />
+                {message.fileName || "Open shared file"}
+              </a>
+            )}
+          </>
+        )}
+        {reactions.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {reactions.map(([emoji, count]) => (
+              <button key={emoji} type="button" onClick={() => onReact(emoji)} className="rounded-full bg-white/10 px-2 py-0.5 text-xs hover:bg-white/15">
+                {emoji} {count}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className={`mt-2 flex flex-wrap items-center justify-end gap-2 text-[11px] ${sent ? "text-emerald-100/80" : "text-slate-400"}`}>
+          {message.edited && !message.deleted ? <span>edited</span> : null}
+          <span>{timeLabel}</span>
+          {sent && <CheckCircle2 className="h-3.5 w-3.5 text-sky-300" />}
+        </div>
+        {!message.deleted && (
+          <div className="mt-2 flex flex-wrap justify-end gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+            <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onReply}>
+              <Reply className="h-3.5 w-3.5" />
+            </Button>
+            {["+1", "heart", "thanks", "grow"].map((emoji) => (
+              <Button key={emoji} size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
+                <SmilePlus className="mr-1 h-3.5 w-3.5" />
+                {emoji}
+              </Button>
+            ))}
+            {message.canEdit && (
+              <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onStartEdit}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {message.canDelete && (
+              <Button size="sm" variant="ghost" className="h-8 px-2 text-rose-200 hover:bg-rose-500/10 hover:text-rose-100" onClick={onDelete}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
+  );
+}
+
+function SettingToggle({ title, text, checked, onToggle }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex w-full items-center justify-between gap-4 rounded-xl border border-glass-border/40 bg-background/60 p-4 text-left transition hover:border-primary/40"
+    >
+      <span>
+        <span className="block font-medium">{title}</span>
+        <span className="mt-1 block text-sm text-foreground/65">{text}</span>
+      </span>
+      <span className={`relative h-7 w-12 shrink-0 rounded-full transition ${checked ? "bg-primary" : "bg-foreground/20"}`}>
+        <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${checked ? "left-6" : "left-1"}`} />
+      </span>
+    </button>
   );
 }
 

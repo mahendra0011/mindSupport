@@ -44,6 +44,7 @@ const Signup = () => {
   const status = useAppSelector((state) => state.auth.status);
   const [role, setRole] = useState("user");
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -81,6 +82,7 @@ const Signup = () => {
         registerUser({
           name,
           fullName: name,
+          username,
           email,
           password,
           phone,
@@ -150,6 +152,7 @@ const Signup = () => {
                 <form onSubmit={onSubmit} className="space-y-5">
                   <div className="grid md:grid-cols-2 gap-4">
                     <Field label="Full name" value={name} onChange={setName} placeholder="Jane Doe" />
+                    <Field label="Username" value={username} onChange={(value) => setUsername(value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} placeholder="jane_support" />
                     <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="jane@example.com" icon={Mail} />
                     <Field label="Phone" value={phone} onChange={setPhone} placeholder="+91 90000 00000" icon={Phone} />
                     <Field label="Password" type="password" value={password} onChange={setPassword} icon={LockKeyhole} />

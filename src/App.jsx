@@ -5,13 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import ConfidentialBooking from "./pages/ConfidentialBooking";
+import Counselling from "./pages/Counselling";
 import ResourceHub from "./pages/ResourceHub";
 import PeerSupport from "./pages/PeerSupport";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyWellness from "./pages/MyWellness";
 import Signup from "./pages/Signup";
-import Pricing from "./pages/Pricing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
@@ -25,8 +24,11 @@ const App = () => (<QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />}/>
-          <Route path="/book" element={<ProtectedRoute roles={["user", "admin"]}>
-                <ConfidentialBooking />
+          <Route path="/book" element={<ProtectedRoute roles={["user"]}>
+                <Counselling />
+              </ProtectedRoute>}/>
+          <Route path="/counselling" element={<ProtectedRoute roles={["user"]}>
+                <Counselling />
               </ProtectedRoute>}/>
           <Route path="/resources" element={<ResourceHub />}/>
           <Route path="/peer" element={<ProtectedRoute roles={["user", "admin"]}>
@@ -49,7 +51,6 @@ const App = () => (<QueryClientProvider client={queryClient}>
               </ProtectedRoute>}/>
           <Route path="/signup" element={<Signup />}/>
           <Route path="/login" element={<Login />}/>
-          <Route path="/pricing" element={<Pricing />}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />}/>
         </Routes>

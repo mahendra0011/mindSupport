@@ -438,7 +438,7 @@ const ConfidentialBooking = () => {
                                 <TableCell>
                                   {a.meetingLink ? (<Button asChild size="sm" variant="outline" className="gap-1">
                                       <a href={a.meetingLink} target="_blank" rel="noreferrer">
-                                        <Video className="h-4 w-4"/> Open
+                                        <Video className="h-4 w-4"/> Join same Meet
                                       </a>
                                     </Button>) : (<span className="text-xs text-foreground/50">-</span>)}
                                 </TableCell>

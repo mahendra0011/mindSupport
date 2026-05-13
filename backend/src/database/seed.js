@@ -197,6 +197,9 @@ const seededCounsellors = [
     email: "aisha.mehra@mindsupport.seed",
     specialization: "Anxiety and Stress Management",
     bio: "Licensed psychologist helping students manage anxiety, panic, exam stress, and emotional overwhelm with practical coping plans.",
+    location: "Mumbai, Maharashtra",
+    education: "PhD Clinical Psychology, RCI registered",
+    consultationModes: ["google-meet", "in-person", "voice-call"],
     counsellorType: "professional",
     verificationBadge: "Verified Professional",
     experience: "8 years",
@@ -216,6 +219,9 @@ const seededCounsellors = [
     email: "rahul.verma@mindsupport.seed",
     specialization: "Career Pressure and Confidence",
     bio: "Community mentor focused on career stress, self-confidence, interview pressure, and small-step motivation for students.",
+    location: "Pune, Maharashtra",
+    education: "Peer support certification and career mentoring training",
+    consultationModes: ["google-meet", "voice-call"],
     counsellorType: "mentor",
     verificationBadge: "Community Mentor",
     experience: "5 years",
@@ -233,6 +239,9 @@ const seededCounsellors = [
     email: "neha.iyer@mindsupport.seed",
     specialization: "Depression and Mood Support",
     bio: "Professional counsellor supporting low mood, loneliness, grief, emotional numbness, and therapy progress tracking.",
+    location: "Chennai, Tamil Nadu",
+    education: "M.Phil Clinical Psychology, licensed therapist",
+    consultationModes: ["google-meet", "in-person", "voice-call"],
     counsellorType: "professional",
     verificationBadge: "Verified Professional",
     experience: "10 years",
@@ -252,6 +261,9 @@ const seededCounsellors = [
     email: "kabir.khan@mindsupport.seed",
     specialization: "Addiction Recovery Peer Support",
     bio: "Peer support mentor for recovery routines, relapse prevention habits, accountability, and rebuilding confidence.",
+    location: "Hyderabad, Telangana",
+    education: "Certified addiction recovery peer mentor",
+    consultationModes: ["google-meet", "voice-call"],
     counsellorType: "mentor",
     verificationBadge: "Community Mentor",
     experience: "6 years",
@@ -269,6 +281,9 @@ const seededCounsellors = [
     email: "priya.nair@mindsupport.seed",
     specialization: "Trauma Support and Grounding",
     bio: "Trauma-informed therapist helping clients with grounding, safety planning, triggers, PTSD symptoms, and emotional regulation.",
+    location: "Kochi, Kerala",
+    education: "PsyD Counselling Psychology, trauma-informed care",
+    consultationModes: ["google-meet", "in-person"],
     counsellorType: "professional",
     verificationBadge: "Verified Professional",
     experience: "12 years",
@@ -288,6 +303,9 @@ const seededCounsellors = [
     email: "sana.qureshi@mindsupport.seed",
     specialization: "Relationship and Breakup Recovery",
     bio: "Community mentor supporting breakup recovery, relationship boundaries, loneliness, and rebuilding daily stability.",
+    location: "Delhi NCR",
+    education: "Community mental health mentor training",
+    consultationModes: ["google-meet", "voice-call"],
     counsellorType: "mentor",
     verificationBadge: "Community Mentor",
     experience: "4 years",
@@ -305,6 +323,9 @@ const seededCounsellors = [
     email: "arjun.sen@mindsupport.seed",
     specialization: "Sleep, Burnout and Workload Balance",
     bio: "Professional psychologist helping students and early professionals with burnout, sleep routines, stress recovery, and boundaries.",
+    location: "Kolkata, West Bengal",
+    education: "MSc Clinical Psychology, sleep and burnout specialist",
+    consultationModes: ["google-meet", "in-person", "voice-call"],
     counsellorType: "professional",
     verificationBadge: "Verified Professional",
     experience: "9 years",
@@ -324,6 +345,9 @@ const seededCounsellors = [
     email: "meera.shah@mindsupport.seed",
     specialization: "Meditation and Emotional Balance",
     bio: "Mindfulness mentor teaching simple meditation, breathing routines, gratitude practice, and calm daily habits.",
+    location: "Ahmedabad, Gujarat",
+    education: "Mindfulness facilitator and peer support certification",
+    consultationModes: ["google-meet", "voice-call"],
     counsellorType: "mentor",
     verificationBadge: "Community Mentor",
     experience: "7 years",
@@ -440,6 +464,59 @@ function seedAvatar(name) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8b5cf6&color=fff`;
 }
 
+function seedMeetLink() {
+  const raw = String(process.env.GOOGLE_MEET_DEFAULT_LINK || "").trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    const pathname = url.pathname.replace(/\/+$/, "");
+    return url.hostname === "meet.google.com" && pathname && pathname !== "/new" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+function seedUsername(value) {
+  return String(value || "mindsupport")
+    .toLowerCase()
+    .replace(/@.*/, "")
+    .replace(/[^a-z0-9_]/g, "")
+    .slice(0, 24);
+}
+
+function paymentSplit(amount) {
+  const platformFee = Math.round(Number(amount || 0) * 0.2);
+  return {
+    platformCommissionRate: 20,
+    platformFee,
+    counsellorPayout: Math.max(0, Number(amount || 0) - platformFee),
+  };
+}
+
+const supportPlanSeeds = {
+  short: {
+    supportPlanId: "short-term",
+    supportPlanName: "Short-Term Support",
+    supportPlanDuration: "4-8 sessions",
+    supportPlanCadence: "One session every two days",
+    supportPlanBestFor: ["Stress", "Anxiety", "Exam pressure", "Loneliness"],
+  },
+  medium: {
+    supportPlanId: "medium-term",
+    supportPlanName: "Medium-Term Support",
+    supportPlanDuration: "8-15 sessions",
+    supportPlanCadence: "Weekly or bi-weekly",
+    supportPlanBestFor: ["Mild depression", "Relationship issues", "Emotional healing"],
+  },
+  long: {
+    supportPlanId: "long-term",
+    supportPlanName: "Long-Term Therapy",
+    supportPlanDuration: "3-6+ months",
+    supportPlanCadence: "Weekly or bi-weekly sessions",
+    supportPlanBestFor: ["Trauma", "Severe anxiety", "Chronic depression"],
+  },
+};
+
 async function ensureMongoCollections() {
   for (const model of collectionModels) {
     try {
@@ -461,6 +538,7 @@ async function upsertSeedUser(profile, password = crypto.randomUUID()) {
       $set: {
         ...profile,
         email,
+        username: profile.username || seedUsername(profile.email || profile.name),
         role: profile.role || "user",
         status: profile.status || "active",
         otpVerified: true,
@@ -493,6 +571,7 @@ async function seedAdminAccount() {
       $set: {
         name,
         email,
+        username: seedUsername(email),
         passwordHash,
         role: "admin",
         status: "active",
@@ -519,8 +598,8 @@ async function seedApprovedCounsellors() {
       verificationStatus: "approved",
       otpVerified: true,
       otpVerifiedAt: new Date(),
-      platformCommission: 15,
-      meetLink: process.env.GOOGLE_MEET_DEFAULT_LINK || "https://meet.google.com/new",
+      platformCommission: 20,
+      meetLink: seedMeetLink(),
       profilePhotoUrl: seedAvatar(counsellor.name),
       idVerification: "Seed verification record",
     };
@@ -545,7 +624,7 @@ async function seedApprovedCounsellors() {
           idDocumentType: "Seed Verification",
           idDocumentNumber: "SEED-APPROVED",
           licenseNumber: counsellor.licenseNumber || "",
-          education: counsellor.counsellorType === "professional" ? "Verified professional qualification" : "Peer support training",
+          education: counsellor.education || (counsellor.counsellorType === "professional" ? "Verified professional qualification" : "Peer support training"),
           categories: counsellor.categories,
           availability: counsellor.availability,
           approach: "Warm, structured, privacy-first support.",
@@ -673,9 +752,10 @@ async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
       mode: "google-meet",
       status: "confirmed",
       concern: "Exam anxiety and sleep disruption",
+      ...supportPlanSeeds.short,
       notes: "Prepare grounding exercise and follow-up plan.",
       meetingProvider: "google-meet",
-      meetingLink: aisha.meetLink || "https://meet.google.com/new",
+      meetingLink: aisha.meetLink || seedMeetLink(),
     },
     {
       student: ananya._id,
@@ -687,9 +767,10 @@ async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
       mode: "google-meet",
       status: "completed",
       concern: "Low motivation and social withdrawal",
+      ...supportPlanSeeds.medium,
       notes: "Completed session. Continue daily mood tracking.",
       meetingProvider: "google-meet",
-      meetingLink: neha.meetLink || "https://meet.google.com/new",
+      meetingLink: neha.meetLink || seedMeetLink(),
     },
     {
       student: rohan._id,
@@ -701,9 +782,10 @@ async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
       mode: "google-meet",
       status: "pending",
       concern: "Career pressure and interview stress",
+      ...supportPlanSeeds.short,
       notes: "Awaiting counsellor confirmation.",
       meetingProvider: "google-meet",
-      meetingLink: rahul.meetLink || "https://meet.google.com/new",
+      meetingLink: rahul.meetLink || seedMeetLink(),
     },
     {
       student: isha._id,
@@ -715,9 +797,10 @@ async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
       mode: "google-meet",
       status: "completed",
       concern: "Grounding support for trauma triggers",
+      ...supportPlanSeeds.long,
       notes: "Safety plan reviewed and resources shared.",
       meetingProvider: "google-meet",
-      meetingLink: priya.meetLink || "https://meet.google.com/new",
+      meetingLink: priya.meetLink || seedMeetLink(),
     },
     {
       student: kavya._id,
@@ -729,6 +812,7 @@ async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
       mode: "in-person",
       status: "confirmed",
       concern: "Burnout, sleep routine, and workload balance",
+      ...supportPlanSeeds.medium,
       notes: "Bring sleep log for review.",
       meetingProvider: "in-person",
       meetingLink: "",
@@ -907,6 +991,7 @@ async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
       appointment: appointments[0]._id,
       invoiceNumber: "MS-SEED-INV-1001",
       amount: 900,
+      ...paymentSplit(900),
       currency: "INR",
       kind: "session",
       plan: "Google Meet session",
@@ -915,21 +1000,11 @@ async function seedPlatformActivity(seedUsers, seedCounsellors, adminResult) {
       paidAt: new Date(),
     },
     {
-      user: ananya._id,
-      invoiceNumber: "MS-SEED-INV-1002",
-      amount: 999,
-      currency: "INR",
-      kind: "subscription",
-      plan: "Premium Care Monthly",
-      description: "Unlimited chat, discounted sessions, and priority booking",
-      status: "paid",
-      paidAt: new Date(),
-    },
-    {
       user: isha._id,
       appointment: appointments[3]._id,
       invoiceNumber: "MS-SEED-INV-1003",
       amount: 1300,
+      ...paymentSplit(1300),
       currency: "INR",
       kind: "session",
       plan: "Trauma support session",

@@ -10,7 +10,6 @@ import {
   CalendarDays,
   CheckCheck,
   CheckCircle2,
-  Crown,
   CreditCard,
   Droplets,
   Dumbbell,
@@ -21,15 +20,17 @@ import {
   HeartPulse,
   IdCard,
   Image,
-  LineChart,
+  LineChart as LineChartIcon,
   Lock,
   MessageCircle,
   Moon,
   NotebookPen,
   Palette,
   Paperclip,
+  Pencil,
   Pin,
   PlayCircle,
+  Reply,
   Search,
   Send,
   Settings,
@@ -37,12 +38,25 @@ import {
   ShieldCheck,
   Siren,
   Smile,
+  SmilePlus,
   Sparkles,
   Star,
+  Trash2,
   Users,
   Video,
   MoreVertical,
 } from "lucide-react";
+import {
+  Bar,
+  BarChart as RechartsBarChart,
+  CartesianGrid,
+  Line,
+  LineChart as RechartsLineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import GlowPanel from "@/components/reactbits/GlowPanel";
@@ -70,34 +84,6 @@ const themeOptions = [
 ];
 
 const emergencyKeywords = ["suicide", "self-harm", "panic attack", "abuse"];
-
-const subscriptionPlans = [
-  {
-    id: "starter",
-    name: "Care Starter",
-    price: 499,
-    period: "month",
-    description: "For light support and guided self-care.",
-    features: ["Unlimited resource access", "Mood and journal tools", "Community support"],
-  },
-  {
-    id: "plus",
-    name: "Wellness Plus",
-    price: 999,
-    period: "month",
-    description: "Best for regular counselling support.",
-    features: ["Priority counsellor chat", "2 discounted sessions", "Wellness progress reports"],
-    popular: true,
-  },
-  {
-    id: "premium",
-    name: "Premium Care",
-    price: 1999,
-    period: "month",
-    description: "More frequent support and deeper tracking.",
-    features: ["Unlimited chat follow-ups", "4 discounted sessions", "Advanced care insights"],
-  },
-];
 
 const defaultNotificationPrefs = {
   session: true,
@@ -149,7 +135,7 @@ const emptyData = {
   habits: [],
   messages: [],
   notifications: [],
-  payments: { subscription: "Free", invoices: [] },
+  payments: { summary: "Session payments only", invoices: [] },
   emergency: { sosReady: true, helpline: "1800-599-0019", contact: "Not added" },
 };
 
@@ -171,6 +157,9 @@ const UserDashboard = () => {
   const [messageRecipient, setMessageRecipient] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messageFileUrl, setMessageFileUrl] = useState("");
+  const [replyToMessage, setReplyToMessage] = useState(null);
+  const [editingMessageId, setEditingMessageId] = useState("");
+  const [editingMessageText, setEditingMessageText] = useState("");
   const [chatSearch, setChatSearch] = useState("");
   const [chatFilter, setChatFilter] = useState("all");
   const [showAttachmentPanel, setShowAttachmentPanel] = useState(false);
@@ -178,7 +167,8 @@ const UserDashboard = () => {
   const [pinnedChatIds, setPinnedChatIds] = useState([]);
   const [archivedChatIds, setArchivedChatIds] = useState([]);
   const [paying, setPaying] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState("plus");
+  const [accountSaving, setAccountSaving] = useState(false);
+  const [usernameDraft, setUsernameDraft] = useState("");
   const [notificationPrefs, setNotificationPrefs] = useState(() => readStoredPrefs("mindsupport_notification_prefs", defaultNotificationPrefs));
   const [privacyPrefs, setPrivacyPrefs] = useState(() => readStoredPrefs("mindsupport_privacy_prefs", defaultPrivacyPrefs));
   const [otpCode, setOtpCode] = useState("");
@@ -191,6 +181,7 @@ const UserDashboard = () => {
       .then((result) => {
         if (active) {
           setData({ ...emptyData, ...result });
+          setUsernameDraft((current) => current || result.profile?.username || "");
           if (!messageRecipient && result.therapists?.[0]?.id) setMessageRecipient(result.therapists[0].id);
         }
       })
@@ -246,7 +237,6 @@ const UserDashboard = () => {
   }, [category, data.therapists, search]);
 
   const chatMessages = useMemo(() => [...(data.messages || [])].reverse(), [data.messages]);
-  const selectedPlanData = subscriptionPlans.find((plan) => plan.id === selectedPlan) || subscriptionPlans[1];
   const latestMood = data.moodEntries?.[0]?.mood || data.stats.moodScore || 4;
   const currentRisk = data.latestAssessment?.level || data.stats.latestRiskLevel || "not-started";
   const allChatConversations = useMemo(() => {
@@ -395,14 +385,62 @@ const UserDashboard = () => {
           text: messageText,
           fileUrl: messageFileUrl,
           fileName: messageFileUrl ? "Shared file" : "",
+          replyTo: replyToMessage?.id,
         }),
       });
       toast({ title: "Message sent", description: "Your counsellor can reply from their dashboard." });
       setMessageText("");
       setMessageFileUrl("");
+      setReplyToMessage(null);
       loadDashboard();
     } catch (error) {
       toast({ variant: "destructive", title: "Message failed", description: error?.message || "" });
+    }
+  };
+
+  const startEditMessage = (message) => {
+    if (!message.canEdit || message.deleted) return;
+    setEditingMessageId(message.id);
+    setEditingMessageText(message.text || "");
+  };
+
+  const saveEditedMessage = async () => {
+    if (!editingMessageId || !editingMessageText.trim()) return;
+    try {
+      await apiFetch(`/api/messages/${editingMessageId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ text: editingMessageText }),
+      });
+      setEditingMessageId("");
+      setEditingMessageText("");
+      toast({ title: "Message updated" });
+      loadDashboard();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Edit failed", description: error?.message || "" });
+    }
+  };
+
+  const deleteMessage = async (message) => {
+    if (!message.canDelete || !window.confirm("Delete this message from the conversation?")) return;
+    try {
+      await apiFetch(`/api/messages/${message.id}`, { method: "DELETE" });
+      toast({ title: "Message deleted" });
+      loadDashboard();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Delete failed", description: error?.message || "" });
+    }
+  };
+
+  const reactToMessage = async (message, emoji) => {
+    if (!message?.id || message.deleted) return;
+    try {
+      await apiFetch(`/api/messages/${message.id}/reactions`, {
+        method: "POST",
+        body: JSON.stringify({ emoji }),
+      });
+      loadDashboard();
+    } catch (error) {
+      toast({ variant: "destructive", title: "Reaction failed", description: error?.message || "" });
     }
   };
 
@@ -449,24 +487,33 @@ const UserDashboard = () => {
     }
   };
 
-  const paySubscription = async (plan = selectedPlanData) => {
-    setPaying(true);
+  const saveSecurityPreferences = async () => {
+    setAccountSaving(true);
     try {
-      await apiFetch("/api/payments/session", {
-        method: "POST",
+      await apiFetch("/api/users/me", {
+        method: "PUT",
         body: JSON.stringify({
-          kind: "subscription",
-          plan: plan.name,
-          amount: plan.price,
-          description: `${plan.name} subscription`,
+          username: usernameDraft,
+          privacySettings: {
+            showOnlineStatus: !privacyPrefs.anonymousDefault,
+            allowMessages: true,
+            shareProgressWithCounsellor: privacyPrefs.shareJournal,
+            anonymousDisplayName: privacyPrefs.anonymousDefault ? "Anonymous MindSupport user" : "",
+          },
+          notificationSettings: {
+            session: notificationPrefs.session,
+            messages: notificationPrefs.messages,
+            payments: notificationPrefs.payments,
+            platform: true,
+          },
         }),
       });
-      toast({ title: "Subscription activated", description: `${plan.name} is recorded at ${formatRupees(plan.price)}/month.` });
+      toast({ title: "Security settings saved", description: "Username, privacy, and notifications are updated." });
       loadDashboard();
     } catch (error) {
-      toast({ variant: "destructive", title: "Subscription failed", description: error?.message || "" });
+      toast({ variant: "destructive", title: "Save failed", description: error?.message || "" });
     } finally {
-      setPaying(false);
+      setAccountSaving(false);
     }
   };
 
@@ -514,9 +561,9 @@ const UserDashboard = () => {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => navigate("/book")} className="gap-2">
+                  <Button onClick={() => navigate("/counselling")} className="gap-2">
                     <Video className="h-4 w-4" />
-                    Book Session
+                    Find Counsellor
                   </Button>
                 </div>
               </div>
@@ -573,11 +620,11 @@ const UserDashboard = () => {
                                   <Button asChild size="sm" variant="outline" className="gap-2">
                                     <a href={appointment.meetingLink} target="_blank" rel="noreferrer">
                                       <Video className="h-4 w-4" />
-                                      Join
+                                      Join same Meet
                                     </a>
                                   </Button>
                                 )}
-                                <Button size="sm" variant="outline" onClick={() => navigate("/book")}>
+                                <Button size="sm" variant="outline" onClick={() => navigate("/counselling")}>
                                   Reschedule
                                 </Button>
                               </div>
@@ -591,7 +638,7 @@ const UserDashboard = () => {
                   <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <LineChart className="h-5 w-5 text-secondary" />
+                        <LineChartIcon className="h-5 w-5 text-secondary" />
                         Personal Analytics
                       </CardTitle>
                       <CardDescription>Mood, stability, therapy progress, and sleep</CardDescription>
@@ -600,10 +647,18 @@ const UserDashboard = () => {
                       <ProgressRow label="Emotional stability" value={data.analytics.emotionalStability} />
                       <ProgressRow label="Therapy progress" value={data.analytics.therapyProgress} />
                       <ProgressRow label="Sleep quality" value={data.analytics.sleepQuality} />
-                      <div className="grid grid-cols-5 gap-2 pt-2">
-                        {data.analytics.weeklyMood.map((entry) => (
-                          <MiniBar key={entry.label} label={entry.label} value={entry.mood * 20} />
-                        ))}
+                      <div className="h-64 rounded-2xl border border-glass-border/40 bg-background/60 p-3">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsLineChart data={data.analytics.weeklyMood || []} margin={{ top: 8, right: 14, left: -18, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
+                            <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+                            <YAxis domain={[0, 10]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+                            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }} />
+                            <Line type="monotone" dataKey="mood" name="Mood" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4 }} />
+                            <Line type="monotone" dataKey="sleep" name="Sleep" stroke="hsl(var(--secondary))" strokeWidth={3} dot={{ r: 4 }} />
+                            <Line type="monotone" dataKey="anxiety" name="Anxiety" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 3 }} />
+                          </RechartsLineChart>
+                        </ResponsiveContainer>
                       </div>
                     </CardContent>
                   </Card>
@@ -695,8 +750,8 @@ const UserDashboard = () => {
                           <div className="mt-1 text-xs text-foreground/60">
                             Languages: {(therapist.languages || []).join(", ") || "English"} - From {formatRupees(therapist.sessionPricing || 500)} / session
                           </div>
-                          <Button className="mt-4 w-full" onClick={() => navigate("/book")}>
-                            Book with counsellor
+                          <Button className="mt-4 w-full" onClick={() => navigate("/counselling")}>
+                            View plans and book
                           </Button>
                         </div>
                       ))}
@@ -720,7 +775,7 @@ const UserDashboard = () => {
                         <PanelText>No sessions yet. Choose a counsellor and book your first appointment.</PanelText>
                       ) : (
                         data.appointments.map((appointment) => (
-                          <SessionCard key={appointment.id} appointment={appointment} onBook={() => navigate("/book")} onChat={() => setActiveTab("chat")} />
+                          <SessionCard key={appointment.id} appointment={appointment} onBook={() => navigate("/counselling")} onChat={() => setActiveTab("chat")} />
                         ))
                       )}
                     </CardContent>
@@ -736,8 +791,8 @@ const UserDashboard = () => {
                         <CardDescription>Fast controls for the session flow.</CardDescription>
                       </CardHeader>
                       <CardContent className="grid gap-3">
-                        <ActionCard title="Book new session" text="Choose counsellor, date, time, and online/offline mode." action="Book" onClick={() => navigate("/book")} />
-                        <ActionCard title="Manage appointments" text="Reschedule, cancel, or review completed sessions." action="Open bookings" onClick={() => navigate("/book")} />
+                        <ActionCard title="Book new session" text="Choose counsellor, plan, date, time, and session mode." action="Book" onClick={() => navigate("/counselling")} />
+                        <ActionCard title="Manage appointments" text="Review your care plan, progress, and upcoming appointments." action="Open counselling" onClick={() => navigate("/counselling")} />
                         <ActionCard title="Follow-up chat" text="Ask a question after a session or share a resource." action="Open chat" onClick={() => setActiveTab("chat")} />
                       </CardContent>
                     </Card>
@@ -809,6 +864,17 @@ const UserDashboard = () => {
                             <ProgressRow key={habit.name} label={`${habit.name} - ${habit.value}`} value={habit.progress} />
                           ))
                         )}
+                      </div>
+                      <div className="h-56 rounded-2xl border border-glass-border/40 bg-background/60 p-3">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsBarChart data={data.habits || []} margin={{ top: 8, right: 12, left: -18, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
+                            <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+                            <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+                            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }} />
+                            <Bar dataKey="progress" name="Progress" radius={[8, 8, 0, 0]} fill="hsl(var(--primary))" />
+                          </RechartsBarChart>
+                        </ResponsiveContainer>
                       </div>
                     </CardContent>
                   </Card>
@@ -1042,7 +1108,21 @@ const UserDashboard = () => {
                                     return (
                                       <div key={message.id || `${message.direction}-${message.text}-${index}`}>
                                         {showDate && <DatePill message={message} />}
-                                        <ChatBubble message={message} />
+                                        <ChatBubble
+                                          message={message}
+                                          editing={editingMessageId === message.id}
+                                          editingText={editingMessageText}
+                                          onEditText={setEditingMessageText}
+                                          onStartEdit={() => startEditMessage(message)}
+                                          onSaveEdit={saveEditedMessage}
+                                          onCancelEdit={() => {
+                                            setEditingMessageId("");
+                                            setEditingMessageText("");
+                                          }}
+                                          onDelete={() => deleteMessage(message)}
+                                          onReply={() => setReplyToMessage(message)}
+                                          onReact={(emoji) => reactToMessage(message, emoji)}
+                                        />
                                       </div>
                                     );
                                   })}
@@ -1057,6 +1137,15 @@ const UserDashboard = () => {
                             </div>
 
                             <div className="border-t border-white/10 bg-[#202c33] p-3">
+                              {replyToMessage && (
+                                <div className="mb-3 rounded-xl border-l-4 border-emerald-400 bg-[#111b21] p-3 text-xs text-slate-300">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <span>Replying to {replyToMessage.direction === "sent" ? "your message" : replyToMessage.from}</span>
+                                    <button type="button" className="text-slate-400 hover:text-white" onClick={() => setReplyToMessage(null)}>Cancel</button>
+                                  </div>
+                                  <div className="mt-1 truncate text-slate-100">{replyToMessage.text}</div>
+                                </div>
+                              )}
                               <div className="mb-2 flex flex-wrap gap-2">
                                 {["I need to reschedule", "Can we discuss my journal?", "Please share a coping task"].map((reply) => (
                                   <button
@@ -1160,43 +1249,28 @@ const UserDashboard = () => {
               </TabsContent>
 
               <TabsContent value="payments" className="dashboard-tab-motion space-y-6">
-                <div className="dashboard-stagger grid md:grid-cols-3 gap-4">
-                  {subscriptionPlans.map((plan) => (
-                    <SubscriptionPlanCard
-                      key={plan.id}
-                      plan={plan}
-                      selected={selectedPlan === plan.id}
-                      onSelect={() => setSelectedPlan(plan.id)}
-                      onPay={() => paySubscription(plan)}
-                      disabled={paying}
-                    />
-                  ))}
-                </div>
                 <div className="dashboard-stagger grid lg:grid-cols-[0.85fr_1.15fr] gap-6">
                   <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CreditCard className="h-5 w-5 text-primary" />
-                        Payments & Subscription
+                        Session Payments
                       </CardTitle>
-                      <CardDescription>Pay for sessions, buy subscriptions, and view invoices in rupees.</CardDescription>
+                      <CardDescription>Pay per session or support plan. No monthly plan is required.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <PanelText>Current plan: {data.payments.subscription}</PanelText>
-                      <PanelText>Selected plan: {selectedPlanData.name} at {formatRupees(selectedPlanData.price)} / month</PanelText>
-                      <PanelText>Next billing: {data.payments.nextBillingDate || "Not scheduled"}</PanelText>
+                      <PanelText>{data.payments.summary || "Session payments only"}</PanelText>
+                      <PanelText>Invoices are stored in rupees and linked to booked counselling sessions.</PanelText>
                       <div className="flex flex-wrap gap-2">
                         <Button onClick={payNextSession} disabled={paying}>{paying ? "Processing..." : "Pay next session"}</Button>
-                        <Button variant="outline" onClick={() => paySubscription(selectedPlanData)} disabled={paying}>
-                          Activate selected plan
-                        </Button>
+                        <Button variant="outline" onClick={() => navigate("/counselling")}>Choose counsellor plan</Button>
                       </div>
                     </CardContent>
                   </Card>
                   <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle>Invoices</CardTitle>
-                      <CardDescription>Session and subscription payment history.</CardDescription>
+                      <CardDescription>Session payment history.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {(data.payments.invoices || []).length === 0 ? (
@@ -1271,6 +1345,37 @@ const UserDashboard = () => {
                   </Card>
                 </div>
 
+                <Card className="dashboard-card-motion glass-card border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lock className="h-5 w-5 text-primary" />
+                      Account Security & Username
+                    </CardTitle>
+                    <CardDescription>Use a username for safer login and keep your counselling identity private when needed.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+                    <div className="space-y-2">
+                      <Label htmlFor="secure-username">Secure username</Label>
+                      <Input
+                        id="secure-username"
+                        value={usernameDraft}
+                        onChange={(event) => setUsernameDraft(event.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                        placeholder="mindsupport_user"
+                      />
+                      <p className="text-xs text-foreground/60">Use 3-24 lowercase letters, numbers, or underscores. You can sign in with email or username.</p>
+                    </div>
+                    <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4 text-sm text-foreground/70">
+                      <div className="font-medium text-foreground">Privacy status</div>
+                      <p className="mt-2">Anonymous default: {privacyPrefs.anonymousDefault ? "On" : "Off"}</p>
+                      <p>Journal sharing default: {privacyPrefs.shareJournal ? "Share allowed" : "Private unless selected"}</p>
+                      <p>Emergency keyword support: {privacyPrefs.crisisAlerts ? "On" : "Off"}</p>
+                    </div>
+                    <Button className="lg:col-span-2 w-fit" onClick={saveSecurityPreferences} disabled={accountSaving}>
+                      {accountSaving ? "Saving..." : "Save security preferences"}
+                    </Button>
+                  </CardContent>
+                </Card>
+
                 <div className="dashboard-stagger grid lg:grid-cols-2 gap-6">
                   <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
@@ -1284,7 +1389,7 @@ const UserDashboard = () => {
                       <PreferenceToggle title="Session reminders" text="Appointment reminders and Google Meet alerts." checked={notificationPrefs.session} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, session: !prev.session }))} />
                       <PreferenceToggle title="Mood check-ins" text="Daily wellness tracking prompts." checked={notificationPrefs.mood} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, mood: !prev.mood }))} />
                       <PreferenceToggle title="Counsellor messages" text="Replies and follow-up chat notifications." checked={notificationPrefs.messages} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, messages: !prev.messages }))} />
-                      <PreferenceToggle title="Payment alerts" text="Invoices, subscriptions, and confirmations." checked={notificationPrefs.payments} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, payments: !prev.payments }))} />
+                      <PreferenceToggle title="Payment alerts" text="Invoices, session payments, and confirmations." checked={notificationPrefs.payments} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, payments: !prev.payments }))} />
                     </CardContent>
                   </Card>
 
@@ -1347,15 +1452,6 @@ function ProgressRow({ label, value }) {
   );
 }
 
-function MiniBar({ label, value }) {
-  return (
-    <div className="dashboard-card-motion h-28 rounded-lg bg-foreground/5 p-2 flex flex-col justify-end">
-      <div className="rounded-md bg-primary/70 transition-all duration-500" style={{ height: `${Math.max(12, value)}%` }} />
-      <div className="text-center text-[10px] text-foreground/60 mt-2">{label}</div>
-    </div>
-  );
-}
-
 function PanelText({ children }) {
   return <div className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-3 text-sm text-foreground/75">{children}</div>;
 }
@@ -1408,7 +1504,7 @@ function Tracker({ label, value }) {
 }
 
 function SessionCard({ appointment, onBook, onChat }) {
-  const isOnline = appointment.mode === "online";
+  const isOnline = ["online", "google-meet"].includes(appointment.mode);
 
   return (
     <div className="dashboard-card-motion rounded-xl border border-glass-border/40 bg-background/60 p-4">
@@ -1429,7 +1525,7 @@ function SessionCard({ appointment, onBook, onChat }) {
             <Button asChild size="sm" className="gap-2">
               <a href={appointment.meetingLink} target="_blank" rel="noreferrer">
                 <Video className="h-4 w-4" />
-                Join Meet
+                Join same Meet
               </a>
             </Button>
           )}
@@ -1584,74 +1680,97 @@ function AttachmentAction({ icon: Icon, label, onClick }) {
   );
 }
 
-function ChatBubble({ message }) {
+function ChatBubble({
+  message,
+  editing,
+  editingText,
+  onEditText,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onDelete,
+  onReply,
+  onReact,
+}) {
   const sent = message.direction === "sent";
   const timeLabel = message.createdAt
     ? new Date(message.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
     : message.time || "";
+  const reactions = Object.entries(message.reactionSummary || {});
 
   return (
-    <div className={`flex ${sent ? "chat-bubble-sent justify-end" : "chat-bubble-received justify-start"}`}>
+    <div className={`group flex ${sent ? "chat-bubble-sent justify-end" : "chat-bubble-received justify-start"}`}>
       <div className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-sm ${sent ? "bg-[#005c4b] text-white rounded-br-sm" : "bg-[#202c33] text-slate-100 rounded-bl-sm"}`}>
+        {message.replyTo && (
+          <div className={`mb-2 rounded-lg border-l-4 p-2 text-xs ${sent ? "border-emerald-200 bg-white/10" : "border-emerald-300 bg-black/15"}`}>
+            <div className="font-semibold">{message.replyTo.from}</div>
+            <div className="truncate opacity-80">{message.replyTo.text}</div>
+          </div>
+        )}
         <div className={`mb-1 text-xs font-semibold ${sent ? "text-emerald-100" : "text-slate-300"}`}>
           {sent ? "You" : message.from || "Counsellor"}
+          {message.fromUsername && !sent ? <span className="ml-1 font-normal opacity-70">@{message.fromUsername}</span> : null}
         </div>
-        {message.subject && <div className="text-sm font-semibold">{message.subject}</div>}
-        <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.text}</div>
-        {message.task && <div className="mt-2 rounded-lg bg-white/10 p-2 text-xs">Task: {message.task}</div>}
-        {message.fileUrl && (
-          <a className={`mt-2 inline-flex items-center gap-1 text-xs underline ${sent ? "text-emerald-100" : "text-emerald-300"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
-            <Paperclip className="h-3 w-3" />
-            {message.fileName || "Open shared file"}
-          </a>
+        {editing ? (
+          <div className="space-y-2">
+            <Textarea rows={3} value={editingText} onChange={(event) => onEditText(event.target.value)} className="border-white/10 bg-[#111b21] text-slate-100" />
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="outline" onClick={onCancelEdit}>Cancel</Button>
+              <Button size="sm" onClick={onSaveEdit}>Save</Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {message.subject && <div className="text-sm font-semibold">{message.subject}</div>}
+            <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>
+            {message.task && <div className="mt-2 rounded-lg bg-white/10 p-2 text-xs">Task: {message.task}</div>}
+            {message.fileUrl && (
+              <a className={`mt-2 inline-flex items-center gap-1 text-xs underline ${sent ? "text-emerald-100" : "text-emerald-300"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
+                <Paperclip className="h-3 w-3" />
+                {message.fileName || "Open shared file"}
+              </a>
+            )}
+          </>
+        )}
+        {reactions.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {reactions.map(([emoji, count]) => (
+              <button key={emoji} type="button" onClick={() => onReact(emoji)} className="rounded-full bg-white/10 px-2 py-0.5 text-xs hover:bg-white/15">
+                {emoji} {count}
+              </button>
+            ))}
+          </div>
         )}
         <div className={`mt-2 flex items-center justify-end gap-1 text-[11px] ${sent ? "text-emerald-100/80" : "text-slate-400"}`}>
+          {message.edited && !message.deleted ? <span>edited</span> : null}
           {timeLabel}
           {sent && <CheckCheck className={`h-3.5 w-3.5 ${message.unread ? "" : "text-sky-300"}`} />}
         </div>
+        {!message.deleted && (
+          <div className="mt-2 flex flex-wrap justify-end gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+            <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onReply}>
+              <Reply className="h-3.5 w-3.5" />
+            </Button>
+            {["+1", "heart", "thanks", "calm"].map((emoji) => (
+              <Button key={emoji} size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
+                <SmilePlus className="mr-1 h-3.5 w-3.5" />
+                {emoji}
+              </Button>
+            ))}
+            {message.canEdit && (
+              <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onStartEdit}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            {message.canDelete && (
+              <Button size="sm" variant="ghost" className="h-8 px-2 text-rose-200 hover:bg-rose-500/10 hover:text-rose-100" onClick={onDelete}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
-  );
-}
-
-function SubscriptionPlanCard({ plan, selected, onSelect, onPay, disabled }) {
-  return (
-    <Card className={`dashboard-card-motion glass-card relative overflow-hidden ${selected ? "border-primary/60 ring-1 ring-primary/30" : ""}`}>
-      {plan.popular && (
-        <Badge className="absolute right-4 top-4 bg-primary/15 text-primary border border-primary/20">
-          Popular
-        </Badge>
-      )}
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-primary" />
-          {plan.name}
-        </CardTitle>
-        <CardDescription>{plan.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <span className="text-3xl font-bold">{formatRupees(plan.price)}</span>
-          <span className="text-sm text-foreground/60"> / {plan.period}</span>
-        </div>
-        <div className="space-y-2">
-          {plan.features.map((feature) => (
-            <div key={feature} className="flex items-start gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-600" />
-              <span>{feature}</span>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          <Button variant={selected ? "default" : "outline"} className="flex-1" onClick={onSelect}>
-            {selected ? "Selected" : "Select"}
-          </Button>
-          <Button variant="outline" className="flex-1" onClick={onPay} disabled={disabled}>
-            Pay
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 

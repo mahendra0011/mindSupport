@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   BarChart3,
@@ -16,6 +16,17 @@ import {
   Users,
   Video,
 } from "lucide-react";
+import {
+  Bar,
+  BarChart as RechartsBarChart,
+  CartesianGrid,
+  Line,
+  LineChart as RechartsLineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import GlowPanel from "@/components/reactbits/GlowPanel";
@@ -47,7 +58,7 @@ const emptyData = {
     lowRatedCounsellors: 0,
   },
   analytics: { userGrowth: [], sessionTrends: [], revenueTrends: [], demand: [] },
-  revenue: { platformRevenue: 0, counsellorPayouts: 0, subscriptionIncome: 0, refundRequests: 0 },
+  revenue: { platformRevenue: 0, counsellorPayouts: 0, planRevenue: 0, refundRequests: 0 },
   emergency: [],
   reviews: [],
   activityLogs: [],
@@ -55,6 +66,7 @@ const emptyData = {
   counsellors: [],
   counsellorApplications: [],
   lowRatedCounsellors: [],
+  notifications: [],
   insights: [],
 };
 
@@ -193,7 +205,7 @@ const AdminDashboard = () => {
               ["Metric", "Amount"],
               ["Platform revenue", data.revenue.platformRevenue],
               ["Counsellor payouts", data.revenue.counsellorPayouts],
-              ["Subscription income", data.revenue.subscriptionIncome],
+              ["Plan revenue", data.revenue.planRevenue],
               ["Refund requests", data.revenue.refundRequests],
             ]
           : kind === "counsellors"
@@ -263,7 +275,7 @@ const AdminDashboard = () => {
               <Metric title="Total users" value={totals.userCount} icon={Users} />
               <Metric title="Active counsellors" value={data.stats.activeCounsellors} icon={UserCog} />
               <Metric title="Total sessions" value={totals.appointmentCount} icon={CalendarDays} />
-              <Metric title="Revenue" value={`₹${data.stats.revenue}`} icon={CreditCard} />
+              <Metric title="Revenue" value={`Rs. ${data.stats.revenue}`} icon={CreditCard} />
               <Metric title="Applications" value={data.stats.pendingApplications || 0} icon={FileText} />
               <Metric title="Review queue" value={data.stats.reviewModeration || 0} icon={Star} />
             </div>
@@ -406,7 +418,7 @@ const AdminDashboard = () => {
                               <div className="grid md:grid-cols-2 gap-2 text-sm text-foreground/70">
                                 <div>Experience: {application.experience}</div>
                                 <div>Languages: {(application.languages || []).join(", ") || "Not provided"}</div>
-                                <div>Pricing: ₹{application.sessionPricing || 0}/session</div>
+                                <div>Pricing: Rs. {application.sessionPricing || 0}/session</div>
                                 <div>ID: {application.idDocumentType} / {application.idDocumentNumber ? "provided" : "missing"}</div>
                                 <div>License: {application.licenseNumber || "Not provided"}</div>
                                 <div>LinkedIn: {application.linkedin || "Not provided"}</div>
@@ -511,19 +523,37 @@ const AdminDashboard = () => {
 
               <TabsContent value="revenue" className="dashboard-tab-motion space-y-6">
                 <div className="grid md:grid-cols-4 gap-4">
-                  <Metric title="Platform revenue" value={`₹${data.revenue.platformRevenue}`} icon={CreditCard} />
-                  <Metric title="Counsellor payouts" value={`₹${data.revenue.counsellorPayouts}`} icon={Users} />
-                  <Metric title="Subscriptions" value={`₹${data.revenue.subscriptionIncome}`} icon={CheckCircle2} />
+                  <Metric title="Platform revenue" value={`Rs. ${data.revenue.platformRevenue}`} icon={CreditCard} />
+                  <Metric title="Counsellor payouts" value={`Rs. ${data.revenue.counsellorPayouts}`} icon={Users} />
+                  <Metric title="Plan revenue" value={`Rs. ${data.revenue.planRevenue}`} icon={CheckCircle2} />
                   <Metric title="Refund requests" value={data.revenue.refundRequests} icon={ShieldAlert} />
                 </div>
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle>Revenue Trend</CardTitle>
+                    <CardDescription>Gross revenue with 20% platform fee and 80% counsellor payout planning.</CardDescription>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-5 gap-2">
-                    {data.analytics.revenueTrends.map((item) => (
-                      <MiniBar key={item.month} label={item.month} value={Math.min(100, item.value / 2000)} />
-                    ))}
+                  <CardContent className="space-y-4">
+                    <div className="h-80 rounded-2xl border border-glass-border/40 bg-background/60 p-4">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsBarChart data={data.analytics.revenueTrends || []} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
+                          <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                          <YAxis stroke="hsl(var(--muted-foreground))" tickFormatter={(value) => `Rs.${Math.round(value / 1000)}k`} />
+                          <Tooltip
+                            cursor={{ fill: "hsl(var(--primary) / 0.08)" }}
+                            contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }}
+                            formatter={(value) => `Rs. ${Number(value || 0).toLocaleString("en-IN")}`}
+                          />
+                          <Bar dataKey="value" name="Gross revenue" radius={[8, 8, 0, 0]} fill="hsl(var(--primary))" />
+                        </RechartsBarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <PanelText>Admin platform share: {data.revenue.platformCommissionRate || 20}%</PanelText>
+                      <PanelText>Platform revenue: Rs. {Number(data.revenue.platformRevenue || 0).toLocaleString("en-IN")}</PanelText>
+                      <PanelText>Counsellor payouts: Rs. {Number(data.revenue.counsellorPayouts || 0).toLocaleString("en-IN")}</PanelText>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -602,6 +632,20 @@ const AdminDashboard = () => {
                         <Bell className="h-4 w-4" />
                         Send Announcement
                       </Button>
+                      <div className="space-y-2 pt-2">
+                        <div className="text-sm font-semibold">Recent admin notifications</div>
+                        {(data.notifications || []).length === 0 ? (
+                          <PanelText>No platform notifications yet.</PanelText>
+                        ) : (
+                          data.notifications.slice(0, 5).map((notification) => (
+                            <div key={notification.id} className="rounded-lg border border-glass-border/40 bg-background/60 p-3">
+                              <div className="font-medium">{notification.title}</div>
+                              <div className="text-sm text-foreground/70">{notification.message}</div>
+                              <div className="mt-1 text-xs text-foreground/50">{notification.time}</div>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
@@ -696,22 +740,22 @@ function AnalyticsCard({ title, data, labelKey = "month" }) {
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-5 gap-2">
-        {(data || []).map((item) => (
-          <MiniBar key={item[labelKey]} label={item[labelKey]} value={Math.min(100, item.value)} />
-        ))}
+      <CardContent>
+        <div className="h-72 rounded-2xl border border-glass-border/40 bg-background/60 p-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsLineChart data={data || []} margin={{ top: 8, right: 16, left: -12, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.45} />
+              <XAxis dataKey={labelKey} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+              <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }} />
+              <Line type="monotone" dataKey="value" name={title} stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4 }} />
+            </RechartsLineChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-function MiniBar({ label, value }) {
-  return (
-    <div className="h-36 rounded-lg bg-foreground/5 p-2 flex flex-col justify-end">
-      <div className="rounded-md bg-primary/70" style={{ height: `${Math.max(12, value)}%` }} />
-      <div className="text-center text-[10px] text-foreground/60 mt-2">{label}</div>
-    </div>
-  );
-}
-
 export default AdminDashboard;
+

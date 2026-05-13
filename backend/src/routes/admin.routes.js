@@ -95,6 +95,8 @@ app.get(
       pendingApplications,
       reviews,
       lowRatedCounsellors,
+      paymentAgg,
+      adminNotifications,
     ] =
       await Promise.all([
         User.aggregate([{ $group: { _id: "$role", count: { $sum: 1 } } }]),
@@ -111,9 +113,24 @@ app.get(
         CounsellorApplication.countDocuments({ status: { $in: ["pending", "reviewing"] } }),
         Review.find().sort({ createdAt: -1 }).limit(30).populate("student counsellor appointment"),
         User.find({ role: "counsellor", reviews: { $gte: 1 }, rating: { $lt: 3.5 } }).sort({ rating: 1 }).limit(8),
+        Payment.aggregate([
+          {
+            $group: {
+              _id: null,
+              amount: { $sum: "$amount" },
+              platformFee: { $sum: "$platformFee" },
+              counsellorPayout: { $sum: "$counsellorPayout" },
+            },
+          },
+        ]),
+        Notification.find({ audienceRole: { $in: ["admin", "all"] } }).sort({ createdAt: -1 }).limit(8),
       ]);
     const toMap = (items) => Object.fromEntries(items.map((item) => [item._id || "unknown", item.count]));
     const usersByRole = toMap(roleAgg);
+    const revenue = paymentAgg[0] || {};
+    const totalRevenue = revenue.amount || 186400;
+    const platformRevenue = revenue.platformFee || Math.round(totalRevenue * 0.2);
+    const counsellorPayouts = revenue.counsellorPayout || Math.round(totalRevenue * 0.8);
     res.json({
       stats: {
         usersByRole,
@@ -126,7 +143,7 @@ app.get(
         activeCounsellors,
         pendingApplications,
         totalSessions,
-        revenue: 186400,
+        revenue: totalRevenue,
         emergencyAlerts: openReports,
         reviewModeration: reviews.filter((review) => review.status === "flagged" || Number(review.averageRating) <= 2).length,
         lowRatedCounsellors: lowRatedCounsellors.length,
@@ -155,7 +172,7 @@ app.get(
           { month: "Feb", value: 58000 },
           { month: "Mar", value: 73400 },
           { month: "Apr", value: 121000 },
-          { month: "May", value: 186400 },
+          { month: "May", value: totalRevenue },
         ],
         demand: [
           { category: "Anxiety", value: 36 },
@@ -165,11 +182,13 @@ app.get(
         ],
       },
       revenue: {
-        platformRevenue: 186400,
-        counsellorPayouts: 112300,
-        subscriptionIncome: 74100,
+        platformRevenue,
+        counsellorPayouts,
+        planRevenue: totalRevenue,
+        platformCommissionRate: 20,
         refundRequests: 3,
       },
+      notifications: adminNotifications.map(normalizeNotification),
       emergency: [
         { id: "SOS-1001", user: "Anonymous user", status: "reviewing", time: "Today 09:30" },
         { id: "CR-8842", user: "Peer support report", status: "open", time: "Yesterday" },

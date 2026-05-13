@@ -347,7 +347,7 @@ const MyWellness = () => {
                     <PanelHeader icon={Clock} title="Quick Actions" subtitle="Access support quickly" />
                     <div className="space-y-3">
                       <QuickButton icon={Target} label="Take Risk Assessment" onClick={() => setActiveTab("assessment")} />
-                      <QuickButton icon={Calendar} label="Book Session" onClick={() => { window.location.href = "/book"; }} />
+                      <QuickButton icon={Calendar} label="Counselling" onClick={() => { window.location.href = "/counselling"; }} />
                       <QuickButton icon={BookOpen} label="Browse Resources" highlight onClick={() => setActiveTab("resources")} />
                       <QuickButton icon={AlertTriangle} label="Emergency Support" onClick={() => setActiveTab("emergency")} />
                     </div>

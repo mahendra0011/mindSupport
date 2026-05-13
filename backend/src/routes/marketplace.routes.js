@@ -24,6 +24,8 @@ export function registerMarketplaceRoutes(app, context) {
     badgeForCounsellorType,
     bcrypt,
     buildMeetLink,
+    normalizeMeetLink,
+    resolveSharedMeetLink,
     canAccessAppointment,
     canMessageUser,
     createNotification,
@@ -54,29 +56,79 @@ export function registerMarketplaceRoutes(app, context) {
     todayYMD,
   } = context;
 
+const supportPlans = [
+  {
+    id: "short-term",
+    name: "Short-Term Support",
+    duration: "4-8 sessions",
+    cadence: "One session every two days",
+    bestFor: ["Stress", "Anxiety", "Exam pressure", "Loneliness"],
+    multiplier: 1,
+  },
+  {
+    id: "medium-term",
+    name: "Medium-Term Support",
+    duration: "8-15 sessions",
+    cadence: "Weekly or bi-weekly",
+    bestFor: ["Mild depression", "Relationship issues", "Emotional healing"],
+    multiplier: 0.9,
+  },
+  {
+    id: "long-term",
+    name: "Long-Term Therapy",
+    duration: "3-6+ months",
+    cadence: "Weekly or bi-weekly sessions",
+    bestFor: ["Trauma", "Severe anxiety", "Chronic depression"],
+    multiplier: 0.82,
+  },
+];
+
+function publicCounsellorProfile(user) {
+  const basePrice = Number(user.sessionPricing) || 700;
+  return {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    specialization: user.specialization,
+    bio: user.bio,
+    location: user.location || "India - Online and in-person support",
+    education: user.education || (user.counsellorType === "mentor" ? "Peer support training" : "Verified professional qualification"),
+    profilePhotoUrl: user.profilePhotoUrl,
+    counsellorType: user.counsellorType || "professional",
+    badge: user.verificationBadge || badgeForCounsellorType(user.counsellorType),
+    experience: user.experience,
+    languages: user.languages,
+    sessionPricing: basePrice,
+    categories: user.categories,
+    rating: user.rating,
+    reviews: user.reviews,
+    responseTime: user.responseTime,
+    availability: user.availability,
+    consultationModes: user.consultationModes?.length ? user.consultationModes : ["google-meet", "in-person", "voice-call"],
+    supportPlans: supportPlans.map((plan) => ({
+      ...plan,
+      perSessionPrice: Math.max(300, Math.round(basePrice * plan.multiplier)),
+    })),
+  };
+}
+
 app.get(
   "/api/counsellors",
   asyncRoute(async (_req, res) => {
     const counsellors = await User.find({ role: "counsellor", status: { $in: approvedCounsellorStatuses } }).sort({ name: 1 });
-    res.json(
-      counsellors.map((user) => ({
-        id: String(user._id),
-        name: user.name,
-        email: user.email,
-        specialization: user.specialization,
-        bio: user.bio,
-        counsellorType: user.counsellorType || "professional",
-        badge: user.verificationBadge || badgeForCounsellorType(user.counsellorType),
-        experience: user.experience,
-        languages: user.languages,
-        sessionPricing: user.sessionPricing,
-        categories: user.categories,
-        rating: user.rating,
-        reviews: user.reviews,
-        responseTime: user.responseTime,
-        availability: user.availability,
-      }))
-    );
+    res.json(counsellors.map(publicCounsellorProfile));
+  })
+);
+
+app.get(
+  "/api/counsellors/:id",
+  asyncRoute(async (req, res) => {
+    const counsellor = await findCounsellor(req.params.id);
+    if (!counsellor) {
+      res.status(404).json({ error: "Counsellor not found" });
+      return;
+    }
+    res.json(publicCounsellorProfile(counsellor));
   })
 );
 
@@ -154,7 +206,10 @@ app.post(
       res.status(409).json({ error: "This counsellor already has a session at that time" });
       return;
     }
-    const mode = req.body?.mode === "in-person" ? "in-person" : req.body?.mode === "online" ? "online" : "google-meet";
+    const requestedMode = String(req.body?.mode || "google-meet");
+    const mode = ["in-person", "online", "google-meet", "voice-call"].includes(requestedMode) ? requestedMode : "google-meet";
+    const plan = supportPlans.find((item) => item.id === req.body?.supportPlanId) || supportPlans[0];
+    const sharedMeetingLink = mode === "in-person" || mode === "voice-call" ? "" : resolveSharedMeetLink(counsellor.meetLink, buildMeetLink());
     const appointment = await Appointment.create({
       student: student._id,
       studentEmail: student.email,
@@ -165,10 +220,36 @@ app.post(
       mode,
       status: "pending",
       concern: req.body?.concern || "",
+      supportPlanId: plan.id,
+      supportPlanName: plan.name,
+      supportPlanDuration: plan.duration,
+      supportPlanCadence: plan.cadence,
+      supportPlanBestFor: plan.bestFor,
       isAnonymous: Boolean(req.body?.isAnonymous),
       anonymousAlias: String(req.body?.anonymousAlias || "Anonymous user").trim().slice(0, 60) || "Anonymous user",
-      meetingProvider: mode === "in-person" ? "" : "google-meet",
-      meetingLink: mode === "in-person" ? "" : counsellor.meetLink || buildMeetLink(),
+      meetingProvider: mode === "in-person" || mode === "voice-call" ? "" : "google-meet",
+      meetingLink: sharedMeetingLink,
+    });
+    await createNotification({
+      user: counsellor._id,
+      type: "booking",
+      title: "New counselling request",
+      message: `${student.name} requested ${plan.name} on ${date} at ${time}.`,
+      metadata: { appointmentId: String(appointment._id) },
+    });
+    await createNotification({
+      user: student._id,
+      type: "booking",
+      title: "Booking request sent",
+      message: `${counsellor.name} will review your ${plan.name} request.`,
+      metadata: { appointmentId: String(appointment._id) },
+    });
+    await createNotification({
+      audienceRole: "admin",
+      type: "booking",
+      title: "New session booking",
+      message: `${student.email} booked ${counsellor.name} for ${plan.name}.`,
+      metadata: { appointmentId: String(appointment._id) },
     });
     res.status(201).json(normalizeAppointment(await appointment.populate("student counsellor"), req.user));
   })
@@ -204,16 +285,55 @@ app.put(
     for (const key of ["date", "time", "mode", "status", "concern", "notes"]) {
       if (key in payload) appointment[key] = payload[key];
     }
-    if (appointment.mode !== "in-person" && !appointment.meetingLink) {
+    if ("supportPlanId" in payload) {
+      const plan = supportPlans.find((item) => item.id === payload.supportPlanId);
+      if (plan) {
+        appointment.supportPlanId = plan.id;
+        appointment.supportPlanName = plan.name;
+        appointment.supportPlanDuration = plan.duration;
+        appointment.supportPlanCadence = plan.cadence;
+        appointment.supportPlanBestFor = plan.bestFor;
+      }
+    }
+    if ("meetingLink" in payload && req.user.role !== "user") {
+      const meetingLink = normalizeMeetLink(payload.meetingLink);
+      if (payload.meetingLink && !meetingLink) {
+        res.status(400).json({ error: "Use a reusable Google Meet room link, not https://meet.google.com/new." });
+        return;
+      }
+      appointment.meetingLink = meetingLink;
+    }
+    if (appointment.mode === "in-person" || appointment.mode === "voice-call") {
+      appointment.meetingProvider = "";
+      appointment.meetingLink = "";
+    }
+    if (!["in-person", "voice-call"].includes(appointment.mode) && !normalizeMeetLink(appointment.meetingLink)) {
       appointment.meetingProvider = "google-meet";
-      appointment.meetingLink = req.user.meetLink || buildMeetLink();
+      appointment.meetingLink = resolveSharedMeetLink(req.user.meetLink, buildMeetLink());
     }
     if (await hasAppointmentConflict(appointment.counsellor, appointment.date, appointment.time, appointment._id)) {
       res.status(409).json({ error: "This counsellor already has a session at that time" });
       return;
     }
     await appointment.save();
-    res.json(normalizeAppointment(await appointment.populate("student counsellor"), req.user));
+    const populated = await appointment.populate("student counsellor");
+    await createNotification({
+      user: populated.student?._id || appointment.student,
+      type: "session",
+      title: "Session updated",
+      message: `${appointment.counsellorName} updated your session status to ${appointment.status}.`,
+      metadata: { appointmentId: String(appointment._id) },
+    });
+    if (String(populated.counsellor?._id || appointment.counsellor) !== String(req.user._id)) {
+      await createNotification({
+        user: populated.counsellor?._id || appointment.counsellor,
+        type: "session",
+        title: "Session updated",
+        message: `A session with ${appointment.studentEmail} was updated to ${appointment.status}.`,
+        metadata: { appointmentId: String(appointment._id) },
+      });
+    }
+    res.json(normalizeAppointment(populated, req.user));
   })
 );
 

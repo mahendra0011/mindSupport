@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X, BookOpen, Calendar, Users, BarChart3, Home, Heart, Crown, LogIn, LogOut } from "lucide-react";
+import { Brain, Menu, X, BookOpen, Calendar, Users, BarChart3, Home, Heart, LogIn, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -13,7 +13,7 @@ const Navigation = () => {
         { name: "Home", icon: Home, route: "/" },
         ...(user?.role === "user" ? [{ name: "My Wellness", icon: Heart, route: "/wellness" }] : []),
         { name: "Resources", icon: BookOpen, route: "/resources" },
-        ...(user?.role === "user" || user?.role === "admin" ? [{ name: "Book Session", icon: Calendar, route: "/book" }] : []),
+        ...(user?.role === "user" ? [{ name: "Counselling", icon: Calendar, route: "/counselling" }] : []),
         ...(user?.role === "user" || user?.role === "admin" ? [{ name: "Peer Support", icon: Users, route: "/peer" }] : []),
         ...(user ? [{ name: "Dashboard", icon: BarChart3, route: "/dashboard" }] : []),
     ];
@@ -51,10 +51,6 @@ const Navigation = () => {
                 <LogIn className="h-4 w-4 mr-2"/>
                 <span className="text-sm font-semibold tracking-wide">Login</span>
               </Button>)}
-            <Button onClick={() => navigate("/pricing")} className="ml-4 bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-md hover:shadow-lg whitespace-nowrap">
-              <Crown className="h-4 w-4 mr-2"/>
-              <span className="text-sm font-semibold tracking-wide">Upgrade</span>
-            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -80,10 +76,6 @@ const Navigation = () => {
                     <LogIn className="h-4 w-4 mr-2"/>
                     <span className="text-sm font-semibold tracking-wide">Login</span>
                   </Button>)}
-                <Button onClick={() => { setIsOpen(false); navigate("/pricing"); }} className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-md hover:shadow-lg">
-                  <Crown className="h-4 w-4 mr-2"/>
-                  <span className="text-sm font-semibold tracking-wide">Upgrade</span>
-                </Button>
               </div>
               {/* Auth buttons removed from mobile navigation as requested */}
             </div>

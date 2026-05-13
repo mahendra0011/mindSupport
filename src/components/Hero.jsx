@@ -45,12 +45,12 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-lg px-8 py-4 glow-primary pulse-glow group" onClick={() => navigate("/book")}>
-                Book Counselling
+              <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-lg px-8 py-4 glow-primary pulse-glow group" onClick={() => navigate("/counselling")}>
+                Find Counsellor
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"/>
               </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-glass-border/50 hover:bg-glass/30 backdrop-blur-sm" onClick={() => navigate("/book")}>
-                Book Session
+              <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-glass-border/50 hover:bg-glass/30 backdrop-blur-sm" onClick={() => navigate("/counselling")}>
+                View Support Plans
               </Button>
             </div>
 

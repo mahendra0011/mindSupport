@@ -68,8 +68,9 @@ app.get(
       Journal.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(8),
       Message.find({ $or: [{ from: req.user._id }, { to: req.user._id }] })
         .sort({ createdAt: -1 })
-        .limit(8)
-        .populate("from to appointment"),
+        .limit(80)
+        .populate("from to appointment")
+        .populate({ path: "replyTo", populate: { path: "from", select: "name username" } }),
       Payment.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(8),
       Notification.find({ $or: [{ user: req.user._id }, { audienceRole: { $in: ["user", "all"] } }] }).sort({ createdAt: -1 }).limit(8),
     ]);
@@ -100,6 +101,11 @@ app.get(
         specialization: counsellor.specialization || "General counselling",
         counsellorType: counsellor.counsellorType || "professional",
         badge: counsellor.verificationBadge || badgeForCounsellorType(counsellor.counsellorType),
+        profilePhotoUrl: counsellor.profilePhotoUrl || "",
+        location: counsellor.location || "India - online and in-person support",
+        education: counsellor.education || "",
+        bio: counsellor.bio || "",
+        consultationModes: counsellor.consultationModes?.length ? counsellor.consultationModes : ["google-meet", "in-person", "voice-call"],
         responseTime: counsellor.responseTime || "Within 24 hours",
         sessionPricing: counsellor.sessionPricing || 0,
         languages: counsellor.languages || [],
@@ -134,9 +140,8 @@ app.get(
       messages: normalizedMessages,
       notifications: notifications.map(normalizeNotification),
       payments: {
-        subscription: normalizedPayments.some((payment) => payment.kind === "subscription") ? "Premium Care" : "Free",
-        nextBillingDate: "2026-06-10",
-        invoices: normalizedPayments,
+        summary: "Session payments only",
+        invoices: normalizedPayments.filter((payment) => payment.kind === "session"),
       },
       emergency: {
         sosReady: true,
@@ -144,7 +149,7 @@ app.get(
         contact: req.user.phone || "Emergency contact not added",
       },
       quickActions: [
-        { label: "Book Google Meet session", href: "/book" },
+        { label: "Find a counsellor", href: "/counselling" },
         { label: "Open wellness resources", href: "/resources" },
         { label: "Track today's mood", href: "/wellness" },
       ],

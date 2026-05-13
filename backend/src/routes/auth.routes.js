@@ -37,6 +37,7 @@ export function registerAuthRoutes(app, context) {
     io,
     isDatabaseReady,
     listFromInput,
+    makeUniqueUsername,
     mongoose,
     normalizeRole,
     clampRating,
@@ -84,6 +85,7 @@ app.post(
       res.status(400).json({ error: "Password must be at least 6 characters" });
       return;
     }
+    const requestedUsername = await makeUniqueUsername(req.body?.username || name || email);
     const existing = await User.findOne({ email: String(email).toLowerCase() });
     if (existing) {
       res.status(409).json({ error: "Email already registered" });
@@ -108,6 +110,7 @@ app.post(
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({
       name: fullName || name,
+      username: requestedUsername,
       email,
       passwordHash,
       role: requestedRole,
@@ -175,9 +178,10 @@ app.post(
   "/api/auth/login",
   asyncRoute(async (req, res) => {
     const { email, password } = req.body || {};
-    const user = await User.findOne({ email: String(email || "").toLowerCase() });
+    const identifier = String(email || req.body?.username || "").trim().toLowerCase();
+    const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }] });
     if (!user || !(await bcrypt.compare(String(password || ""), user.passwordHash))) {
-      res.status(401).json({ error: "Invalid email or password" });
+      res.status(401).json({ error: "Invalid email, username, or password" });
       return;
     }
     if (user.status === "suspended") {
@@ -250,9 +254,28 @@ app.put(
   "/api/users/me",
   asyncRoute(authRequired),
   asyncRoute(async (req, res) => {
-    const allowed = ["name", "phone", "bio", "specialization", "licenseNumber", "availability", "meetLink"];
+    const allowed = ["name", "phone", "bio", "specialization", "licenseNumber", "availability", "meetLink", "location", "education"];
     for (const key of allowed) {
       if (key in req.body) req.user[key] = req.body[key];
+    }
+    if ("username" in req.body) {
+      const username = String(req.body.username || "").trim().toLowerCase();
+      if (!/^[a-z0-9_]{3,24}$/.test(username)) {
+        res.status(400).json({ error: "Username must be 3-24 characters using lowercase letters, numbers, or underscore" });
+        return;
+      }
+      const exists = await User.exists({ username, _id: { $ne: req.user._id } });
+      if (exists) {
+        res.status(409).json({ error: "Username is already taken" });
+        return;
+      }
+      req.user.username = username;
+    }
+    if ("privacySettings" in req.body) {
+      req.user.privacySettings = { ...(req.user.privacySettings?.toObject?.() || req.user.privacySettings || {}), ...(req.body.privacySettings || {}) };
+    }
+    if ("notificationSettings" in req.body) {
+      req.user.notificationSettings = { ...(req.user.notificationSettings?.toObject?.() || req.user.notificationSettings || {}), ...(req.body.notificationSettings || {}) };
     }
     await req.user.save();
     res.json({ user: publicUser(req.user) });
