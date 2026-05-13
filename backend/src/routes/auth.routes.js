@@ -254,7 +254,20 @@ app.put(
   "/api/users/me",
   asyncRoute(authRequired),
   asyncRoute(async (req, res) => {
-    const allowed = ["name", "phone", "bio", "specialization", "licenseNumber", "availability", "meetLink", "location", "education"];
+    const allowed = [
+      "name",
+      "phone",
+      "emergencyContactName",
+      "emergencyContactPhone",
+      "emergencyContactRelation",
+      "bio",
+      "specialization",
+      "licenseNumber",
+      "availability",
+      "meetLink",
+      "location",
+      "education",
+    ];
     for (const key of allowed) {
       if (key in req.body) req.user[key] = req.body[key];
     }

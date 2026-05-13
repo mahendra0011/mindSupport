@@ -88,6 +88,7 @@ const defaultNotificationPrefs = {
   mood: true,
   messages: true,
   payments: true,
+  emergency: true,
 };
 
 const defaultPrivacyPrefs = {
@@ -171,6 +172,10 @@ const UserDashboard = () => {
   const [paying, setPaying] = useState(false);
   const [accountSaving, setAccountSaving] = useState(false);
   const [usernameDraft, setUsernameDraft] = useState("");
+  const [phoneDraft, setPhoneDraft] = useState("");
+  const [emergencyContactName, setEmergencyContactName] = useState("");
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState("");
+  const [emergencyContactRelation, setEmergencyContactRelation] = useState("");
   const [notificationPrefs, setNotificationPrefs] = useState(() => readStoredPrefs("mindsupport_notification_prefs", defaultNotificationPrefs));
   const [privacyPrefs, setPrivacyPrefs] = useState(() => readStoredPrefs("mindsupport_privacy_prefs", defaultPrivacyPrefs));
   const [otpCode, setOtpCode] = useState("");
@@ -184,6 +189,11 @@ const UserDashboard = () => {
         if (active) {
           setData({ ...emptyData, ...result });
           setUsernameDraft((current) => current || result.profile?.username || "");
+          setPhoneDraft(result.profile?.phone || "");
+          setEmergencyContactName(result.profile?.emergencyContactName || "");
+          setEmergencyContactPhone(result.profile?.emergencyContactPhone || "");
+          setEmergencyContactRelation(result.profile?.emergencyContactRelation || "");
+          setNotificationPrefs((current) => ({ ...defaultNotificationPrefs, ...current, ...(result.profile?.notificationSettings || {}) }));
           if (!messageRecipient && result.therapists?.[0]?.id) setMessageRecipient(result.therapists[0].id);
         }
       })
@@ -368,11 +378,11 @@ const UserDashboard = () => {
     try {
       await apiFetch("/api/wellness/emergency", {
         method: "POST",
-        body: JSON.stringify({ message: "User dashboard SOS support requested" }),
+        body: JSON.stringify({ type: "sos", source: "user-dashboard", message: "User dashboard SOS support requested" }),
       });
       toast({
-        title: "Emergency support recorded",
-        description: `Call ${data.emergency.helpline} or alert ${data.emergency.contact}.`,
+        title: "Emergency support sent",
+        description: "Your booked counsellor and platform admin were notified. Call helplines if this is urgent.",
       });
     } catch (error) {
       toast({ variant: "destructive", title: "Emergency request failed", description: error?.message || "" });
@@ -503,6 +513,10 @@ const UserDashboard = () => {
         method: "PUT",
         body: JSON.stringify({
           username: usernameDraft,
+          phone: phoneDraft,
+          emergencyContactName,
+          emergencyContactPhone,
+          emergencyContactRelation,
           privacySettings: {
             showOnlineStatus: !privacyPrefs.anonymousDefault,
             allowMessages: true,
@@ -514,6 +528,7 @@ const UserDashboard = () => {
             messages: notificationPrefs.messages,
             payments: notificationPrefs.payments,
             platform: true,
+            emergency: notificationPrefs.emergency,
           },
         }),
       });
@@ -936,7 +951,10 @@ const UserDashboard = () => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <PanelText>Helpline: {data.emergency.helpline}</PanelText>
-                      <PanelText>Emergency contact: {data.emergency.contact}</PanelText>
+                      <PanelText>
+                        Emergency contact: {data.emergency.contactName ? `${data.emergency.contactName} (${data.emergency.contactRelation || "contact"}) - ` : ""}
+                        {data.emergency.contact}
+                      </PanelText>
                       <Button onClick={triggerSOS} className="w-full bg-emergency text-emergency-foreground hover:bg-emergency/90">
                         SOS Support
                       </Button>
@@ -1306,11 +1324,27 @@ const UserDashboard = () => {
                       />
                       <p className="text-xs text-foreground/60">Use 3-24 lowercase letters, numbers, or underscores. You can sign in with email or username.</p>
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="account-phone">Account phone</Label>
+                      <Input id="account-phone" value={phoneDraft} onChange={(event) => setPhoneDraft(event.target.value)} placeholder="+91 90000 00000" />
+                      <p className="text-xs text-foreground/60">Used for OTP and urgent support follow-up if you choose to provide it.</p>
+                    </div>
                     <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4 text-sm text-foreground/70">
                       <div className="font-medium text-foreground">Privacy status</div>
                       <p className="mt-2">Anonymous default: {privacyPrefs.anonymousDefault ? "On" : "Off"}</p>
                       <p>Journal sharing default: {privacyPrefs.shareJournal ? "Share allowed" : "Private unless selected"}</p>
                       <p>Emergency keyword support: {privacyPrefs.crisisAlerts ? "On" : "Off"}</p>
+                    </div>
+                    <div className="rounded-xl border border-emergency/25 bg-emergency/5 p-4">
+                      <div className="mb-3 flex items-center gap-2 font-medium text-foreground">
+                        <Siren className="h-4 w-4 text-emergency" />
+                        Emergency contact
+                      </div>
+                      <div className="grid gap-3">
+                        <Input value={emergencyContactName} onChange={(event) => setEmergencyContactName(event.target.value)} placeholder="Contact name" />
+                        <Input value={emergencyContactPhone} onChange={(event) => setEmergencyContactPhone(event.target.value)} placeholder="Contact phone" />
+                        <Input value={emergencyContactRelation} onChange={(event) => setEmergencyContactRelation(event.target.value)} placeholder="Relation, e.g. Parent, Friend" />
+                      </div>
                     </div>
                     <Button className="lg:col-span-2 w-fit" onClick={saveSecurityPreferences} disabled={accountSaving}>
                       {accountSaving ? "Saving..." : "Save security preferences"}
@@ -1332,6 +1366,7 @@ const UserDashboard = () => {
                       <PreferenceToggle title="Mood check-ins" text="Daily wellness tracking prompts." checked={notificationPrefs.mood} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, mood: !prev.mood }))} />
                       <PreferenceToggle title="Counsellor messages" text="Replies and follow-up chat notifications." checked={notificationPrefs.messages} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, messages: !prev.messages }))} />
                       <PreferenceToggle title="Payment alerts" text="Invoices, session payments, and confirmations." checked={notificationPrefs.payments} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, payments: !prev.payments }))} />
+                      <PreferenceToggle title="Emergency SOS alerts" text="SOS confirmations and urgent support updates." checked={notificationPrefs.emergency} onToggle={() => setNotificationPrefs((prev) => ({ ...prev, emergency: !prev.emergency }))} />
                     </CardContent>
                   </Card>
 

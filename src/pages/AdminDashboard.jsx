@@ -593,6 +593,7 @@ const AdminDashboard = () => {
                         <div>
                           <div className="font-semibold">{alert.id}</div>
                           <div className="text-sm text-foreground/70">{alert.user} - {alert.time}</div>
+                          {alert.message && <div className="mt-1 text-sm text-foreground/65">{alert.message}</div>}
                         </div>
                         <Badge variant="secondary">{alert.status}</Badge>
                       </div>

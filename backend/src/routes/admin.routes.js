@@ -97,6 +97,7 @@ app.get(
       lowRatedCounsellors,
       paymentAgg,
       adminNotifications,
+      emergencyNotifications,
     ] =
       await Promise.all([
         User.aggregate([{ $group: { _id: "$role", count: { $sum: 1 } } }]),
@@ -124,6 +125,7 @@ app.get(
           },
         ]),
         Notification.find({ audienceRole: { $in: ["admin", "all"] } }).sort({ createdAt: -1 }).limit(8),
+        Notification.find({ type: "emergency", audienceRole: { $in: ["admin", "all"] } }).sort({ createdAt: -1 }).limit(12),
       ]);
     const toMap = (items) => Object.fromEntries(items.map((item) => [item._id || "unknown", item.count]));
     const usersByRole = toMap(roleAgg);
@@ -144,7 +146,7 @@ app.get(
         pendingApplications,
         totalSessions,
         revenue: totalRevenue,
-        emergencyAlerts: openReports,
+        emergencyAlerts: emergencyNotifications.length + openReports,
         reviewModeration: reviews.filter((review) => review.status === "flagged" || Number(review.averageRating) <= 2).length,
         lowRatedCounsellors: lowRatedCounsellors.length,
       },
@@ -189,10 +191,20 @@ app.get(
         refundRequests: 3,
       },
       notifications: adminNotifications.map(normalizeNotification),
-      emergency: [
-        { id: "SOS-1001", user: "Anonymous user", status: "reviewing", time: "Today 09:30" },
-        { id: "CR-8842", user: "Peer support report", status: "open", time: "Yesterday" },
-      ],
+      emergency: emergencyNotifications.length
+        ? emergencyNotifications.map((notification) => {
+            const normalized = normalizeNotification(notification);
+            return {
+              id: normalized.metadata?.emergencyId || normalized.id,
+              user: normalized.metadata?.userEmail || normalized.title || "Emergency alert",
+              status: normalized.read ? "reviewed" : "open",
+              time: normalized.time,
+              message: normalized.message,
+            };
+          })
+        : [
+            { id: "CR-8842", user: "Peer support report", status: "open", time: "Yesterday", message: "No SOS alerts recorded yet." },
+          ],
       reviews: reviews.map((review) => normalizeReview(review, req.user)),
       activityLogs: [
         "Admin login verified with JWT",

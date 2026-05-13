@@ -155,7 +155,9 @@ app.get(
       emergency: {
         sosReady: true,
         helpline: "1800-599-0019",
-        contact: req.user.phone || "Emergency contact not added",
+        contact: req.user.emergencyContactPhone || req.user.phone || "Emergency contact not added",
+        contactName: req.user.emergencyContactName || "",
+        contactRelation: req.user.emergencyContactRelation || "",
       },
       quickActions: [
         { label: "Find a counsellor", href: "/counselling" },

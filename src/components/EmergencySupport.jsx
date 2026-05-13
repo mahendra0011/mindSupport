@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Phone, AlertTriangle, Heart, Shield, Clock, Users } from 'lucide-react';
+import { apiFetch } from '@/lib/api';
 const EMERGENCY_CONTACTS = [
     {
         name: "National Suicide Prevention Lifeline",
@@ -83,10 +84,21 @@ const SAFETY_PLAN_TEMPLATE = [
 const EmergencySupport = ({ onCrisisDetected }) => {
     const [activeTab, setActiveTab] = useState('contacts');
     const [crisisMode, setCrisisMode] = useState(false);
-    const handleCrisisAlert = () => {
+    const handleCrisisAlert = async () => {
         setCrisisMode(true);
         onCrisisDetected?.();
-        // In production, this can notify counsellors through the Express emergency endpoint.
+        try {
+            await apiFetch("/api/wellness/emergency", {
+                method: "POST",
+                body: JSON.stringify({
+                    type: "crisis",
+                    source: "public-emergency-widget",
+                    message: "Emergency widget crisis alert requested",
+                }),
+            });
+        } catch {
+            // Guests still receive immediate crisis contacts on this screen.
+        }
     };
     const getContactIcon = (type) => {
         switch (type) {

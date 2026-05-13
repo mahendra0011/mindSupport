@@ -114,6 +114,7 @@ const defaultNotificationSettings = {
   messages: true,
   payments: true,
   platform: true,
+  emergency: true,
 };
 
 function todayYMD() {
@@ -1177,6 +1178,7 @@ const CounsellorDashboard = () => {
                       <SettingToggle title="Session reminders" text="Bookings, reschedules, cancellations, and Google Meet alerts." checked={notificationSettings.session} onToggle={() => setNotificationSettings((current) => ({ ...current, session: !current.session }))} />
                       <SettingToggle title="Chat messages" text="New patient messages, replies, reactions, and shared resources." checked={notificationSettings.messages} onToggle={() => setNotificationSettings((current) => ({ ...current, messages: !current.messages }))} />
                       <SettingToggle title="Payment updates" text="Counsellor payout and 20% platform fee notices." checked={notificationSettings.payments} onToggle={() => setNotificationSettings((current) => ({ ...current, payments: !current.payments }))} />
+                      <SettingToggle title="Emergency SOS alerts" text="Urgent alerts from booked users and safety escalation notices." checked={notificationSettings.emergency} onToggle={() => setNotificationSettings((current) => ({ ...current, emergency: !current.emergency }))} />
                       <SettingToggle title="Platform announcements" text="Admin wellness campaigns, moderation alerts, and maintenance notices." checked={notificationSettings.platform} onToggle={() => setNotificationSettings((current) => ({ ...current, platform: !current.platform }))} />
                     </CardContent>
                   </Card>

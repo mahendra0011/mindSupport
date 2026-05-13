@@ -406,6 +406,7 @@ function normalizeNotification(notification) {
     type: raw.type || "system",
     title: raw.title || "",
     message: raw.message || "",
+    metadata: raw.metadata ? Object.fromEntries(raw.metadata instanceof Map ? raw.metadata : Object.entries(raw.metadata)) : {},
     read: Boolean(raw.read),
     createdAt: raw.createdAt,
     time: raw.createdAt ? new Date(raw.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "",

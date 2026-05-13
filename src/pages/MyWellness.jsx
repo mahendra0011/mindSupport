@@ -248,9 +248,9 @@ const MyWellness = () => {
     try {
       await apiFetch("/api/wellness/emergency", {
         method: "POST",
-        body: JSON.stringify({ type: "sos" }),
+        body: JSON.stringify({ type: "sos", source: "wellness-emergency", message: "Wellness emergency SOS requested" }),
       });
-      toast({ title: "Emergency support recorded", description: "Use the helplines below if this is urgent." });
+      toast({ title: "Emergency support sent", description: "Booked counsellors and platform admin were notified. Use the helplines below if this is urgent." });
     } catch (error) {
       toast({ variant: "destructive", title: "Emergency request failed", description: error?.message || "" });
     }

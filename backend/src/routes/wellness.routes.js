@@ -125,19 +125,97 @@ app.get(
 
 app.post(
   "/api/wellness/emergency",
+  asyncRoute(authRequired),
+  requireRoles("user", "admin"),
   asyncRoute(async (req, res) => {
+    const emergencyId = new mongoose.Types.ObjectId().toString();
+    const message = String(req.body?.message || req.body?.type || "Emergency support requested").trim().slice(0, 500);
+    const source = String(req.body?.source || "wellness").trim().slice(0, 80);
+    const contacts = [
+      { label: "India Kiran Mental Health Helpline", value: "1800-599-0019" },
+      { label: "Aasra Suicide Prevention", value: "+91-9820466726" },
+      { label: "Emergency services", value: "Call your local emergency number" },
+    ];
+    let notifiedCounsellors = [];
+    if (req.user.role === "user") {
+      const appointments = await Appointment.find({
+        student: req.user._id,
+        status: { $in: ["pending", "confirmed", "completed"] },
+      })
+        .sort({ date: -1, time: -1 })
+        .populate("counsellor", "name email role status");
+      const counsellorMap = new Map();
+      appointments.forEach((appointment) => {
+        const counsellor = appointment.counsellor;
+        if (counsellor?._id && !counsellorMap.has(String(counsellor._id))) {
+          counsellorMap.set(String(counsellor._id), { counsellor, appointment });
+        }
+      });
+      notifiedCounsellors = await Promise.all(
+        [...counsellorMap.values()].map(async ({ counsellor, appointment }) => {
+          const alertText = `${req.user.name} requested urgent support. Source: ${source}. Message: ${message}`;
+          await createNotification({
+            user: counsellor._id,
+            type: "emergency",
+            title: "Emergency support requested",
+            message: alertText,
+            metadata: {
+              emergencyId,
+              userId: String(req.user._id),
+              userEmail: req.user.email,
+              appointmentId: String(appointment._id),
+            },
+          });
+          await Message.create({
+            from: req.user._id,
+            to: counsellor._id,
+            appointment: appointment._id,
+            subject: "Emergency support request",
+            text: alertText,
+            readBy: [req.user._id],
+          });
+          io.to(`user:${counsellor._id}`).emit("message:new", {
+            type: "emergency",
+            title: "Emergency support requested",
+            message: alertText,
+          });
+          return { id: String(counsellor._id), name: counsellor.name, email: counsellor.email };
+        })
+      );
+      await createNotification({
+        user: req.user._id,
+        type: "emergency",
+        title: "Emergency support sent",
+        message: notifiedCounsellors.length
+          ? `SOS alert sent to ${notifiedCounsellors.map((item) => item.name).join(", ")} and platform admin.`
+          : "SOS alert sent to platform admin. Booked counsellors were not found.",
+        metadata: { emergencyId },
+      });
+    }
+    await createNotification({
+      audienceRole: "admin",
+      type: "emergency",
+      title: "Emergency alert",
+      message: `${req.user.name} (${req.user.email}) triggered SOS from ${source}. ${message}`,
+      metadata: {
+        emergencyId,
+        userId: String(req.user._id),
+        userEmail: req.user.email,
+        counsellorCount: String(notifiedCounsellors.length),
+      },
+    });
     res.status(201).json({
       success: true,
-      message: "Emergency support request recorded.",
+      message: notifiedCounsellors.length
+        ? "Emergency support request sent to your booked counsellor and admin."
+        : "Emergency support request recorded and sent to admin.",
       request: {
-        id: new mongoose.Types.ObjectId().toString(),
+        id: emergencyId,
         type: req.body?.type || "support",
         createdAt: new Date().toISOString(),
+        notifiedCounsellors,
       },
-      contacts: [
-        { label: "India Kiran Mental Health Helpline", value: "1800-599-0019" },
-        { label: "Emergency services", value: "Call your local emergency number" },
-      ],
+      contacts,
     });
   })
 );
