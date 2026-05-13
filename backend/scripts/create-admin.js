@@ -1,7 +1,7 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import { MONGODB_URI } from "../src/config/env.js";
+import { getMongoOptions, MONGODB_URI } from "../src/config/env.js";
 import { User } from "../src/models/index.js";
 
 const [, , emailArg, passwordArg, ...nameParts] = process.argv;
@@ -16,7 +16,7 @@ if (!email || !password || password.length < 8) {
 }
 
 async function main() {
-  await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect(MONGODB_URI, getMongoOptions({ serverSelectionTimeoutMS: 5000 }));
 
   const passwordHash = await bcrypt.hash(password, 12);
   const existing = await User.findOne({ email });

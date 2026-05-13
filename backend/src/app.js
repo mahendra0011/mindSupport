@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import { CLIENT_ORIGIN, JWT_EXPIRES_IN, JWT_SECRET, MONGODB_URI, PORT } from "./config/env.js";
+import { CLIENT_ORIGIN, JWT_EXPIRES_IN, JWT_SECRET, maskMongoUri, MONGODB_DATABASE, MONGODB_URI, PORT } from "./config/env.js";
 import { connectDatabase, isDatabaseReady } from "./database/connect.js";
 import {
   Appointment,
@@ -466,7 +466,9 @@ registerRoutes(app, {
   Resource,
   Review,
   User,
+  MONGODB_DATABASE,
   MONGODB_URI,
+  maskMongoUri,
   activeStatuses,
   approvedCounsellorStatuses,
   asyncRoute,

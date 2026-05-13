@@ -15,7 +15,9 @@ export function registerAuthRoutes(app, context) {
     Resource,
     Review,
     User,
+    MONGODB_DATABASE,
     MONGODB_URI,
+    maskMongoUri,
     activeStatuses,
     approvedCounsellorStatuses,
     asyncRoute,
@@ -59,7 +61,8 @@ app.get("/api/health", (_req, res) => {
     ok: true,
     service: "MindSupport Express API",
     database: isDatabaseReady() ? "connected" : "disconnected",
-    mongoUri: MONGODB_URI.replace(/\/\/.*@/, "//***@"),
+    databaseName: MONGODB_DATABASE,
+    mongoUri: maskMongoUri ? maskMongoUri(MONGODB_URI) : MONGODB_URI.replace(/\/\/.*@/, "//***@"),
     timestamp: new Date().toISOString(),
   });
 });

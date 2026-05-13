@@ -1,11 +1,11 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import { MONGODB_URI } from "../src/config/env.js";
+import { getMongoOptions, MONGODB_URI } from "../src/config/env.js";
 import { seedDatabase } from "../src/database/seed.js";
 import { User } from "../src/models/index.js";
 
 async function main() {
-  await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
+  await mongoose.connect(MONGODB_URI, getMongoOptions({ serverSelectionTimeoutMS: 10000 }));
   await seedDatabase();
   const counsellors = await User.find({ role: "counsellor", status: { $in: ["active", "approved"] } })
     .sort({ name: 1 })

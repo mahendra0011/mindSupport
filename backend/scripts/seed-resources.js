@@ -1,11 +1,11 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import { MONGODB_URI } from "../src/config/env.js";
+import { getMongoOptions, MONGODB_URI } from "../src/config/env.js";
 import { seedDatabase } from "../src/database/seed.js";
 import { Resource } from "../src/models/index.js";
 
 async function main() {
-  await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
+  await mongoose.connect(MONGODB_URI, getMongoOptions({ serverSelectionTimeoutMS: 10000 }));
   await seedDatabase();
   const total = await Resource.countDocuments({ type: { $ne: "audio" } });
   const categories = await Resource.distinct("category", { type: { $ne: "audio" } });

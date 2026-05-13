@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { MONGODB_URI } from "../config/env.js";
+import { getMongoOptions, maskMongoUri, MONGODB_DATABASE, MONGODB_URI } from "../config/env.js";
 import { seedDatabase } from "./seed.js";
 
 let dbReady = false;
@@ -21,10 +21,10 @@ export function isDatabaseReady() {
 
 export async function connectDatabase() {
   try {
-    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+    await mongoose.connect(MONGODB_URI, getMongoOptions({ serverSelectionTimeoutMS: 5000 }));
     dbReady = true;
     await seedDatabase();
-    console.log(`MongoDB connected: ${MONGODB_URI}`);
+    console.log(`MongoDB connected: ${maskMongoUri(MONGODB_URI)} database=${MONGODB_DATABASE}`);
   } catch (error) {
     dbReady = false;
     console.error("MongoDB connection failed:", error.message);

@@ -159,6 +159,7 @@ VITE_API_BASE_URL=http://localhost:5001
 PORT=5001
 CLIENT_ORIGIN=http://localhost:8080
 MONGODB_URI=mongodb://127.0.0.1:27017/mindsupport
+MONGODB_DATABASE=mindsupport
 JWT_SECRET=replace-with-a-long-random-secret
 JWT_EXPIRES_IN=7d
 ADMIN_EMAIL=
@@ -171,6 +172,15 @@ YOUTUBE_API_KEY=your-youtube-data-api-key
 ### 3. Start MongoDB
 
 Make sure MongoDB is running locally or update `MONGODB_URI` to your MongoDB connection string.
+
+For MongoDB Atlas, use a URI like:
+
+```env
+MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DATABASE=mindsupport
+```
+
+Atlas creates the `mindsupport` database automatically when the seed writes the first collections.
 
 ### 4. Start frontend and backend
 
@@ -301,7 +311,7 @@ Set `YOUTUBE_API_KEY` to enable live YouTube Data API searches in the Resources 
 
 The backend creates the MongoDB collections and seeds launch data on startup, so a Render deploy connected to MongoDB Atlas will show useful data automatically. The full seed covers separate collections for users, counsellor applications, resources, appointments, reviews, journals, messages, payments, notifications, peer support, mood entries, assessments, and OTP records.
 
-To seed manually into the MongoDB configured by `MONGODB_URI`, run:
+To seed manually into the MongoDB configured by `MONGODB_URI` and `MONGODB_DATABASE`, run:
 
 ```bash
 npm run seed:all
@@ -319,7 +329,7 @@ On Windows PowerShell:
 $env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $env:ADMIN_NAME="Owner Name"; npm run seed:all
 ```
 
-For Atlas, set `MONGODB_URI` to your Atlas connection string locally or in Render. Never commit real passwords or API keys to GitHub.
+For Atlas, set `MONGODB_URI` to your Atlas connection string and `MONGODB_DATABASE=mindsupport` locally or in Render. Never commit real passwords or API keys to GitHub.
 
 ## Safety Notice
 
