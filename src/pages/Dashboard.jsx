@@ -25,9 +25,9 @@ function PendingCounsellor({ user }) {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-16">
-        <section className="py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
-          <div className="max-w-4xl mx-auto px-4 space-y-6">
-            <GlowPanel className="p-7 text-center">
+        <section className="dashboard-motion py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
+          <div className="dashboard-shell max-w-4xl mx-auto px-4 space-y-6">
+            <GlowPanel className="dashboard-panel p-7 text-center">
               <Badge className="bg-amber-500/15 text-amber-600 border border-amber-500/25">Approval pending</Badge>
               <Clock3 className="h-12 w-12 text-primary mx-auto mt-5" />
               <h1 className="text-3xl sm:text-4xl font-bold mt-4">Your counsellor request is under review</h1>
@@ -36,7 +36,7 @@ function PendingCounsellor({ user }) {
               </p>
             </GlowPanel>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="dashboard-stagger grid md:grid-cols-3 gap-4">
               <Step icon={FileCheck2} title="Request received" text="Your profile, ID details, and verification information were sent to admin." />
               <Step icon={ShieldCheck} title="Admin review" text="Admin checks identity, credentials, counsellor type, and safety details." />
               <Step icon={Clock3} title="Dashboard locked" text="You can sign in, but counsellor tools open only after approval." />

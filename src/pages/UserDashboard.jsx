@@ -24,7 +24,6 @@ import {
   LineChart,
   Lock,
   MessageCircle,
-  Mic,
   Moon,
   NotebookPen,
   Palette,
@@ -100,6 +99,28 @@ const subscriptionPlans = [
   },
 ];
 
+const defaultNotificationPrefs = {
+  session: true,
+  mood: true,
+  messages: true,
+  payments: true,
+};
+
+const defaultPrivacyPrefs = {
+  anonymousDefault: false,
+  shareJournal: false,
+  crisisAlerts: true,
+};
+
+function readStoredPrefs(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? { ...fallback, ...JSON.parse(raw) } : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function formatRupees(value = 0) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -158,17 +179,8 @@ const UserDashboard = () => {
   const [archivedChatIds, setArchivedChatIds] = useState([]);
   const [paying, setPaying] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState("plus");
-  const [notificationPrefs, setNotificationPrefs] = useState({
-    session: true,
-    mood: true,
-    messages: true,
-    payments: true,
-  });
-  const [privacyPrefs, setPrivacyPrefs] = useState({
-    anonymousDefault: false,
-    shareJournal: false,
-    crisisAlerts: true,
-  });
+  const [notificationPrefs, setNotificationPrefs] = useState(() => readStoredPrefs("mindsupport_notification_prefs", defaultNotificationPrefs));
+  const [privacyPrefs, setPrivacyPrefs] = useState(() => readStoredPrefs("mindsupport_privacy_prefs", defaultPrivacyPrefs));
   const [otpCode, setOtpCode] = useState("");
   const [otpHint, setOtpHint] = useState("");
 
@@ -211,6 +223,14 @@ const UserDashboard = () => {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("mindsupport_theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem("mindsupport_notification_prefs", JSON.stringify(notificationPrefs));
+  }, [notificationPrefs]);
+
+  useEffect(() => {
+    localStorage.setItem("mindsupport_privacy_prefs", JSON.stringify(privacyPrefs));
+  }, [privacyPrefs]);
 
   const upcoming = data.appointments.filter((item) => !["cancelled", "completed", "declined"].includes(item.status)).slice(0, 4);
   const filteredTherapists = useMemo(() => {
@@ -825,7 +845,7 @@ const UserDashboard = () => {
                         <Input value={journalGratitude} onChange={(event) => setJournalGratitude(event.target.value)} placeholder="One gratitude note" />
                         <Input value={journalTrigger} onChange={(event) => setJournalTrigger(event.target.value)} placeholder="Trigger or pattern noticed" />
                       </div>
-                      {emergencyKeywords.some((keyword) => `${journalText} ${journalTrigger}`.toLowerCase().includes(keyword)) && (
+                      {privacyPrefs.crisisAlerts && emergencyKeywords.some((keyword) => `${journalText} ${journalTrigger}`.toLowerCase().includes(keyword)) && (
                         <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800">
                           Emergency support is available now: call 1800-599-0019, 988 where available, or local emergency services.
                         </div>
@@ -1116,19 +1136,15 @@ const UserDashboard = () => {
                                   placeholder="Type a message"
                                   className="min-h-[46px] resize-none rounded-2xl border-white/10 bg-[#111b21] text-slate-100 placeholder:text-slate-400"
                                 />
-                                {messageText.trim() ? (
-                                  <Button onClick={sendUserMessage} className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600">
-                                    <Send className="h-5 w-5" />
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    type="button"
-                                    onClick={() => toast({ title: "Voice note", description: "Voice note UI is ready. Connect storage to upload recorded audio." })}
-                                    className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600"
-                                  >
-                                    <Mic className="h-5 w-5" />
-                                  </Button>
-                                )}
+                                <Button
+                                  type="button"
+                                  onClick={sendUserMessage}
+                                  disabled={!messageText.trim()}
+                                  className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                                  title={messageText.trim() ? "Send message" : "Write a message to send"}
+                                >
+                                  <Send className="h-5 w-5" />
+                                </Button>
                               </div>
                             </div>
                           </>

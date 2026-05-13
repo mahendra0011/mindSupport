@@ -418,6 +418,7 @@ All colors MUST be HSL for consistency.
   }
 
   .dashboard-shell .glass-card {
+    animation: dashboard-rise 0.5s cubic-bezier(0.2, 0.75, 0.22, 1) both;
     transition:
       transform 0.28s ease,
       box-shadow 0.28s ease,

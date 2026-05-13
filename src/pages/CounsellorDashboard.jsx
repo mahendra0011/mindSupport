@@ -9,8 +9,6 @@ import {
   CreditCard,
   FileText,
   MessageSquareText,
-  Mic,
-  PhoneOff,
   Star,
   Timer,
   UserCheck,
@@ -170,9 +168,9 @@ const CounsellorDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-16">
-        <section className="py-6 md:py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <GlowPanel className="p-6">
+        <section className="dashboard-motion py-6 md:py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
+          <div className="dashboard-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <GlowPanel className="dashboard-panel p-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <Badge className="bg-secondary/15 text-secondary border border-secondary/25">Counsellor dashboard</Badge>
@@ -187,7 +185,7 @@ const CounsellorDashboard = () => {
               </div>
             </GlowPanel>
 
-            <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
+            <div className="dashboard-stagger grid md:grid-cols-2 xl:grid-cols-5 gap-4">
               <Metric title="Today's sessions" value={data.stats.todaySessions} icon={Clock} />
               <Metric title="Active patients" value={data.stats.activeClients} icon={Users} />
               <Metric title="Earnings" value={`₹${data.stats.earnings}`} icon={CreditCard} />
@@ -196,7 +194,7 @@ const CounsellorDashboard = () => {
             </div>
 
             <Tabs defaultValue="home">
-              <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-muted/60 p-2">
+              <TabsList className="dashboard-panel flex h-auto flex-wrap justify-start gap-2 bg-muted/60 p-2">
                 <TabsTrigger value="home">Home</TabsTrigger>
                 <TabsTrigger value="patients">Patients</TabsTrigger>
                 <TabsTrigger value="sessions">Sessions</TabsTrigger>
@@ -207,7 +205,7 @@ const CounsellorDashboard = () => {
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="home" className="space-y-6">
+              <TabsContent value="home" className="dashboard-tab-motion space-y-6">
                 <div className="grid lg:grid-cols-[1fr_0.9fr] gap-6">
                   <Card className="glass-card">
                     <CardHeader>
@@ -241,7 +239,7 @@ const CounsellorDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="patients" className="space-y-6">
+              <TabsContent value="patients" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -270,7 +268,7 @@ const CounsellorDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="sessions" className="space-y-6">
+              <TabsContent value="sessions" className="dashboard-tab-motion space-y-6">
                 <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-6">
                   <Card className="glass-card">
                     <CardHeader>
@@ -340,7 +338,7 @@ const CounsellorDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="notes" className="space-y-6">
+              <TabsContent value="notes" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -369,7 +367,7 @@ const CounsellorDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="progress" className="space-y-6">
+              <TabsContent value="progress" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -386,7 +384,7 @@ const CounsellorDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="chat" className="space-y-6">
+              <TabsContent value="chat" className="dashboard-tab-motion space-y-6">
                 <div className="grid lg:grid-cols-[1fr_0.85fr] gap-6">
                   <Card className="glass-card">
                     <CardHeader>
@@ -436,22 +434,20 @@ const CounsellorDashboard = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Video className="h-5 w-5 text-secondary" />
-                        Video Consultation Controls
+                        Google Meet Session Tools
                       </CardTitle>
+                      <CardDescription>Use session cards to create or open Google Meet links without in-app call controls.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <PanelText><Timer className="inline h-4 w-4 mr-2" />Session history and live timer</PanelText>
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button variant="outline"><Mic className="h-4 w-4 mr-1" />Audio</Button>
-                        <Button variant="outline"><Video className="h-4 w-4 mr-1" />Video</Button>
-                        <Button variant="outline"><PhoneOff className="h-4 w-4 mr-1" />End</Button>
-                      </div>
+                      <PanelText><Video className="inline h-4 w-4 mr-2" />Create or open Google Meet from booking requests and schedule cards.</PanelText>
+                      <PanelText><FileText className="inline h-4 w-4 mr-2" />Save meeting notes and treatment plans after each session.</PanelText>
                     </CardContent>
                   </Card>
                 </div>
               </TabsContent>
 
-              <TabsContent value="earnings" className="space-y-6">
+              <TabsContent value="earnings" className="dashboard-tab-motion space-y-6">
                 <div className="grid md:grid-cols-3 gap-4">
                   <Metric title="Total earnings" value={`₹${data.earnings.total}`} icon={CreditCard} />
                   <Metric title="Session revenue" value={`₹${data.earnings.sessionRevenue}`} icon={CalendarCheck} />
@@ -469,7 +465,7 @@ const CounsellorDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="reviews" className="space-y-6">
+              <TabsContent value="reviews" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">

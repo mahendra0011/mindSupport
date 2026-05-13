@@ -279,9 +279,9 @@ const MyWellness = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-16">
-        <section className="py-8 md:py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <header className="space-y-3">
+        <section className="dashboard-motion py-8 md:py-12">
+          <div className="dashboard-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <header className="dashboard-panel space-y-3">
               <div className="flex items-center gap-4">
                 <Heart className="h-10 w-10 text-primary" />
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">My Wellness Dashboard</h1>
@@ -292,7 +292,7 @@ const MyWellness = () => {
             </header>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid h-auto grid-cols-2 gap-1 rounded-xl bg-muted/80 p-1 sm:grid-cols-5">
+              <TabsList className="dashboard-panel grid h-auto grid-cols-2 gap-1 rounded-xl bg-muted/80 p-1 sm:grid-cols-5">
                 <TabsTrigger value="dashboard" className="rounded-lg data-[state=active]:bg-background">Dashboard</TabsTrigger>
                 <TabsTrigger value="assessment" className="rounded-lg data-[state=active]:bg-background">Risk Assessment</TabsTrigger>
                 <TabsTrigger value="mood" className="rounded-lg data-[state=active]:bg-background">Mood Tracking</TabsTrigger>
@@ -300,7 +300,7 @@ const MyWellness = () => {
                 <TabsTrigger value="emergency" className="rounded-lg data-[state=active]:bg-background">Emergency</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="dashboard" className="space-y-6">
+              <TabsContent value="dashboard" className="dashboard-tab-motion space-y-6">
                 <div className="grid lg:grid-cols-3 gap-5">
                   <WellnessPanel className="min-h-56">
                     <PanelHeader icon={Activity} title="Today's Mood" subtitle="How are you feeling right now?" />
@@ -410,7 +410,7 @@ const MyWellness = () => {
                 <MoodTrends entries={displayEntries} averageMood={averageMood || 4} />
               </TabsContent>
 
-              <TabsContent value="assessment">
+              <TabsContent value="assessment" className="dashboard-tab-motion">
                 <WellnessPanel>
                   <PanelHeader icon={Target} title="Mental Health Risk Assessment" subtitle="Complete this assessment to get personalized recommendations and support" />
                   <div className="flex flex-wrap gap-3 mt-6">
@@ -459,7 +459,7 @@ const MyWellness = () => {
                 </WellnessPanel>
               </TabsContent>
 
-              <TabsContent value="mood">
+              <TabsContent value="mood" className="dashboard-tab-motion">
                 <WellnessPanel>
                   <PanelHeader icon={Activity} title="Mood Tracking" subtitle="Track your daily mood to identify patterns and improve your mental health awareness" />
                   <div className="text-center mt-8">
@@ -506,7 +506,7 @@ const MyWellness = () => {
                 </WellnessPanel>
               </TabsContent>
 
-              <TabsContent value="resources">
+              <TabsContent value="resources" className="dashboard-tab-motion">
                 <WellnessPanel>
                   <PanelHeader icon={BookOpen} title="Resources" subtitle="Resources tailored to your current wellness needs" />
                   <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -571,7 +571,7 @@ const MyWellness = () => {
                 </WellnessPanel>
               </TabsContent>
 
-              <TabsContent value="emergency" className="space-y-6">
+              <TabsContent value="emergency" className="dashboard-tab-motion space-y-6">
                 <div className="rounded-2xl border border-red-300/60 bg-red-950/10 p-6">
                   <PanelHeader icon={AlertTriangle} title="Emergency Support" subtitle="If you're in crisis or need immediate help, these resources are available 24/7" danger />
                   <Button variant="destructive" className="mt-5 w-full" onClick={requestEmergencySupport}>Trigger Emergency Support</Button>
@@ -642,7 +642,7 @@ const MyWellness = () => {
 };
 
 function WellnessPanel({ children, className = "" }) {
-  return <div className={`rounded-2xl border border-glass-border/30 bg-glass/70 p-5 shadow-2xl ${className}`}>{children}</div>;
+  return <div className={`dashboard-card-motion rounded-2xl border border-glass-border/30 bg-glass/70 p-5 shadow-2xl ${className}`}>{children}</div>;
 }
 
 function PanelHeader({ icon: Icon, title, subtitle, danger = false }) {

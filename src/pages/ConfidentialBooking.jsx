@@ -56,6 +56,17 @@ const statusColor = {
 const emergencyKeywords = ["suicide", "self-harm", "panic attack", "abuse"];
 const hasEmergencyLanguage = (text) => emergencyKeywords.some((keyword) => String(text || "").toLowerCase().includes(keyword));
 const defaultReview = { professionalism: "5", helpfulness: "5", communication: "5", comment: "", anonymous: true };
+
+function getAnonymousDefault() {
+    try {
+        const prefs = JSON.parse(localStorage.getItem("mindsupport_privacy_prefs") || "{}");
+        return Boolean(prefs.anonymousDefault);
+    }
+    catch {
+        return false;
+    }
+}
+
 function todayYMD() {
     const d = new Date();
     const y = d.getFullYear();
@@ -82,7 +93,7 @@ const ConfidentialBooking = () => {
     const [time, setTime] = useState(timeNowHM());
     const [mode, setMode] = useState("google-meet");
     const [concern, setConcern] = useState("");
-    const [anonymousMode, setAnonymousMode] = useState(false);
+    const [anonymousMode, setAnonymousMode] = useState(getAnonymousDefault);
     const [anonymousAlias, setAnonymousAlias] = useState("Anonymous user");
     const [reviewingId, setReviewingId] = useState(null);
     const [reviewForms, setReviewForms] = useState({});

@@ -233,9 +233,9 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       <main className="pt-16">
-        <section className="py-6 md:py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <GlowPanel className="p-6">
+        <section className="dashboard-motion py-6 md:py-10 bg-gradient-to-br from-primary/8 via-background via-secondary/8 to-accent/5">
+          <div className="dashboard-shell max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <GlowPanel className="dashboard-panel p-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <Badge className="bg-primary/15 text-primary border border-primary/25">Admin dashboard</Badge>
@@ -259,7 +259,7 @@ const AdminDashboard = () => {
               </div>
             </GlowPanel>
 
-            <div className="grid md:grid-cols-2 xl:grid-cols-6 gap-4">
+            <div className="dashboard-stagger grid md:grid-cols-2 xl:grid-cols-6 gap-4">
               <Metric title="Total users" value={totals.userCount} icon={Users} />
               <Metric title="Active counsellors" value={data.stats.activeCounsellors} icon={UserCog} />
               <Metric title="Total sessions" value={totals.appointmentCount} icon={CalendarDays} />
@@ -269,7 +269,7 @@ const AdminDashboard = () => {
             </div>
 
             <Tabs defaultValue="overview">
-              <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-muted/60 p-2">
+              <TabsList className="dashboard-panel flex h-auto flex-wrap justify-start gap-2 bg-muted/60 p-2">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="users">Users</TabsTrigger>
                 <TabsTrigger value="applications">Applications</TabsTrigger>
@@ -281,7 +281,7 @@ const AdminDashboard = () => {
                 <TabsTrigger value="security">Security</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="space-y-6">
+              <TabsContent value="overview" className="dashboard-tab-motion space-y-6">
                 <div className="grid lg:grid-cols-2 gap-6">
                   <Card className="glass-card">
                     <CardHeader>
@@ -310,7 +310,7 @@ const AdminDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="users" className="space-y-6">
+              <TabsContent value="users" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -378,7 +378,7 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="applications" className="space-y-6">
+              <TabsContent value="applications" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -427,7 +427,7 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="counsellors">
+              <TabsContent value="counsellors" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -474,7 +474,7 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="sessions">
+              <TabsContent value="sessions" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle>Session Monitoring</CardTitle>
@@ -509,7 +509,7 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="revenue" className="space-y-6">
+              <TabsContent value="revenue" className="dashboard-tab-motion space-y-6">
                 <div className="grid md:grid-cols-4 gap-4">
                   <Metric title="Platform revenue" value={`₹${data.revenue.platformRevenue}`} icon={CreditCard} />
                   <Metric title="Counsellor payouts" value={`₹${data.revenue.counsellorPayouts}`} icon={Users} />
@@ -528,7 +528,7 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="analytics" className="space-y-6">
+              <TabsContent value="analytics" className="dashboard-tab-motion space-y-6">
                 <div className="grid lg:grid-cols-2 gap-6">
                   <AnalyticsCard title="User Growth" data={data.analytics.userGrowth} />
                   <AnalyticsCard title="Session Trends" data={data.analytics.sessionTrends} />
@@ -548,7 +548,7 @@ const AdminDashboard = () => {
                 </div>
               </TabsContent>
 
-              <TabsContent value="emergency" className="space-y-6">
+              <TabsContent value="emergency" className="dashboard-tab-motion space-y-6">
                 <Card className="glass-card border-emergency/30">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -571,7 +571,7 @@ const AdminDashboard = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="security" className="space-y-6">
+              <TabsContent value="security" className="dashboard-tab-motion space-y-6">
                 <div className="grid lg:grid-cols-[1fr_0.9fr] gap-6">
                   <Card className="glass-card">
                     <CardHeader>
