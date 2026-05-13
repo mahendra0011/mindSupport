@@ -77,8 +77,17 @@ app.get(
     const upcoming = appointments.filter((a) => !["cancelled", "completed", "declined"].includes(a.status));
     const today = todayYMD();
     const wellnessStreak = Math.max(3, Math.min(21, moods.length + upcoming.length + 2));
-    const normalizedMessages = messages.map((message) => normalizeMessage(message, req.user));
+    const bookedCounsellorIds = new Set(
+      appointments
+        .filter((appointment) => !["cancelled", "declined"].includes(appointment.status))
+        .map((appointment) => String(appointment.counsellor?._id || appointment.counsellor || ""))
+        .filter(Boolean)
+    );
+    const normalizedMessages = messages
+      .map((message) => normalizeMessage(message, req.user))
+      .filter((message) => bookedCounsellorIds.has(message.fromId) || bookedCounsellorIds.has(message.toId));
     const normalizedPayments = payments.map(normalizePayment);
+    const chatCounsellors = counsellors.filter((counsellor) => bookedCounsellorIds.has(String(counsellor._id)));
     res.json({
       profile: publicUser(req.user),
       stats: {
@@ -95,7 +104,7 @@ app.get(
       moodEntries: moods,
       latestAssessment,
       recommendedResources: resources,
-      therapists: counsellors.map((counsellor, index) => ({
+      therapists: chatCounsellors.map((counsellor, index) => ({
         id: String(counsellor._id),
         name: counsellor.name,
         specialization: counsellor.specialization || "General counselling",

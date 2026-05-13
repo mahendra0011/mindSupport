@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Activity,
   Archive,
@@ -40,7 +40,6 @@ import {
   Smile,
   SmilePlus,
   Sparkles,
-  Star,
   Trash2,
   Users,
   Video,
@@ -74,7 +73,6 @@ import { apiFetch } from "@/lib/api";
 import { getRealtimeSocket } from "@/lib/socket";
 import { useAppSelector } from "@/store/hooks";
 
-const categories = ["All", "Anxiety", "Depression", "Stress", "PTSD", "Addiction", "Relationship issues", "Career pressure"];
 const themeOptions = [
   { id: "default", name: "Midnight Calm", color: "bg-indigo-500" },
   { id: "lavender", name: "Lavender", color: "bg-violet-300" },
@@ -97,6 +95,8 @@ const defaultPrivacyPrefs = {
   shareJournal: false,
   crisisAlerts: true,
 };
+
+const dashboardTabs = ["home", "sessions", "wellness", "journal", "care", "chat", "payments", "settings"];
 
 function readStoredPrefs(key, fallback) {
   try {
@@ -141,19 +141,21 @@ const emptyData = {
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const user = useAppSelector((state) => state.auth.user);
   const [data, setData] = useState(emptyData);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
   const [theme, setTheme] = useState(localStorage.getItem("mindsupport_theme") || "default");
   const [journalText, setJournalText] = useState("");
   const [journalTitle, setJournalTitle] = useState("");
   const [journalMood, setJournalMood] = useState("");
   const [journalGratitude, setJournalGratitude] = useState("");
   const [journalTrigger, setJournalTrigger] = useState("");
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = searchParams.get("tab");
+    return dashboardTabs.includes(tab) ? tab : "home";
+  });
   const [messageRecipient, setMessageRecipient] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messageFileUrl, setMessageFileUrl] = useState("");
@@ -199,6 +201,11 @@ const UserDashboard = () => {
   useEffect(() => loadDashboard(), [loadDashboard]);
 
   useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (dashboardTabs.includes(tab)) setActiveTab(tab);
+  }, [searchParams]);
+
+  useEffect(() => {
     const socket = getRealtimeSocket();
     if (!socket) return undefined;
     const refresh = () => loadDashboard();
@@ -224,29 +231,31 @@ const UserDashboard = () => {
   }, [privacyPrefs]);
 
   const upcoming = data.appointments.filter((item) => !["cancelled", "completed", "declined"].includes(item.status)).slice(0, 4);
-  const filteredTherapists = useMemo(() => {
-    const q = search.toLowerCase();
-    return data.therapists.filter((therapist) => {
-      const matchesSearch =
-        therapist.name?.toLowerCase().includes(q) ||
-        therapist.specialization?.toLowerCase().includes(q) ||
-        therapist.categories?.some((item) => item.toLowerCase().includes(q));
-      const matchesCategory = category === "All" || therapist.categories?.includes(category);
-      return matchesSearch && matchesCategory;
-    });
-  }, [category, data.therapists, search]);
-
   const chatMessages = useMemo(() => [...(data.messages || [])].reverse(), [data.messages]);
+  const bookedCounsellorIds = useMemo(
+    () =>
+      new Set(
+        (data.appointments || [])
+          .filter((appointment) => !["cancelled", "declined"].includes(appointment.status))
+          .map((appointment) => appointment.counsellorId)
+          .filter(Boolean)
+      ),
+    [data.appointments]
+  );
+  const bookedTherapists = useMemo(
+    () => (data.therapists || []).filter((therapist) => bookedCounsellorIds.has(therapist.id)),
+    [bookedCounsellorIds, data.therapists]
+  );
   const latestMood = data.moodEntries?.[0]?.mood || data.stats.moodScore || 4;
   const currentRisk = data.latestAssessment?.level || data.stats.latestRiskLevel || "not-started";
   const allChatConversations = useMemo(() => {
-    const knownTherapists = new Map(data.therapists.map((therapist) => [therapist.id, therapist]));
+    const knownTherapists = new Map(bookedTherapists.map((therapist) => [therapist.id, therapist]));
     const messagePeers = new Map();
 
     chatMessages.forEach((message) => {
       const peerId = message.direction === "sent" ? message.toId : message.fromId;
       const peerName = message.direction === "sent" ? message.to : message.from;
-      if (peerId && !knownTherapists.has(peerId)) {
+      if (peerId && bookedCounsellorIds.has(peerId) && !knownTherapists.has(peerId)) {
         messagePeers.set(peerId, {
           id: peerId,
           name: peerName || "Counsellor",
@@ -258,7 +267,7 @@ const UserDashboard = () => {
       }
     });
 
-    return [...data.therapists, ...messagePeers.values()]
+    return [...bookedTherapists, ...messagePeers.values()]
       .map((therapist) => {
         const thread = chatMessages.filter(
           (message) =>
@@ -289,7 +298,7 @@ const UserDashboard = () => {
         const bTime = new Date(b.lastMessage?.createdAt || 0).getTime();
         return bTime - aTime;
       });
-  }, [archivedChatIds, chatMessages, data.therapists, pinnedChatIds]);
+  }, [archivedChatIds, bookedCounsellorIds, bookedTherapists, chatMessages, pinnedChatIds]);
   const filteredChatConversations = useMemo(() => {
     const q = chatSearch.trim().toLowerCase();
     return allChatConversations.filter((conversation) => {
@@ -371,9 +380,9 @@ const UserDashboard = () => {
   };
 
   const sendUserMessage = async () => {
-    const targetRecipient = messageRecipient || activeConversation?.id;
+    const targetRecipient = activeConversation?.id;
     if (!targetRecipient || !messageText.trim()) {
-      toast({ variant: "destructive", title: "Message is incomplete", description: "Choose a counsellor and write a message." });
+      toast({ variant: "destructive", title: "Message is locked", description: "Book a counsellor first, then you can use secure chat." });
       return;
     }
     try {
@@ -580,7 +589,6 @@ const UserDashboard = () => {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="dashboard-panel flex h-auto flex-wrap justify-start gap-2 bg-muted/60 p-2">
                 <TabsTrigger value="home">Home</TabsTrigger>
-                <TabsTrigger value="therapists">Therapists</TabsTrigger>
                 <TabsTrigger value="sessions">Sessions</TabsTrigger>
                 <TabsTrigger value="wellness">Wellness</TabsTrigger>
                 <TabsTrigger value="journal">Journal</TabsTrigger>
@@ -690,72 +698,6 @@ const UserDashboard = () => {
                         </div>
                       ))
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="therapists" className="dashboard-tab-motion space-y-6">
-                <Card className="dashboard-card-motion glass-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Search className="h-5 w-5 text-primary" />
-                      Therapist Discovery
-                    </CardTitle>
-                    <CardDescription>Search by counsellor, specialization, rating, reviews, or availability.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid md:grid-cols-[1fr_260px] gap-3">
-                      <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search anxiety, depression, career pressure..." />
-                      <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((item) => (
-                            <SelectItem key={item} value={item}>
-                              {item}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="dashboard-stagger grid md:grid-cols-2 gap-4">
-                      {filteredTherapists.map((therapist) => (
-                        <div key={therapist.id} className="dashboard-card-motion rounded-lg border border-glass-border/40 bg-background/60 p-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <div className="font-semibold">{therapist.name}</div>
-                              <div className="text-sm text-foreground/70">{therapist.specialization}</div>
-                            </div>
-                            <Badge className="bg-amber-500/15 text-amber-500">
-                              <Star className="h-3 w-3 mr-1" />
-                              {therapist.rating}
-                            </Badge>
-                          </div>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <Badge className={therapist.counsellorType === "mentor" ? "bg-emerald-500/15 text-emerald-600" : "bg-blue-500/15 text-blue-600"}>
-                              {therapist.badge || (therapist.counsellorType === "mentor" ? "Community Mentor" : "Verified Professional")}
-                            </Badge>
-                            {Number(therapist.rating) >= 4.8 && <Badge className="bg-amber-500/15 text-amber-600">Top Rated</Badge>}
-                            {therapist.responseTime && <Badge variant="secondary">{therapist.responseTime}</Badge>}
-                            {(therapist.categories || []).map((item) => (
-                              <Badge key={item} variant="secondary">
-                                {item}
-                              </Badge>
-                            ))}
-                          </div>
-                          <div className="mt-3 text-xs text-foreground/60">
-                            {therapist.reviews} reviews - {therapist.experience || "Experience verified"} - Next slot: {therapist.nextSlot}
-                          </div>
-                          <div className="mt-1 text-xs text-foreground/60">
-                            Languages: {(therapist.languages || []).join(", ") || "English"} - From {formatRupees(therapist.sessionPricing || 500)} / session
-                          </div>
-                          <Button className="mt-4 w-full" onClick={() => navigate("/counselling")}>
-                            View plans and book
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -1187,7 +1129,7 @@ const UserDashboard = () => {
                                     <SelectValue placeholder="Choose counsellor" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {data.therapists.map((therapist) => (
+                                    {allChatConversations.map((therapist) => (
                                       <SelectItem key={therapist.id} value={therapist.id}>
                                         {therapist.name}
                                       </SelectItem>

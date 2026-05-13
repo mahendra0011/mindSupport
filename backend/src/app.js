@@ -447,7 +447,13 @@ async function canMessageUser(sender, recipient) {
   if (sender.role === "admin") return true;
   if (recipient.role === "admin") return true;
   if (sender.role === "user") {
-    return recipient.role === "counsellor" && approvedCounsellorStatuses.includes(recipient.status);
+    if (recipient.role !== "counsellor" || !approvedCounsellorStatuses.includes(recipient.status)) return false;
+    const appointment = await Appointment.exists({
+      student: sender._id,
+      counsellor: recipient._id,
+      status: { $in: ["pending", "confirmed", "completed"] },
+    });
+    return Boolean(appointment);
   }
   if (sender.role === "counsellor") {
     if (recipient.role !== "user") return false;

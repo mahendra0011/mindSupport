@@ -30,6 +30,9 @@ const App = () => (<QueryClientProvider client={queryClient}>
           <Route path="/counselling" element={<ProtectedRoute roles={["user"]}>
                 <Counselling />
               </ProtectedRoute>}/>
+          <Route path="/counselling/:counsellorId" element={<ProtectedRoute roles={["user"]}>
+                <Counselling />
+              </ProtectedRoute>}/>
           <Route path="/resources" element={<ResourceHub />}/>
           <Route path="/peer" element={<ProtectedRoute roles={["user", "admin"]}>
                 <PeerSupport />

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -64,6 +65,8 @@ const modeOptions = [
   { id: "voice-call", label: "Voice call", icon: Phone },
 ];
 
+const timeSlots = ["09:00", "10:30", "12:00", "14:00", "16:30", "18:00"];
+
 function formatRupees(value = 0) {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -94,6 +97,8 @@ function modeLabel(value = "") {
 
 const Counselling = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { counsellorId } = useParams();
   const user = useAppSelector((state) => state.auth.user);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -120,17 +125,21 @@ const Counselling = () => {
       ]);
       setCounsellors(profiles);
       setAppointments(dashboard?.appointments || []);
-      setSelectedId((current) => current || profiles?.[0]?.id || "");
+      setSelectedId((current) => counsellorId || current || profiles?.[0]?.id || "");
     } catch (error) {
       toast({ variant: "destructive", title: "Could not load counsellors", description: error?.message || "" });
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [counsellorId, toast]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    if (counsellorId) setSelectedId(counsellorId);
+  }, [counsellorId]);
 
   const categories = useMemo(() => {
     const values = new Set(["All"]);
@@ -224,12 +233,13 @@ const Counselling = () => {
         }),
       });
       toast({
-        title: "Booking request sent",
-        description: `${selectedCounsellor.name} will confirm your ${selectedPlan.name} session.`,
+        title: "Appointment scheduled",
+        description: `${selectedCounsellor.name} received your ${selectedPlan.name} booking details.`,
       });
       setAppointments((current) => [...current, appointment]);
       setBooking((current) => ({ ...current, date: "", time: "", concern: "" }));
-      loadData();
+      await loadData();
+      navigate("/user?tab=sessions");
     } catch (error) {
       toast({ variant: "destructive", title: "Booking failed", description: error?.message || "" });
     } finally {
@@ -310,7 +320,7 @@ const Counselling = () => {
                             key={counsellor.id}
                             counsellor={counsellor}
                             selected={selectedCounsellor?.id === counsellor.id}
-                            onSelect={() => setSelectedId(counsellor.id)}
+                            onSelect={() => navigate(`/counselling/${counsellor.id}`)}
                           />
                         ))
                       )}
@@ -376,21 +386,39 @@ const Counselling = () => {
                           <div className="space-y-2">
                             <Label>Date</Label>
                             <Input
-                              inputMode="numeric"
-                              placeholder="YYYY-MM-DD"
+                              type="date"
                               value={booking.date}
                               onChange={(event) => setBooking((current) => ({ ...current, date: event.target.value }))}
                             />
                           </div>
                           <div className="space-y-2">
                             <Label>Time</Label>
-                            <Input
-                              inputMode="numeric"
-                              placeholder="16:30"
-                              value={booking.time}
-                              onChange={(event) => setBooking((current) => ({ ...current, time: event.target.value }))}
-                            />
+                            <Select value={booking.time} onValueChange={(time) => setBooking((current) => ({ ...current, time }))}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose slot" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {timeSlots.map((slot) => (
+                                  <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {timeSlots.map((slot) => (
+                            <button
+                              key={slot}
+                              type="button"
+                              onClick={() => setBooking((current) => ({ ...current, time: slot }))}
+                              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                                booking.time === slot ? "border-primary bg-primary text-primary-foreground" : "border-glass-border/50 bg-background/70 hover:border-primary/50"
+                              }`}
+                            >
+                              {slot}
+                            </button>
+                          ))}
                         </div>
 
                         <div className="grid gap-3 md:grid-cols-3">
@@ -517,7 +545,9 @@ function ProfilePanel({ counsellor }) {
           </Avatar>
           <div>
             <CardTitle className="text-2xl">{counsellor.name}</CardTitle>
-            <CardDescription>{counsellor.specialization || "General counselling"}</CardDescription>
+            <CardDescription>
+              {counsellor.counsellorType === "mentor" ? "Community mentor" : "Professional therapist"} - {counsellor.specialization || "General counselling"}
+            </CardDescription>
             <div className="mt-3 flex flex-wrap gap-2">
               <Badge className="bg-primary/15 text-primary border border-primary/20"><BadgeCheck className="mr-1 h-3 w-3" />{counsellor.badge}</Badge>
               {Number(counsellor.rating) >= 4.8 && <Badge className="bg-amber-500/15 text-amber-500">Top Rated</Badge>}
@@ -530,7 +560,9 @@ function ProfilePanel({ counsellor }) {
         <p className="text-sm leading-relaxed text-foreground/75">{counsellor.bio || "Supportive, confidential mental health care for students and adults."}</p>
         <div className="grid gap-3 md:grid-cols-2">
           <InfoLine icon={MapPin} label="Location" value={counsellor.location || "Online"} />
+          <InfoLine icon={Star} label="Ratings & reviews" value={`${counsellor.rating || 4.8} / 5 from ${counsellor.reviews || 0} reviews`} />
           <InfoLine icon={ShieldCheck} label="Education" value={counsellor.education || "Verified qualification"} />
+          <InfoLine icon={HeartHandshake} label="Session pricing" value={`From ${formatRupees(counsellor.sessionPricing || 700)} per session`} />
           <InfoLine icon={MessageCircle} label="Languages" value={(counsellor.languages || ["English"]).join(", ")} />
           <InfoLine icon={Clock3} label="Availability" value={(counsellor.availability || ["Flexible slots"]).join(", ")} />
         </div>

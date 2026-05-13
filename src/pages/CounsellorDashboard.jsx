@@ -657,8 +657,14 @@ const CounsellorDashboard = () => {
                             <div>
                               <div className="font-semibold">{patient.name}</div>
                               <div className="text-xs text-foreground/60">{patient.email}</div>
+                              <div className="mt-1 text-xs text-foreground/65">{patient.activePlanName || "Counselling sessions"}</div>
                             </div>
                             <Badge className={riskTone[patient.risk] || riskTone.low}>{patient.risk}</Badge>
+                          </div>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                            <Badge variant="secondary">{patient.completedSessions || 0}/{patient.totalSessions || 0} completed</Badge>
+                            <Badge variant="secondary">{patient.pendingSessions || 0} pending</Badge>
+                            <Badge variant="secondary">{patient.confirmedSessions || 0} confirmed</Badge>
                           </div>
                           <Progress className="mt-3" value={patient.progress || 0} />
                         </button>
@@ -679,19 +685,81 @@ const CounsellorDashboard = () => {
                       {selectedPatient ? (
                         <div className="space-y-5">
                           <div className="grid gap-3 md:grid-cols-4">
-                            <StatusTile label="History" value={selectedPatient.therapyHistory} icon={FileText} />
-                            <StatusTile label="Mood report" value={selectedPatient.moodReport} icon={Activity} />
-                            <StatusTile label="Risk" value={selectedPatient.risk} icon={AlertTriangle} />
-                            <StatusTile label="Progress" value={`${selectedPatient.progress}%`} icon={BarChart3} />
+                            <StatusTile label="Total sessions" value={selectedPatient.totalSessions || 0} icon={FileText} />
+                            <StatusTile label="Completed" value={selectedPatient.completedSessions || 0} icon={CheckCircle2} />
+                            <StatusTile label="Active plan" value={selectedPatient.activePlanName || "Support"} icon={ClipboardCheck} />
+                            <StatusTile label="Attendance" value={`${selectedPatient.attendance || 0}%`} icon={BarChart3} />
                           </div>
+
+                          <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+                            <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4">
+                              <h3 className="font-semibold">Plan & Session Summary</h3>
+                              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                                <PatientDetailLine label="Current plan" value={selectedPatient.activePlanName || "Counselling sessions"} />
+                                <PatientDetailLine label="Plan duration" value={selectedPatient.activePlanDuration || "Not specified"} />
+                                <PatientDetailLine label="Plan interval" value={selectedPatient.activePlanCadence || "Not specified"} />
+                                <PatientDetailLine label="Session history" value={selectedPatient.therapyHistory} />
+                                <PatientDetailLine
+                                  label="Next session"
+                                  value={selectedPatient.nextSession ? `${selectedPatient.nextSession.date} at ${selectedPatient.nextSession.time} (${selectedPatient.nextSession.mode})` : "No upcoming session"}
+                                />
+                                <PatientDetailLine
+                                  label="Last session"
+                                  value={selectedPatient.lastSession ? `${selectedPatient.lastSession.date} at ${selectedPatient.lastSession.time} (${selectedPatient.lastSession.status})` : "No session yet"}
+                                />
+                              </div>
+                              <div className="mt-4">
+                                <div className="text-sm font-medium">Best for</div>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {(selectedPatient.activePlanBestFor || []).length ? (
+                                    selectedPatient.activePlanBestFor.map((item) => (
+                                      <Badge key={item} variant="secondary">{item}</Badge>
+                                    ))
+                                  ) : (
+                                    <Badge variant="secondary">General support</Badge>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="mt-4">
+                                <div className="text-sm font-medium">Modes used</div>
+                                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                                  {(selectedPatient.modeBreakdown || []).map((item) => (
+                                    <div key={item.mode} className="rounded-lg border border-glass-border/40 bg-background/70 p-3">
+                                      <div className="text-xs capitalize text-foreground/60">{String(item.mode || "").replace("-", " ")}</div>
+                                      <div className="text-lg font-semibold">{item.count}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4">
+                              <h3 className="font-semibold">User Wellness Details</h3>
+                              <div className="mt-3 grid gap-3">
+                                <PatientDetailLine label="Mood report" value={selectedPatient.moodReport || "Not tracked"} />
+                                <PatientDetailLine label="Latest assessment" value={selectedPatient.latestAssessmentLevel ? `${selectedPatient.latestAssessmentLevel} risk (${selectedPatient.latestAssessmentScore || 0})` : selectedPatient.risk} />
+                                <PatientDetailLine label="Contact" value={selectedPatient.phone || selectedPatient.email || "Not available"} />
+                                <PatientDetailLine label="Shared journals" value={`${selectedPatient.sharedJournalCount || 0} entries`} />
+                              </div>
+                              {selectedPatient.latestJournalExcerpt ? (
+                                <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                                  <div className="text-sm font-medium">{selectedPatient.latestJournalTitle || "Latest shared journal"}</div>
+                                  <p className="mt-1 text-sm text-foreground/70">{selectedPatient.latestJournalExcerpt}</p>
+                                </div>
+                              ) : (
+                                <PanelText>No shared journal entries from this user yet.</PanelText>
+                              )}
+                            </div>
+                          </div>
+
                           <div className="grid gap-4 md:grid-cols-2">
                             <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4">
                               <h3 className="font-semibold">Session Timeline</h3>
                               <div className="mt-3 space-y-2">
-                                {selectedPatientSessions.map((appointment) => (
+                                {(selectedPatient.sessions?.length ? selectedPatient.sessions : selectedPatientSessions).map((appointment) => (
                                   <TimelineItem key={appointment.id} appointment={appointment} />
                                 ))}
-                                {!selectedPatientSessions.length && <PanelText>No sessions found for this patient.</PanelText>}
+                                {!(selectedPatient.sessions?.length || selectedPatientSessions.length) && <PanelText>No sessions found for this patient.</PanelText>}
                               </div>
                             </div>
                             <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4">
@@ -1279,7 +1347,18 @@ function TimelineItem({ appointment }) {
       <div className="min-w-0">
         <div className="text-sm font-medium">{appointment.date} at {appointment.time}</div>
         <div className="text-xs text-foreground/60">{appointment.status} - {appointment.mode}</div>
+        {appointment.supportPlanName && <div className="mt-1 text-xs text-foreground/60">Plan: {appointment.supportPlanName}</div>}
+        {appointment.concern && <div className="mt-1 line-clamp-2 text-xs text-foreground/70">{appointment.concern}</div>}
       </div>
+    </div>
+  );
+}
+
+function PatientDetailLine({ label, value }) {
+  return (
+    <div className="rounded-lg border border-glass-border/40 bg-background/70 p-3">
+      <div className="text-xs uppercase tracking-wide text-foreground/50">{label}</div>
+      <div className="mt-1 text-sm font-medium">{value || "Not available"}</div>
     </div>
   );
 }

@@ -58,15 +58,51 @@ app.get(
   "/api/messages",
   asyncRoute(authRequired),
   asyncRoute(async (req, res) => {
-    const query = { $or: [{ from: req.user._id }, { to: req.user._id }] };
+    let query = { $or: [{ from: req.user._id }, { to: req.user._id }] };
     if (req.query.peer) {
       const peer = await findUserByIdentifier(req.query.peer);
       if (peer) {
+        if (!(await canMessageUser(req.user, peer))) {
+          res.status(403).json({ error: "Book this counsellor before using secure chat" });
+          return;
+        }
         query.$or = [
           { from: req.user._id, to: peer._id },
           { from: peer._id, to: req.user._id },
         ];
       }
+    } else if (req.user.role === "user") {
+      const appointments = await Appointment.find({
+        student: req.user._id,
+        status: { $in: ["pending", "confirmed", "completed"] },
+      }).select("counsellor");
+      const counsellorIds = appointments.map((appointment) => appointment.counsellor).filter(Boolean);
+      if (counsellorIds.length === 0) {
+        res.json([]);
+        return;
+      }
+      query = {
+        $or: [
+          { from: req.user._id, to: { $in: counsellorIds } },
+          { from: { $in: counsellorIds }, to: req.user._id },
+        ],
+      };
+    } else if (req.user.role === "counsellor") {
+      const appointments = await Appointment.find({
+        counsellor: req.user._id,
+        status: { $in: ["pending", "confirmed", "completed"] },
+      }).select("student");
+      const studentIds = appointments.map((appointment) => appointment.student).filter(Boolean);
+      if (studentIds.length === 0) {
+        res.json([]);
+        return;
+      }
+      query = {
+        $or: [
+          { from: req.user._id, to: { $in: studentIds } },
+          { from: { $in: studentIds }, to: req.user._id },
+        ],
+      };
     }
     const messages = await Message.find(query)
       .sort({ createdAt: -1 })
@@ -87,7 +123,7 @@ app.post(
       return;
     }
     if (!(await canMessageUser(req.user, recipient))) {
-      res.status(403).json({ error: "You do not have messaging access to this account" });
+      res.status(403).json({ error: "Book this counsellor before using secure chat" });
       return;
     }
     const text = String(req.body?.text || "").trim();
@@ -95,7 +131,26 @@ app.post(
       res.status(400).json({ error: "Message text is required" });
       return;
     }
-    const appointmentId = req.body?.appointmentId && mongoose.isValidObjectId(req.body.appointmentId) ? req.body.appointmentId : undefined;
+    let appointment = null;
+    if (req.body?.appointmentId && mongoose.isValidObjectId(req.body.appointmentId)) {
+      appointment = await Appointment.findOne({
+        _id: req.body.appointmentId,
+        $or: [
+          { student: req.user._id, counsellor: recipient._id },
+          { student: recipient._id, counsellor: req.user._id },
+        ],
+        status: { $in: ["pending", "confirmed", "completed"] },
+      });
+    }
+    if (!appointment) {
+      appointment = await Appointment.findOne({
+        $or: [
+          { student: req.user._id, counsellor: recipient._id },
+          { student: recipient._id, counsellor: req.user._id },
+        ],
+        status: { $in: ["pending", "confirmed", "completed"] },
+      }).sort({ date: -1, time: -1 });
+    }
     let replyTo = null;
     if (req.body?.replyTo && mongoose.isValidObjectId(req.body.replyTo)) {
       replyTo = await Message.findOne({
@@ -109,7 +164,7 @@ app.post(
     const message = await Message.create({
       from: req.user._id,
       to: recipient._id,
-      appointment: appointmentId,
+      appointment: appointment?._id,
       replyTo: replyTo?._id,
       subject: String(req.body?.subject || "Message").trim().slice(0, 100) || "Message",
       text: text.slice(0, 2000),
@@ -212,10 +267,12 @@ app.post(
       return;
     }
     const existingIndex = (message.reactions || []).findIndex((reaction) => String(reaction.user) === String(req.user._id) && reaction.emoji === emoji);
+    let addedReaction = false;
     if (existingIndex >= 0) {
       message.reactions.splice(existingIndex, 1);
     } else {
       message.reactions.push({ user: req.user._id, emoji });
+      addedReaction = true;
     }
     await message.save();
     const fromId = String(message.from);
@@ -223,6 +280,15 @@ app.post(
     const populated = await message.populate("from to appointment replyTo");
     io.to(`user:${toId}`).emit("message:new", normalizeMessage(populated, { _id: toId }));
     io.to(`user:${fromId}`).emit("message:new", normalizeMessage(populated, { _id: fromId }));
+    if (addedReaction && fromId !== String(req.user._id)) {
+      await createNotification({
+        user: fromId,
+        type: "message",
+        title: "New chat reaction",
+        message: `${req.user.name} reacted to your message.`,
+        metadata: { messageId: String(message._id) },
+      });
+    }
     res.json(normalizeMessage(populated, req.user));
   })
 );

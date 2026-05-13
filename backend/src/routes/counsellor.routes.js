@@ -72,8 +72,112 @@ app.get(
       Notification.find({ $or: [{ user: req.user._id }, { audienceRole: { $in: ["counsellor", "all"] } }] }).sort({ createdAt: -1 }).limit(8),
     ]);
     const today = todayYMD();
-    const studentIds = new Set(appointments.map((a) => String(a.student?._id || a.student)));
-    const activeAppointments = appointments.filter((a) => activeStatuses.includes(a.status));
+    const studentIds = new Set(appointments.map((a) => String(a.student?._id || a.student)).filter(Boolean));
+    const studentIdList = [...studentIds].filter((id) => mongoose.isValidObjectId(id));
+    const [moodEntries, assessments, sharedJournals] = await Promise.all([
+      MoodEntry.find({ user: { $in: studentIdList } }).sort({ createdAt: -1 }).limit(studentIdList.length * 5 || 1),
+      Assessment.find({ user: { $in: studentIdList } }).sort({ createdAt: -1 }).limit(studentIdList.length * 5 || 1),
+      Journal.find({ user: { $in: studentIdList }, sharedWithCounsellor: true }).sort({ createdAt: -1 }).limit(studentIdList.length * 5 || 1),
+    ]);
+    const latestMoodByUser = new Map();
+    moodEntries.forEach((entry) => {
+      const userId = String(entry.user);
+      if (!latestMoodByUser.has(userId)) latestMoodByUser.set(userId, entry);
+    });
+    const latestAssessmentByUser = new Map();
+    assessments.forEach((entry) => {
+      const userId = String(entry.user);
+      if (!latestAssessmentByUser.has(userId)) latestAssessmentByUser.set(userId, entry);
+    });
+    const journalByUser = new Map();
+    sharedJournals.forEach((entry) => {
+      const userId = String(entry.user);
+      const current = journalByUser.get(userId) || { count: 0, latest: null };
+      journalByUser.set(userId, { count: current.count + 1, latest: current.latest || entry });
+    });
+    const patientMap = new Map();
+    appointments.forEach((appointment) => {
+      const normalized = normalizeAppointment(appointment, req.user);
+      const studentId = String(appointment.student?._id || appointment.student || normalized.studentEmail || normalized.studentName);
+      if (!studentId) return;
+      const existing =
+        patientMap.get(studentId) || {
+          id: studentId,
+          name: normalized.studentName || appointment.student?.name || "Student",
+          email: normalized.studentEmail || appointment.student?.email || "",
+          phone: appointment.student?.phone || "",
+          sessions: [],
+          plans: new Map(),
+          modes: {},
+          totalSessions: 0,
+          completedSessions: 0,
+          pendingSessions: 0,
+          confirmedSessions: 0,
+          cancelledSessions: 0,
+          declinedSessions: 0,
+        };
+      existing.sessions.push(normalized);
+      existing.totalSessions += 1;
+      existing.modes[normalized.mode || "unknown"] = (existing.modes[normalized.mode || "unknown"] || 0) + 1;
+      if (normalized.status === "completed") existing.completedSessions += 1;
+      if (normalized.status === "pending") existing.pendingSessions += 1;
+      if (normalized.status === "confirmed") existing.confirmedSessions += 1;
+      if (normalized.status === "cancelled") existing.cancelledSessions += 1;
+      if (normalized.status === "declined") existing.declinedSessions += 1;
+      const planName = normalized.supportPlanName || "Counselling sessions";
+      const plan = existing.plans.get(planName) || {
+        name: planName,
+        duration: normalized.supportPlanDuration || "",
+        cadence: normalized.supportPlanCadence || "",
+        bestFor: normalized.supportPlanBestFor || [],
+        total: 0,
+        completed: 0,
+        active: 0,
+      };
+      plan.total += 1;
+      if (normalized.status === "completed") plan.completed += 1;
+      if (["pending", "confirmed"].includes(normalized.status)) plan.active += 1;
+      existing.plans.set(planName, plan);
+      patientMap.set(studentId, existing);
+    });
+    const patients = [...patientMap.values()].map((patient, index) => {
+      const orderedSessions = patient.sessions.sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+      const upcomingSessions = orderedSessions.filter((item) => ["pending", "confirmed"].includes(item.status));
+      const completed = orderedSessions.filter((item) => item.status === "completed");
+      const activePlan = [...patient.plans.values()].find((plan) => plan.active > 0) || [...patient.plans.values()][0] || {};
+      const latestMood = latestMoodByUser.get(patient.id);
+      const latestAssessment = latestAssessmentByUser.get(patient.id);
+      const journalInfo = journalByUser.get(patient.id) || { count: 0, latest: null };
+      const attendanceBase = patient.totalSessions - patient.cancelledSessions - patient.declinedSessions;
+      const attendance = attendanceBase ? Math.round((patient.completedSessions / attendanceBase) * 100) : 0;
+      const progress = Math.min(100, Math.max(12, Math.round((attendance + (Number(latestMood?.mood || 3) / 5) * 100) / 2)));
+      return {
+        ...patient,
+        plans: [...patient.plans.values()],
+        activePlanName: activePlan.name || "Counselling sessions",
+        activePlanDuration: activePlan.duration || "",
+        activePlanCadence: activePlan.cadence || "",
+        activePlanBestFor: activePlan.bestFor || [],
+        therapyHistory: `${patient.completedSessions}/${patient.totalSessions} sessions completed`,
+        moodReport: latestMood ? `${latestMood.mood}/5 mood` : ["Stable", "Needs follow-up", "Improving"][index % 3],
+        latestMood: latestMood?.mood || null,
+        latestSleepQuality: latestMood?.sleepQuality || null,
+        latestStressLevel: latestMood?.stressLevel || null,
+        latestAnxietyLevel: latestMood?.anxietyLevel || null,
+        latestAssessmentLevel: latestAssessment?.level || "",
+        latestAssessmentScore: latestAssessment?.score || null,
+        sharedJournalCount: journalInfo.count,
+        latestJournalTitle: journalInfo.latest?.title || "",
+        latestJournalExcerpt: journalInfo.latest?.content ? String(journalInfo.latest.content).slice(0, 140) : "",
+        progress,
+        attendance,
+        risk: latestAssessment?.level || ["low", "moderate", "low", "high"][index % 4],
+        nextSession: upcomingSessions[0] || null,
+        lastSession: completed[completed.length - 1] || orderedSessions[orderedSessions.length - 1] || null,
+        modeBreakdown: Object.entries(patient.modes).map(([mode, count]) => ({ mode, count })),
+        sessions: orderedSessions,
+      };
+    });
     const sessionRevenue = appointments
       .filter((appointment) => appointment.status === "completed")
       .reduce((sum) => sum + (Number(req.user.sessionPricing) || 700), 0);
@@ -92,15 +196,7 @@ app.get(
         unreadMessages: messages.map((message) => normalizeMessage(message, req.user)).filter((message) => message.unread).length,
       },
       appointments: await normalizeAppointmentsWithReviewStatus(appointments, req.user),
-      patients: activeAppointments.slice(0, 6).map((appointment, index) => ({
-        id: String(appointment.student?._id || appointment.student || index),
-        name: normalizeAppointment(appointment, req.user).studentName || "Student",
-        email: normalizeAppointment(appointment, req.user).studentEmail,
-        therapyHistory: `${Math.max(1, index + 2)} sessions`,
-        moodReport: ["Stable", "Needs follow-up", "Improving"][index % 3],
-        progress: [72, 58, 84, 66][index % 4],
-        risk: ["low", "moderate", "low", "high"][index % 4],
-      })),
+      patients,
       progress: [
         { label: "Mood improvement", value: 72 },
         { label: "Anxiety reduction", value: 61 },
