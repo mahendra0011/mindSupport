@@ -75,7 +75,7 @@ const Login = () => {
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
                       <Mail className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/50" />
-                      <Input id="email" type="email" className="pl-9" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" />
+                      <Input id="email" type="text" inputMode="email" className="pl-9" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" />
                     </div>
                   </div>
                   <div className="space-y-2">
