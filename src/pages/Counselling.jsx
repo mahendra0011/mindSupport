@@ -216,34 +216,34 @@ const Counselling = () => {
     <div className="min-h-screen bg-[#070b15] text-foreground">
       <Navigation />
       <main className="pt-16">
-        <section className="dashboard-motion relative overflow-hidden py-10 md:py-14">
-          <div className="absolute inset-x-0 top-28 h-72 bg-purple-700/10 blur-3xl" />
-          <div className="relative mx-auto max-w-[1540px] px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl">
-                <Badge className="border border-primary/25 bg-primary/15 text-primary">Professional counselling marketplace</Badge>
-                <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-5xl">Book trusted support with one clear package payment</h1>
-                <p className="mt-3 text-base text-muted-foreground md:text-lg">
+        <section className="dashboard-motion relative overflow-hidden py-5 md:py-7">
+          <div className="absolute inset-x-0 top-16 h-48 bg-purple-700/10 blur-3xl" />
+          <div className="relative mx-auto max-w-[1220px] px-4 sm:px-6 lg:px-8">
+            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <Badge className="h-7 rounded-full border border-primary/25 bg-primary/15 px-3 text-xs text-primary">Professional counselling marketplace</Badge>
+                <h1 className="mt-3 max-w-2xl text-2xl font-bold tracking-tight md:text-3xl">Book trusted support with one clear package payment</h1>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">
                   Compare verified counsellors, review therapy plans, and book the right expert once with transparent rupee pricing.
                 </p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <HeroStat icon={Users} value={`${counsellors.length || "12"}+`} label="Approved experts" />
                   <HeroStat icon={CreditCard} value="One-time" label="Package payment" />
                   <HeroStat icon={ShieldCheck} value="Verified" label="Professional profiles" />
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-[minmax(220px,320px)_190px]">
+              <div className="grid gap-3 sm:grid-cols-[minmax(220px,300px)_170px]">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
-                    className="h-11 rounded-xl border-white/10 bg-[#0d1220] pl-9"
+                    className="h-10 rounded-xl border-white/10 bg-[#0d1220] pl-9 text-sm"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search anxiety, trauma, city..."
                   />
                 </div>
                 <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="h-11 rounded-xl border-white/10 bg-[#0d1220]">
+                  <SelectTrigger className="h-10 rounded-xl border-white/10 bg-[#0d1220] text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -262,7 +262,7 @@ const Counselling = () => {
             ) : filteredCounsellors.length === 0 ? (
               <EmptyPanel text="No counsellors match this filter. Try another concern or location." />
             ) : (
-              <div className="dashboard-stagger grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+              <div className="dashboard-stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {filteredCounsellors.map((counsellor, index) => (
                   <CounsellorCard
                     key={counsellor.id}
@@ -286,18 +286,18 @@ function CounsellorCard({ counsellor, tone, booking, onView }) {
   const plans = plansFor(counsellor);
   const accepting = counsellor.bookingEnabled !== false;
   return (
-    <article className="dashboard-card-motion relative flex min-h-[390px] flex-col overflow-hidden rounded-[28px] border border-white/8 bg-[#0d1220]/95 p-7 shadow-[0_20px_70px_rgba(4,7,18,0.45)]">
+    <article className="dashboard-card-motion relative flex min-h-[286px] flex-col overflow-hidden rounded-[18px] border border-white/8 bg-[#0d1220]/95 p-4 shadow-[0_12px_30px_rgba(4,7,18,0.3)]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-400 via-sky-400 to-emerald-300" />
-      <div className="flex gap-5">
-        <Avatar className={`h-20 w-20 rounded-[24px] border-0 bg-gradient-to-br ${tone}`}>
+      <div className="flex gap-3">
+        <Avatar className={`h-14 w-14 rounded-2xl border-0 bg-gradient-to-br ${tone}`}>
           <AvatarImage src={counsellor.profilePhotoUrl} alt={counsellor.name} />
-          <AvatarFallback className={`rounded-[24px] bg-gradient-to-br text-3xl font-bold ${tone}`}>{initials(counsellor.name)}</AvatarFallback>
+          <AvatarFallback className={`rounded-2xl bg-gradient-to-br text-lg font-bold ${tone}`}>{initials(counsellor.name)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <h2 className="text-xl font-bold leading-tight">{counsellor.name}</h2>
-          <p className="mt-1 text-base text-slate-300/75">{counsellor.specialization || "Mental wellness counsellor"}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold">
-            <Star className="h-4 w-4 fill-red-400 text-red-400" />
+          <h2 className="text-lg font-bold leading-tight">{counsellor.name}</h2>
+          <p className="mt-0.5 text-sm text-slate-300/75">{counsellor.specialization || "Mental wellness counsellor"}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
+            <Star className="h-3.5 w-3.5 fill-red-400 text-red-400" />
             <span>{Number(counsellor.rating || 4.8).toFixed(1)}</span>
             <span className="text-slate-400">({counsellor.reviews || 0})</span>
             <span className={`rounded-full px-2.5 py-1 text-xs ${accepting ? "bg-emerald-400/10 text-emerald-300" : "bg-rose-400/10 text-rose-300"}`}>
@@ -307,39 +307,39 @@ function CounsellorCard({ counsellor, tone, booking, onView }) {
         </div>
       </div>
 
-      <div className="mt-7 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {(counsellor.categories || []).slice(0, 3).map((item) => (
-          <span key={item} className="rounded-full bg-[#151b30] px-3 py-1 text-sm font-semibold text-slate-100">
+          <span key={item} className="rounded-full bg-[#151b30] px-2.5 py-1 text-xs font-semibold text-slate-100">
             {item}
           </span>
         ))}
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 text-slate-300/80">
+      <div className="mt-4 grid grid-cols-2 gap-3 text-slate-300/80">
         <IconLine icon={BriefcaseBusiness} text={counsellor.experience || "Experience verified"} />
         <IconLine icon={MapPin} text={counsellor.location || "Online"} />
       </div>
 
-      <div className="my-7 h-px bg-white/8" />
+      <div className="my-4 h-px bg-white/8" />
 
       <div className="mt-auto">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Package plans</p>
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Package plans</p>
           <p className="text-sm font-semibold text-emerald-300">from {formatRupees(lowestPrice(counsellor))} once</p>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {plans.map((plan) => (
-            <span key={plan.id} className="rounded-full bg-violet-500/25 px-3 py-1 text-sm font-bold text-violet-300">
+            <span key={plan.id} className="rounded-full bg-violet-500/25 px-2.5 py-1 text-xs font-bold text-violet-300">
               {planLabel(plan.id)}
             </span>
           ))}
         </div>
         {booking && (
-          <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm text-emerald-200">
+          <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
             Already booked: {booking.date} at {booking.time}
           </div>
         )}
-        <Button onClick={onView} className="mt-7 h-12 w-full rounded-full bg-violet-500 text-base font-bold text-white hover:bg-violet-400">
+        <Button onClick={onView} className="mt-4 h-10 w-full rounded-xl bg-violet-500 text-sm font-bold text-white hover:bg-violet-400">
           View Profile & Book
         </Button>
       </div>
@@ -354,9 +354,9 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
     <div className="min-h-screen bg-[#070b15] text-foreground">
       <Navigation />
       <main className="pt-16">
-        <section className="dashboard-motion py-10 md:py-14">
-          <div className="mx-auto max-w-[1380px] px-4 sm:px-6 lg:px-8">
-            <button type="button" onClick={onBack} className="mb-10 flex items-center gap-2 text-slate-300 transition hover:text-white">
+        <section className="dashboard-motion py-7 md:py-9">
+          <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
+            <button type="button" onClick={onBack} className="mb-5 flex items-center gap-2 text-sm text-slate-300 transition hover:text-white">
               <ArrowLeft className="h-4 w-4" />
               Back to counsellors
             </button>
@@ -366,33 +366,33 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
             ) : !counsellor ? (
               <EmptyPanel text="Counsellor profile not found." />
             ) : (
-              <div className="grid gap-8 lg:grid-cols-[1fr_430px]">
-                <div className="space-y-8">
-                  <Card className="dashboard-card-motion rounded-[28px] border-white/8 bg-[#0d1220] shadow-[0_20px_70px_rgba(4,7,18,0.38)]">
-                    <CardContent className="p-7 md:p-10">
-                      <div className="flex flex-col gap-7 md:flex-row">
-                        <Avatar className="h-36 w-36 rounded-[34px] border-0 bg-gradient-to-br from-orange-200 to-amber-300 text-violet-500">
+              <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+                <div className="space-y-6">
+                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220] shadow-[0_14px_36px_rgba(4,7,18,0.32)]">
+                    <CardContent className="p-5 md:p-6">
+                      <div className="flex flex-col gap-5 md:flex-row">
+                        <Avatar className="h-24 w-24 rounded-[24px] border-0 bg-gradient-to-br from-orange-200 to-amber-300 text-violet-500">
                           <AvatarImage src={counsellor.profilePhotoUrl} alt={counsellor.name} />
-                          <AvatarFallback className="rounded-[34px] bg-gradient-to-br from-orange-200 to-amber-300 text-5xl font-bold text-violet-500">
+                          <AvatarFallback className="rounded-[24px] bg-gradient-to-br from-orange-200 to-amber-300 text-3xl font-bold text-violet-500">
                             {initials(counsellor.name)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <h1 className="text-3xl font-bold md:text-4xl">{counsellor.name}</h1>
-                          <p className="mt-2 text-xl text-slate-300/80">{counsellor.specialization || "Mental wellness counsellor"}</p>
-                          <div className="mt-4 flex flex-wrap items-center gap-4 text-slate-300">
+                          <h1 className="text-2xl font-bold md:text-3xl">{counsellor.name}</h1>
+                          <p className="mt-1 text-base text-slate-300/80">{counsellor.specialization || "Mental wellness counsellor"}</p>
+                          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-300">
                             <span className="flex items-center gap-2 font-semibold">
-                              <Star className="h-5 w-5 fill-red-400 text-red-400" />
+                              <Star className="h-4 w-4 fill-red-400 text-red-400" />
                               {Number(counsellor.rating || 4.8).toFixed(1)} ({counsellor.reviews || 0} reviews)
                             </span>
                             <span className="flex items-center gap-2">
-                              <MapPin className="h-5 w-5 text-slate-400" />
+                              <MapPin className="h-4 w-4 text-slate-400" />
                               {counsellor.location || "Online"}
                             </span>
                           </div>
-                          <div className="mt-6 flex flex-wrap gap-2">
+                          <div className="mt-4 flex flex-wrap gap-2">
                             {(counsellor.categories || []).map((item) => (
-                              <Badge key={item} className="rounded-full bg-violet-500/25 px-3 py-1 text-violet-300">
+                              <Badge key={item} className="rounded-full bg-violet-500/25 px-2.5 py-1 text-xs text-violet-300">
                                 {item}
                               </Badge>
                             ))}
@@ -400,7 +400,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                         </div>
                       </div>
 
-                      <div className="mt-9 grid gap-4 md:grid-cols-3">
+                      <div className="mt-6 grid gap-3 md:grid-cols-3">
                         <InfoTile icon={BriefcaseBusiness} label="Experience" value={counsellor.experience || "Verified"} />
                         <InfoTile icon={GraduationCap} label="Qualifications" value={counsellor.education || "Verified qualification"} />
                         <InfoTile icon={Languages} label="Languages" value={(counsellor.languages || ["English"]).join(", ")} />
@@ -408,40 +408,40 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                     </CardContent>
                   </Card>
 
-                  <Card className="dashboard-card-motion rounded-[28px] border-white/8 bg-[#0d1220]">
-                    <CardHeader className="p-7 pb-3 md:p-10 md:pb-4">
-                      <CardTitle>About</CardTitle>
+                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220]">
+                    <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
+                      <CardTitle className="text-lg">About</CardTitle>
                     </CardHeader>
-                    <CardContent className="px-7 pb-7 md:px-10 md:pb-10">
-                      <p className="text-lg leading-8 text-slate-300/80">
+                    <CardContent className="px-5 pb-5 md:px-6 md:pb-6">
+                      <p className="text-sm leading-7 text-slate-300/80">
                         {counsellor.bio || "A warm, privacy-first counsellor focused on emotional support, practical tools, and steady progress."}
                       </p>
                     </CardContent>
                   </Card>
 
-                  <Card className="dashboard-card-motion rounded-[28px] border-white/8 bg-[#0d1220]">
-                    <CardHeader className="p-7 pb-3 md:p-10 md:pb-4">
-                      <CardTitle>Therapy plans</CardTitle>
+                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220]">
+                    <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
+                      <CardTitle className="text-lg">Therapy plans</CardTitle>
                       <CardDescription>Select a plan, then continue to the separate schedule page.</CardDescription>
                     </CardHeader>
-                    <CardContent className="grid gap-5 px-7 pb-7 sm:grid-cols-2 md:px-10 md:pb-10">
+                    <CardContent className="grid gap-4 px-5 pb-5 sm:grid-cols-2 md:px-6 md:pb-6">
                       {plansFor(counsellor).map((plan) => (
                         <button
                           key={plan.id}
                           type="button"
                           onClick={() => setSelectedPlanId(plan.id)}
-                          className={`min-h-[190px] rounded-[24px] border p-6 text-left transition ${
+                          className={`min-h-[136px] rounded-[18px] border p-4 text-left transition ${
                             selectedPlan?.id === plan.id
-                              ? "border-violet-400 bg-violet-500 text-white shadow-[0_18px_50px_rgba(139,92,246,0.28)]"
+                              ? "border-violet-400 bg-violet-500 text-white shadow-[0_14px_34px_rgba(139,92,246,0.24)]"
                               : "border-white/10 bg-[#070b15] hover:border-violet-400/50"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-4">
-                            <h3 className="text-2xl font-bold">{plan.name}</h3>
+                            <h3 className="text-lg font-bold">{plan.name}</h3>
                             {selectedPlan?.id === plan.id && <Check className="h-5 w-5" />}
                           </div>
                           <p className="mt-2 text-sm opacity-80">{plan.duration}</p>
-                          <div className="mt-6 text-3xl font-bold">
+                          <div className="mt-4 text-2xl font-bold">
                             {formatRupees(planPrice(plan))}
                             <span className="text-sm font-semibold opacity-75"> once</span>
                           </div>
@@ -452,28 +452,28 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                 </div>
 
                 <aside className="lg:sticky lg:top-24 lg:self-start">
-                  <Card className="dashboard-card-motion rounded-[28px] border-white/8 bg-[#0d1220] shadow-[0_20px_70px_rgba(4,7,18,0.38)]">
-                    <CardContent className="p-7 md:p-8">
-                      <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Selected plan</p>
-                      <h2 className="mt-3 text-3xl font-bold">{selectedPlan?.name}</h2>
-                      <p className="mt-2 text-lg text-slate-300/80">{selectedPlan?.summary || "Personalized support plan"}</p>
+                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220] shadow-[0_14px_36px_rgba(4,7,18,0.32)]">
+                    <CardContent className="p-5 md:p-6">
+                      <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Selected plan</p>
+                      <h2 className="mt-2 text-2xl font-bold">{selectedPlan?.name}</h2>
+                      <p className="mt-1 text-sm leading-6 text-slate-300/80">{selectedPlan?.summary || "Personalized support plan"}</p>
 
-                      <div className="mt-8 space-y-4 text-lg">
+                      <div className="mt-5 space-y-3 text-sm">
                         <SummaryLine label="Duration" value={selectedPlan?.duration} />
                         <SummaryLine label="Cadence" value={selectedPlan?.cadence} />
                         <SummaryLine label="One-time payment" value={formatRupees(planPrice(selectedPlan))} />
                         <SummaryLine label="Mode" value={(counsellor.consultationModes || ["google-meet"]).map(modeLabel).join(", ")} />
                       </div>
-                      <div className="mt-6 rounded-3xl border border-violet-400/20 bg-violet-400/10 p-4 text-sm text-violet-100">
+                      <div className="mt-5 rounded-2xl border border-violet-400/20 bg-violet-400/10 p-3 text-xs leading-5 text-violet-100">
                         <Sparkles className="mb-2 h-4 w-4" />
                         One booking unlocks the selected support package with this counsellor. No per-session charge is shown to the user.
                       </div>
 
-                      <div className="mt-8">
-                        <p className="mb-3 text-sm uppercase tracking-[0.16em] text-slate-400">Today's available slots</p>
+                      <div className="mt-5">
+                        <p className="mb-2 text-xs uppercase tracking-[0.16em] text-slate-400">Today's available slots</p>
                         <div className="flex flex-wrap gap-2">
                           {slots.map((slot) => (
-                            <span key={slot} className="rounded-full bg-[#151b30] px-4 py-1.5 text-sm font-bold">
+                            <span key={slot} className="rounded-full bg-[#151b30] px-3 py-1 text-xs font-bold">
                               {slot}
                             </span>
                           ))}
@@ -481,7 +481,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                       </div>
 
                       {booking && (
-                        <div className="mt-7 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
+                        <div className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-emerald-100">
                           <div className="font-bold">Already booked</div>
                           <div className="mt-1 text-sm opacity-85">
                             {booking.supportPlanName || "Counselling session"} on {booking.date} at {booking.time}.
@@ -491,14 +491,14 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
 
                       <Button
                         onClick={() => onSchedule(selectedPlan?.id)}
-                        className="mt-7 h-14 w-full rounded-full bg-violet-500 text-lg font-bold text-white hover:bg-violet-400"
+                        className="mt-5 h-11 w-full rounded-xl bg-violet-500 text-sm font-bold text-white hover:bg-violet-400"
                       >
                         {booking ? "Open session schedule" : "Book counsellor"}
                       </Button>
                     </CardContent>
                   </Card>
 
-                  <div className="mt-5 rounded-[24px] border border-white/8 bg-[#0d1220]/70 p-5 text-sm leading-6 text-slate-300/75">
+                  <div className="mt-4 rounded-[18px] border border-white/8 bg-[#0d1220]/70 p-4 text-xs leading-6 text-slate-300/75">
                     <ShieldCheck className="mb-3 h-5 w-5 text-emerald-300" />
                     This platform provides emotional support and does not replace medical or psychiatric treatment. For emergencies, contact professional services immediately.
                   </div>
@@ -515,18 +515,18 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
 
 function HeroStat({ icon: Icon, value, label }) {
   return (
-    <div className="rounded-2xl border border-white/8 bg-[#0d1220]/80 p-4">
-      <Icon className="mb-3 h-5 w-5 text-primary" />
-      <div className="text-xl font-bold">{value}</div>
-      <div className="text-xs text-slate-300/65">{label}</div>
+    <div className="flex items-center gap-2 rounded-full border border-white/8 bg-[#0d1220]/80 px-3 py-1.5 text-xs text-slate-300/75">
+      <Icon className="h-3.5 w-3.5 text-primary" />
+      <span className="font-bold text-slate-100">{value}</span>
+      <span>{label}</span>
     </div>
   );
 }
 
 function IconLine({ icon: Icon, text }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 text-base">
-      <Icon className="h-5 w-5 shrink-0 text-slate-400" />
+    <div className="flex min-w-0 items-center gap-2 text-sm">
+      <Icon className="h-4 w-4 shrink-0 text-slate-400" />
       <span className="truncate">{text}</span>
     </div>
   );
@@ -534,12 +534,12 @@ function IconLine({ icon: Icon, text }) {
 
 function InfoTile({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-[22px] bg-[#151b30]/75 p-5">
-      <div className="flex items-center gap-2 text-sm uppercase tracking-[0.16em] text-slate-400">
-        <Icon className="h-4 w-4" />
+    <div className="rounded-[16px] bg-[#151b30]/75 p-4">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-slate-400">
+        <Icon className="h-3.5 w-3.5" />
         {label}
       </div>
-      <div className="mt-3 text-lg font-bold">{value}</div>
+      <div className="mt-2 text-sm font-bold leading-6">{value}</div>
     </div>
   );
 }
@@ -554,7 +554,7 @@ function SummaryLine({ label, value }) {
 }
 
 function EmptyPanel({ text }) {
-  return <div className="rounded-[24px] border border-white/8 bg-[#0d1220] p-6 text-slate-300">{text}</div>;
+  return <div className="rounded-[18px] border border-white/8 bg-[#0d1220] p-5 text-sm text-slate-300">{text}</div>;
 }
 
 export default Counselling;
