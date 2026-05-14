@@ -1,96 +1,110 @@
 # MindSupport
 
-MindSupport is a full-stack mental wellness and counselling platform built with React, Redux Toolkit, Tailwind CSS, Node.js, Express, Socket.io, and MongoDB. It includes separate user, counsellor, and admin experiences with JWT authentication, role-based authorization, counsellor approval, session booking, Google Meet support, wellness tracking, resources, chat, payments, reviews, and emergency support.
+MindSupport is a JavaScript-only, MongoDB-only mental wellness and counselling platform. It includes public counsellor discovery, role-based dashboards, counsellor verification, session scheduling, Google Meet support, WhatsApp-style secure chat, wellness tracking, resource articles/videos, notifications, payments, reviews, emergency support, and admin moderation.
 
-This project is JavaScript-only and MongoDB-only.
+The project does not use TypeScript, Supabase, Gemini, or AI APIs. Lovable branding has also been removed. The browser favicon now matches the MindSupport navbar logo.
 
 ## Tech Stack
 
 | Area | Technology |
 | --- | --- |
-| Frontend | HTML, CSS, JavaScript, React, React Router, Redux Toolkit |
-| Styling | Tailwind CSS, shadcn/ui, Radix UI, Lucide icons, ReactBits-style UI components |
+| Frontend | HTML, CSS, JavaScript, React, React Router |
+| State | Redux Toolkit, React Query |
+| Styling | Tailwind CSS, shadcn/ui, Radix UI, Lucide icons, ReactBits-style UI |
 | Backend | Node.js, Express |
-| Database | MongoDB with Mongoose |
+| Database | MongoDB Atlas or local MongoDB with Mongoose |
 | Auth | JWT bearer tokens, bcrypt password hashing, OTP verification routes |
 | Real-time | Socket.io |
-| Video sessions | Google Meet link flow |
+| Charts | Recharts |
+| Video Sessions | Shared Google Meet link flow |
+| Resources | MongoDB articles plus backend YouTube Data API proxy |
 
-## Main Features
+## Current Features
 
-- Role-aware authentication for users, counsellors, and admins.
-- Manual admin creation only. Admin signup is not available from the UI.
-- User signup and counsellor signup only.
-- Counsellor accounts are created in a pending state and cannot access the counsellor dashboard until an admin approves them.
-- Admin dashboard for users, counsellor approvals, reports, sessions, revenue, resources, notifications, analytics, and review moderation.
-- User dashboard for booking, wellness status, mood tracking, journal, resources, session payments, notifications, chat, anonymous counselling, and emergency support.
-- Counsellor dashboard for booking requests, patient management, session notes, schedule, messaging, reviews, earnings, and Google Meet sessions.
-- Counselling marketplace with full counsellor profiles, profile photos, locations, short/medium/long-term plans, booking modes, and support progress tracking.
-- Wellness dashboard with mood tracking, PHQ-9/GAD-7 style assessments, resources, breathing support, emergency hotlines, and notifications.
-- MongoDB-only persistence through structured Mongoose models.
-- Proper backend folder structure with route modules instead of putting everything in one `server.js`.
+- Public home page with hero, counsellor showcase, platform benefits, booking flow, session modes, stories, FAQ, and CTA.
+- Branded MindSupport favicon and metadata.
+- User and counsellor signup only. Admin accounts are created manually.
+- Counsellor signup creates a pending counsellor account with verification details.
+- Pending counsellors cannot access the counsellor dashboard until admin approval.
+- Admin dashboard for user management, counsellor approvals, session monitoring, revenue, reports, analytics, notifications, reviews, and emergency alerts.
+- User dashboard for sessions, wellness, journal, self-care, chat, payments, privacy settings, username settings, and emergency support.
+- Counsellor dashboard for appointments, availability management, patient details, session notes, chat, reviews, earnings, notifications, privacy/settings, and Google Meet sessions.
+- Counselling marketplace with professional profile cards, search/filter, one-time support package pricing, detailed profile pages, and separate session schedule page.
+- Session booking supports Google Meet, voice call, and in-person modes.
+- Users can chat only with counsellors they have booked.
+- Chat includes reply, edit, delete, reactions, attachments, and notification support.
+- Resource hub supports videos and article cards with thumbnails/fallback covers.
+- Emergency keyword handling and SOS records notify relevant roles.
+- MongoDB seed data creates useful launch data for Render and Atlas deployments.
 
 ## Role Flow
 
 ### User
 
-Users can create a normal account, log in, access the user dashboard, book sessions, track mood, use resources, message counsellors, pay for sessions, and use emergency support.
+Users create a normal account, log in, book counsellors, schedule sessions, chat with booked counsellors, track wellness, write journals, browse resources, manage payments, and use emergency support.
 
 ### Counsellor
 
-Counsellors select the counsellor account type during signup. The signup form collects verification details such as bio, specialization, experience, languages, pricing, profile photo URL, certificates, LinkedIn or portfolio, ID details, education, availability, counselling type, and references.
+Counsellors choose the counsellor account type during signup. The form collects profile and verification information:
+
+- Full name, username, email, phone, and password
+- Counsellor type: verified professional or community mentor
+- Bio, specialization, experience, languages, location, pricing
+- Consultation modes and availability
+- Profile photo URL, certificates, LinkedIn/portfolio
+- ID details, license number, education/training, references
+- Approach and emergency training notes
 
 After signup:
 
-- `role = counsellor`
-- `status = pending`
-- `verificationStatus = pending`
-- admin receives a counsellor application
-- counsellor dashboard access stays locked until approval
+```text
+role = counsellor
+status = pending
+verificationStatus = pending
+```
+
+The admin must approve the application before the counsellor dashboard unlocks.
 
 ### Admin
 
-Admins are created manually from the backend script. Admins review counsellor applications, approve or reject counsellors, manage platform users, monitor sessions, review reports, moderate reviews, manage resources, and view analytics.
+Admins are created manually from backend scripts or seed environment variables. There is no public admin signup. Admins approve/reject counsellors, manage users, monitor sessions, handle revenue, moderate reviews, send announcements, and review emergency activity.
 
 ## Project Structure
 
 ```text
 mindSupport-main/
-  .env.example                 # Example environment variables
-  index.html                   # Vite HTML entry
+  .env.example                 # Root env reference for frontend and backend
+  index.html                   # Vite HTML entry and app metadata
   package.json                 # Scripts and dependencies
-  vite.config.js               # Vite config and /api proxy
-  tailwind.config.js           # Tailwind theme config
-  components.json              # shadcn/ui config
-  public/                      # Static public assets
+  vite.config.js               # Vite config, React plugin, /api proxy
+  tailwind.config.js           # Tailwind design system
+  public/
+    favicon.svg                # MindSupport navbar-matching favicon
+    robots.txt
 
   backend/
-    server.js                  # Small API entrypoint
-    .env.example               # Backend env reference
+    server.js                  # Small Node entrypoint
+    .env.example               # Backend-only env reference
     scripts/
-      create-admin.js          # Manual admin account creation
-      seed-resources.js        # Manual resource seed runner
-      seed-counsellors.js      # Manual approved counsellor seed runner
-      seed-all.js              # Full Atlas/Render seed runner
+      create-admin.js          # Manual admin creation
+      seed-resources.js        # Resource seed runner
+      seed-counsellors.js      # Approved counsellor seed runner
+      seed-all.js              # Full MongoDB launch-data seed
     src/
-      app.js                   # Express app, middleware, helpers
-      config/
-        env.js                 # Environment config
-      database/
-        connect.js             # MongoDB connection
-        seed.js                # Idempotent collection and demo-data seed
-      models/
-        index.js               # Mongoose schemas and models
-      realtime/
-        socket.js              # Socket.io auth and rooms
+      app.js                   # Express app, middleware, helpers, static dist serving
+      config/env.js            # Environment config
+      database/connect.js      # MongoDB connection
+      database/seed.js         # Idempotent collection and seed data
+      models/index.js          # Mongoose schemas and models
+      realtime/socket.js       # Socket.io JWT auth and rooms
       routes/
-        index.js               # Registers all route modules
-        auth.routes.js         # Register, login, OTP, current user
-        applications.routes.js # Counsellor application flow
-        user.routes.js         # User dashboard, journals
-        counsellor.routes.js   # Counsellor dashboard, Meet service
-        admin.routes.js        # Admin dashboard and moderation
-        marketplace.routes.js  # Counsellors, appointments, reviews
+        index.js               # Route registration
+        auth.routes.js
+        applications.routes.js
+        user.routes.js
+        counsellor.routes.js
+        admin.routes.js
+        marketplace.routes.js
         communication.routes.js
         notifications.routes.js
         resources.routes.js
@@ -99,15 +113,13 @@ mindSupport-main/
         analytics.routes.js
 
   src/
-    assets/                    # Frontend images and static imports
+    assets/                    # Frontend image imports
     components/                # Shared React components
-      reactbits/               # ReactBits-style UI components
-      ui/                      # shadcn/Radix UI primitives
-    hooks/                     # Shared React hooks
-    lib/
-      api.js                   # API client and auth storage
-      socket.js                # Socket.io client helper
-      utils.js                 # UI utilities
+    components/reactbits/      # ReactBits-style UI components
+    components/ui/             # shadcn/Radix primitives
+    hooks/                     # Shared hooks
+    lib/api.js                 # API client and auth storage
+    lib/socket.js              # Socket.io client helper
     pages/
       AdminDashboard.jsx
       Counselling.jsx
@@ -118,18 +130,16 @@ mindSupport-main/
       MyWellness.jsx
       PeerSupport.jsx
       ResourceHub.jsx
+      SessionSchedule.jsx
       Signup.jsx
       UserDashboard.jsx
       NotFound.jsx
-    store/
-      authSlice.js
-      hooks.js
-      index.js
-    App.jsx                    # Frontend route map
-    main.jsx                   # React app entrypoint
+    store/                     # Redux Toolkit store and auth slice
+    App.jsx                    # Route map
+    main.jsx                   # React entrypoint
 ```
 
-## Setup
+## Local Setup
 
 ### 1. Install dependencies
 
@@ -137,21 +147,21 @@ mindSupport-main/
 npm install
 ```
 
-### 2. Create environment file
+### 2. Create `.env`
 
-Copy `.env.example` to `.env` in the project root.
+Copy the root env example:
 
 ```bash
 cp .env.example .env
 ```
 
-For Windows PowerShell:
+PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Required values:
+Minimum local values:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5001
@@ -165,23 +175,19 @@ ADMIN_EMAIL=
 ADMIN_PASSWORD=
 ADMIN_NAME=MindSupport Admin
 GOOGLE_MEET_DEFAULT_LINK=
-YOUTUBE_API_KEY=your-youtube-data-api-key
+YOUTUBE_API_KEY=
 ```
 
-### 3. Start MongoDB
-
-Make sure MongoDB is running locally or update `MONGODB_URI` to your MongoDB connection string.
-
-For MongoDB Atlas, use a URI like:
+For MongoDB Atlas:
 
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
 MONGODB_DATABASE=mindsupport
 ```
 
-Atlas creates the `mindsupport` database automatically when the seed writes the first collections.
+Never commit real passwords, Atlas credentials, JWT secrets, or API keys.
 
-### 4. Start frontend and backend
+### 3. Run frontend and backend
 
 ```bash
 npm run dev:full
@@ -193,7 +199,7 @@ Frontend:
 http://localhost:8080
 ```
 
-Backend API:
+Backend:
 
 ```text
 http://localhost:5001
@@ -205,9 +211,26 @@ Health check:
 GET http://localhost:5001/api/health
 ```
 
-## Create Admin Manually
+## Scripts
 
-Admin accounts are not created from signup. Use:
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Start Vite frontend only |
+| `npm run dev:api` | Start Express backend with Node watch mode |
+| `npm run dev:full` | Run frontend and backend together |
+| `npm run build` | Build production frontend into `dist/` |
+| `npm run server` | Start Express backend |
+| `npm run start` | Start Express backend |
+| `npm run preview` | Preview production frontend |
+| `npm run lint` | Run ESLint |
+| `npm run create:admin` | Create or update an admin account |
+| `npm run seed:resources` | Seed resources |
+| `npm run seed:counsellors` | Seed approved counsellors |
+| `npm run seed:all` | Create collections and seed launch data |
+
+## Admin Creation
+
+Admin accounts are manual only.
 
 ```bash
 npm run create:admin -- owner@example.com strong-password "Owner Name"
@@ -219,28 +242,38 @@ Or with environment variables:
 ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner Name" npm run create:admin
 ```
 
-On Windows PowerShell:
+PowerShell:
 
 ```powershell
 $env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $env:ADMIN_NAME="Owner Name"; npm run create:admin
 ```
 
-## Scripts
+## Seed Data
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Start Vite frontend only |
-| `npm run dev:api` | Start Express API with Node watch mode |
-| `npm run dev:full` | Start frontend and backend together |
-| `npm run server` | Start backend server |
-| `npm run start` | Start backend server |
-| `npm run create:admin` | Create or update an admin account |
-| `npm run seed:resources` | Seed video/article resources into the configured MongoDB |
-| `npm run seed:counsellors` | Seed approved counsellors into the configured MongoDB |
-| `npm run seed:all` | Create MongoDB collections and seed full launch data |
-| `npm run build` | Build production frontend |
-| `npm run preview` | Preview production frontend |
-| `npm run lint` | Run ESLint |
+The seed creates a full launch database in MongoDB:
+
+- users
+- counsellor applications
+- approved counsellors
+- appointments
+- resources with thumbnails
+- journals
+- mood entries
+- assessments
+- messages
+- payments
+- notifications
+- reviews
+- peer posts/comments/reports
+- OTP records
+
+Run:
+
+```bash
+npm run seed:all
+```
+
+To seed an admin at the same time, set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` before running `seed:all`.
 
 ## Frontend Routes
 
@@ -248,100 +281,129 @@ $env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $en
 | --- | --- |
 | `/` | Public home |
 | `/login` | Public login |
-| `/signup` | User and counsellor signup |
-| `/dashboard` | Role-based dashboard redirect |
+| `/signup` | Public user/counsellor signup |
+| `/resources` | Public resource hub |
+| `/counselling` | Public counsellor marketplace |
+| `/counselling/:counsellorId` | Public profile view, login needed for protected booking data |
+| `/session-schedule` | User only |
+| `/dashboard` | Protected role redirect |
 | `/user` | User only |
 | `/counsellor` | Approved counsellor only |
 | `/admin` | Admin only |
-| `/counselling` | User only |
-| `/book` | User only, redirects to the counselling booking experience |
 | `/wellness` | User and admin |
 | `/peer` | User and admin |
-| `/resources` | Public resources |
+| `*` | Not found |
 
 ## API Highlights
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `POST` | `/api/auth/register` | Register user or counsellor |
-| `POST` | `/api/auth/login` | Login and receive JWT |
+| `POST` | `/api/auth/login` | Login with email or username |
 | `GET` | `/api/auth/me` | Current authenticated user |
 | `POST` | `/api/auth/otp/request` | Request OTP |
 | `POST` | `/api/auth/otp/verify` | Verify OTP |
 | `GET` | `/api/user/dashboard` | User dashboard data |
 | `GET` | `/api/counsellor/dashboard` | Counsellor dashboard data |
 | `GET` | `/api/admin/dashboard` | Admin dashboard data |
-| `GET` | `/api/counsellor-applications/me` | Current counsellor application |
-| `POST` | `/api/counsellor-applications` | Submit counsellor verification request |
-| `GET` | `/api/admin/counsellor-applications` | List counsellor applications |
-| `PATCH` | `/api/admin/counsellor-applications/:id` | Approve or reject counsellor |
-| `GET` | `/api/counsellors` | Browse counsellors and support plans |
-| `GET` | `/api/counsellors/:id` | View one counsellor profile |
-| `POST` | `/api/appointments` | Book a session with plan, mode, date, and time |
-| `PUT` | `/api/appointments/:id` | Update session status |
-| `POST` | `/api/meet/create` | Create or open Google Meet session |
-| `POST` | `/api/messages` | Send secure message |
-| `POST` | `/api/journals` | Save journal entry |
-| `POST` | `/api/payments/session` | Record payment |
-| `POST` | `/api/reviews` | Add counsellor review |
-| `PATCH` | `/api/admin/reviews/:id` | Moderate review |
-| `GET` | `/api/resources` | List resources |
-| `GET` | `/api/resources/youtube` | Search YouTube wellness videos through backend proxy |
+| `GET` | `/api/counsellors` | Browse counsellors |
+| `GET` | `/api/counsellors/:id` | View counsellor profile |
+| `POST` | `/api/appointments` | Book session package/date/time |
+| `PUT` | `/api/appointments/:id` | Update appointment status |
+| `POST` | `/api/meet/create` | Resolve/open shared Google Meet link |
+| `POST` | `/api/messages` | Send chat message |
+| `PATCH` | `/api/messages/:id` | Edit message |
+| `DELETE` | `/api/messages/:id` | Delete message |
+| `POST` | `/api/messages/:id/reactions` | React to message |
+| `GET` | `/api/resources` | List platform resources |
+| `GET` | `/api/resources/youtube` | Search YouTube videos through backend proxy |
 | `POST` | `/api/wellness/mood` | Save mood entry |
-| `POST` | `/api/wellness/assessment` | Save wellness assessment |
-| `POST` | `/api/wellness/emergency` | Trigger emergency support record |
+| `POST` | `/api/wellness/assessment` | Save assessment |
+| `POST` | `/api/wellness/emergency` | Trigger emergency record |
+
+## Resource Hub
+
+Resources include:
+
+- YouTube wellness videos via backend proxy
+- Motivation articles
+- Stress and burnout guides
+- Sleep hygiene resources
+- Self-confidence articles
+- Relationship, loneliness, recovery, and trauma support articles
+
+Article cards render thumbnails when available and use generated fallback covers when not. Seeded resources include thumbnail data.
+
+Set the backend-only `YOUTUBE_API_KEY` to enable live YouTube Data API results. If missing or failing, the backend returns curated fallback videos.
 
 ## Google Meet
 
-Set `GOOGLE_MEET_DEFAULT_LINK` if you want all online sessions to use a fixed institutional Meet room.
+Use a reusable Google Meet room for automatic user/counsellor connection:
 
-Use a reusable Google Meet room link such as:
-
-```text
-https://meet.google.com/abc-defg-hij
+```env
+GOOGLE_MEET_DEFAULT_LINK=https://meet.google.com/abc-defg-hij
 ```
 
-Do not use `https://meet.google.com/new` as a saved link. That URL creates a different new room for each person, so the counsellor and user may not meet each other. Counsellors can also paste a shared room link in their dashboard settings or on an individual session before opening the Meet.
+Do not save `https://meet.google.com/new` as the shared link. It creates a different room for each person. Counsellors can also save a reusable Meet link in dashboard settings or on a session.
 
-## YouTube Resources
+## Render Deployment
 
-Set `YOUTUBE_API_KEY` to enable live YouTube Data API searches in the Resources page. The key is used only on the Express backend, so it is not exposed in the React bundle. If the key is missing or the YouTube request fails, the backend returns a small curated fallback video list.
+This project can deploy as one Render Web Service because Express serves the built React `dist/` folder.
 
-## Seed Data
+Recommended Render settings:
 
-The backend creates the MongoDB collections and seeds launch data on startup, so a Render deploy connected to MongoDB Atlas will show useful data automatically. The full seed covers separate collections for users, counsellor applications, resources, appointments, reviews, journals, messages, payments, notifications, peer support, mood entries, assessments, and OTP records.
+| Setting | Value |
+| --- | --- |
+| Service type | Web Service |
+| Runtime | Node |
+| Build command | `npm install && npm run build` |
+| Start command | `npm start` |
+| Health check path | `/api/health` |
 
-To seed manually into the MongoDB configured by `MONGODB_URI` and `MONGODB_DATABASE`, run:
+Render environment variables:
+
+```env
+NODE_ENV=production
+PORT=10000
+CLIENT_ORIGIN=https://your-render-service.onrender.com
+VITE_API_BASE_URL=
+MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DATABASE=mindsupport
+JWT_SECRET=use-a-long-random-production-secret
+JWT_EXPIRES_IN=7d
+ADMIN_EMAIL=your-admin-email@example.com
+ADMIN_PASSWORD=your-strong-admin-password
+ADMIN_NAME=MindSupport Admin
+GOOGLE_MEET_DEFAULT_LINK=https://meet.google.com/abc-defg-hij
+YOUTUBE_API_KEY=your-youtube-data-api-key
+```
+
+For a same-service Render deploy, leave `VITE_API_BASE_URL` empty so the React app calls the same origin with `/api/...`.
+
+If frontend and backend are deployed separately, set:
+
+```env
+CLIENT_ORIGIN=https://your-frontend-domain.com
+VITE_API_BASE_URL=https://your-backend-domain.com
+```
+
+After deployment, seed Atlas if needed:
 
 ```bash
 npm run seed:all
 ```
 
-To include a manual admin account in the seed, provide admin credentials through environment variables:
-
-```bash
-ADMIN_EMAIL=owner@example.com ADMIN_PASSWORD=strong-password ADMIN_NAME="Owner Name" npm run seed:all
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:ADMIN_EMAIL="owner@example.com"; $env:ADMIN_PASSWORD="strong-password"; $env:ADMIN_NAME="Owner Name"; npm run seed:all
-```
-
-For Atlas, set `MONGODB_URI` to your Atlas connection string and `MONGODB_DATABASE=mindsupport` locally or in Render. Never commit real passwords or API keys to GitHub.
-
-## Safety Notice
-
-MindSupport is for emotional support, counselling workflows, wellness tracking, and educational mental health resources. It does not replace medical, psychiatric, or emergency care. For immediate danger or crisis situations, users should contact local emergency services or a crisis helpline.
-
 ## Quality Checks
 
-Run these before deployment:
+Run before pushing or deploying:
 
 ```bash
 npm run lint
 npm run build
 ```
 
-The app is expected to run with MongoDB connected and a strong `JWT_SECRET` configured.
+Current lint output may include existing Fast Refresh warnings from shared UI files and one `ResourceHub` hook dependency warning. There are no lint errors in the current build.
+
+## Safety Notice
+
+MindSupport provides emotional support, counselling workflows, wellness tracking, and educational mental health resources. It does not replace medical, psychiatric, or emergency care. For immediate danger, users should contact local emergency services or a crisis helpline.
