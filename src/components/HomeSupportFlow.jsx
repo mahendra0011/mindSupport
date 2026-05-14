@@ -119,22 +119,24 @@ export const HomeCounsellors = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="animated-hero-bg relative overflow-hidden bg-[#050914] pb-10 pt-14">
+    <section className="animated-hero-bg relative overflow-hidden bg-gradient-to-b from-[#050914] via-[#0b1230] to-[#050914] pb-10 pt-14">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <div className="mb-8 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Our counsellors</p>
-            <h2 className="mt-2 text-[2rem] font-bold leading-tight text-white md:text-[2.35rem]">Find someone you click with</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-300">Our counsellors</p>
+            <h2 className="mt-2 bg-gradient-to-r from-white via-violet-100 to-cyan-200 bg-clip-text text-[2rem] font-bold leading-tight text-transparent md:text-[2.35rem]">
+              Find someone you click with
+            </h2>
           </div>
           <p className="max-w-md text-sm leading-7 text-slate-300/75 md:justify-self-end">
             Verified, multilingual professionals across stress, relationships, trauma, and more.
           </p>
         </div>
 
-        <div className="premium-hover-card mb-7 rounded-[24px] border border-white/10 bg-[#0b1020] p-4" data-motion>
+        <div className="premium-hover-card mb-7 rounded-[24px] border border-violet-300/20 bg-gradient-to-br from-violet-500/12 via-[#0b1020] to-cyan-500/12 p-4 shadow-[0_18px_56px_rgba(79,70,229,0.16)]" data-motion>
           <div className="relative">
             <Search className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
-            <div className="h-11 rounded-[22px] border border-white/10 bg-[#050914] pl-11 pt-3 text-xs font-medium text-slate-500">
+            <div className="h-11 rounded-[22px] border border-violet-300/15 bg-[#050914]/90 pl-11 pt-3 text-xs font-medium text-slate-400">
               Search by name or specialty (e.g. anxiety, relationships)...
             </div>
           </div>
@@ -143,7 +145,7 @@ export const HomeCounsellors = () => {
               <span
                 key={item}
                 className={`rounded-full px-4 py-1.5 text-xs font-semibold ${
-                  item === "All" ? "bg-blue-500 text-white" : "bg-[#151b30] text-slate-300"
+                  item === "All" ? "bg-gradient-to-r from-violet-500 to-blue-500 text-white shadow-[0_10px_24px_rgba(99,102,241,0.25)]" : "border border-white/8 bg-[#151b30] text-slate-300"
                 }`}
               >
                 {item}
@@ -155,7 +157,8 @@ export const HomeCounsellors = () => {
 
         <div className="dashboard-stagger grid gap-5 md:grid-cols-3">
           {featuredCounsellors.map((counsellor) => (
-            <article key={counsellor.name} className="premium-hover-card dashboard-card-motion rounded-[24px] border border-white/10 bg-[#0b1020] p-5">
+            <article key={counsellor.name} className="premium-hover-card dashboard-card-motion relative rounded-[24px] border border-violet-300/15 bg-gradient-to-br from-[#111936] via-[#0b1020] to-[#071a28] p-5 shadow-[0_18px_46px_rgba(8,13,32,0.34)]">
+              <div className={`absolute inset-x-5 top-0 h-1 rounded-b-full bg-gradient-to-r ${counsellor.tone} opacity-80`} />
               <div className="flex gap-4">
                 <div className="relative">
                   <div className={`flex h-16 w-16 items-center justify-center rounded-[20px] bg-gradient-to-br ${counsellor.tone} text-xl font-bold text-violet-500`}>
@@ -177,7 +180,7 @@ export const HomeCounsellors = () => {
               <p className="mt-5 line-clamp-2 min-h-[44px] text-sm leading-6 text-slate-300/70">{counsellor.bio}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {counsellor.tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-[#151b30] px-2.5 py-1 text-[11px] font-semibold text-slate-100">
+                  <span key={tag} className="rounded-full border border-violet-300/10 bg-violet-500/15 px-2.5 py-1 text-[11px] font-semibold text-violet-100">
                     {tag}
                   </span>
                 ))}
@@ -196,11 +199,10 @@ export const HomeCounsellors = () => {
                     <span className="text-[11px] text-slate-400"> / package</span>
                   </p>
                 </div>
-                <span className="rounded-full bg-violet-500/25 px-2.5 py-1 text-[10px] font-semibold text-violet-300">Meet / Voice / In-person</span>
+                <span className="rounded-full border border-cyan-300/20 bg-cyan-400/12 px-2.5 py-1 text-[10px] font-semibold text-cyan-200">Meet / Voice / In-person</span>
               </div>
               <Button
-                variant="outline"
-                className="motion-button mt-4 h-10 w-full rounded-2xl border-white/10 bg-transparent text-sm font-bold text-white hover:bg-violet-500/15"
+                className="motion-button mt-4 h-10 w-full rounded-2xl border-0 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-blue-500 text-sm font-bold text-white shadow-[0_14px_34px_rgba(124,58,237,0.28)] hover:from-violet-400 hover:via-fuchsia-400 hover:to-blue-400"
                 onClick={() => navigate("/counselling")}
               >
                 View Profile
