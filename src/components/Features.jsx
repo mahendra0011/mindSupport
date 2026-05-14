@@ -54,7 +54,7 @@ const Features = () => {
         { icon: UserCheck, text: "Professional Support", color: "text-secondary" },
         { icon: Heart, text: "Student-Focused", color: "text-purple-accent" }
     ];
-    return (<section id="features" className="py-24 bg-background relative overflow-hidden">
+    return (<section id="features" className="animated-hero-bg py-24 bg-background relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
       
@@ -80,7 +80,7 @@ const Features = () => {
 
         {/* Main Features Grid */}
         <div className="grid lg:grid-cols-3 gap-8 mb-16">
-          {mainFeatures.map((feature, index) => (<Card key={index} className={`glass-card floating-card bg-gradient-to-br ${feature.gradient} ${feature.glowClass}`}>
+          {mainFeatures.map((feature, index) => (<Card key={index} className={`premium-hover-card glass-card floating-card bg-gradient-to-br ${feature.gradient} ${feature.glowClass}`}>
               <CardHeader className="pb-4">
                 <div className="flex items-center space-x-3 mb-4">
                   <div className={`p-3 rounded-lg bg-gradient-primary ${feature.glowClass}`}>
@@ -99,7 +99,7 @@ const Features = () => {
                       <span className="text-sm text-foreground/80">{item}</span>
                     </div>))}
                 </div>
-                <Button variant="outline" className="w-full border-glass-border/50 hover:bg-glass/30 group">
+                <Button variant="outline" className="motion-button w-full border-glass-border/50 hover:bg-glass/30 group">
                   Learn More
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform"/>
                 </Button>
@@ -109,7 +109,7 @@ const Features = () => {
 
         {/* Additional Features */}
         <div className="grid md:grid-cols-3 gap-6 mb-16">
-          {additionalFeatures.map((feature, index) => (<Card key={index} className="glass-card hover:shadow-glow transition-all duration-300">
+          {additionalFeatures.map((feature, index) => (<Card key={index} className="premium-hover-card glass-card hover:shadow-glow transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
                   <div className="p-2 rounded-lg bg-muted/50">
@@ -126,7 +126,7 @@ const Features = () => {
         </div>
 
         {/* Benefits */}
-        <div className="glass-card p-8 text-center">
+        <div className="premium-hover-card glass-card p-8 text-center" data-motion>
           <h3 className="text-2xl font-bold text-foreground mb-8">Why Choose MindSupport?</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {benefits.map((benefit, index) => (<div key={index} className="flex flex-col items-center space-y-3">

@@ -119,7 +119,7 @@ export const HomeCounsellors = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative overflow-hidden bg-[#050914] pb-10 pt-14">
+    <section className="animated-hero-bg relative overflow-hidden bg-[#050914] pb-10 pt-14">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <div className="mb-8 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end">
           <div>
@@ -131,7 +131,7 @@ export const HomeCounsellors = () => {
           </p>
         </div>
 
-        <div className="mb-7 rounded-[24px] border border-white/10 bg-[#0b1020] p-4">
+        <div className="premium-hover-card mb-7 rounded-[24px] border border-white/10 bg-[#0b1020] p-4" data-motion>
           <div className="relative">
             <Search className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
             <div className="h-11 rounded-[22px] border border-white/10 bg-[#050914] pl-11 pt-3 text-xs font-medium text-slate-500">
@@ -155,7 +155,7 @@ export const HomeCounsellors = () => {
 
         <div className="dashboard-stagger grid gap-5 md:grid-cols-3">
           {featuredCounsellors.map((counsellor) => (
-            <article key={counsellor.name} className="dashboard-card-motion rounded-[24px] border border-white/10 bg-[#0b1020] p-5">
+            <article key={counsellor.name} className="premium-hover-card dashboard-card-motion rounded-[24px] border border-white/10 bg-[#0b1020] p-5">
               <div className="flex gap-4">
                 <div className="relative">
                   <div className={`flex h-16 w-16 items-center justify-center rounded-[20px] bg-gradient-to-br ${counsellor.tone} text-xl font-bold text-violet-500`}>
@@ -200,7 +200,7 @@ export const HomeCounsellors = () => {
               </div>
               <Button
                 variant="outline"
-                className="mt-4 h-10 w-full rounded-2xl border-white/10 bg-transparent text-sm font-bold text-white hover:bg-violet-500/15"
+                className="motion-button mt-4 h-10 w-full rounded-2xl border-white/10 bg-transparent text-sm font-bold text-white hover:bg-violet-500/15"
                 onClick={() => navigate("/counselling")}
               >
                 View Profile
@@ -217,16 +217,16 @@ const HomeSupportFlow = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative overflow-hidden bg-[#050914] pb-14 pt-6">
+    <section className="animated-hero-bg relative overflow-hidden bg-[#050914] pb-14 pt-6">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <div className="rounded-[26px] bg-gradient-to-br from-violet-700 to-blue-600 p-7 md:p-10">
+        <div className="premium-hover-card motion-gradient-aura rounded-[26px] bg-gradient-to-br from-violet-700 to-blue-600 p-7 md:p-10" data-motion>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">How it works</p>
           <h2 className="mt-2 max-w-xl text-2xl font-bold leading-tight text-white md:text-3xl">
             From first message to first session in three simple steps.
           </h2>
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             {steps.map((step, index) => (
-              <div key={step.title} className="rounded-[18px] bg-[#0b1020]/88 p-5">
+              <div key={step.title} className="premium-hover-card rounded-[18px] bg-[#0b1020]/88 p-5">
                 <div className="flex items-center justify-between text-violet-300">
                   <step.icon className="h-5 w-5" />
                   <span className="text-xl font-bold opacity-60">0{index + 1}</span>
@@ -244,7 +244,7 @@ const HomeSupportFlow = () => {
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           {modes.map((mode) => (
-            <article key={mode.title} className="rounded-[20px] border border-white/10 bg-[#0b1020] p-5">
+            <article key={mode.title} className="premium-hover-card rounded-[20px] border border-white/10 bg-[#0b1020] p-5">
               <div className="flex items-center justify-between">
                 <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-white">
                   <mode.icon className="h-5 w-5" />
@@ -263,7 +263,7 @@ const HomeSupportFlow = () => {
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           {stories.map(([quote, name, meta]) => (
-            <article key={name} className="rounded-[20px] border border-white/10 bg-[#0b1020] p-5">
+            <article key={name} className="premium-hover-card rounded-[20px] border border-white/10 bg-[#0b1020] p-5">
               <div className="mb-4 flex gap-1 text-red-400">
                 {[1, 2, 3, 4, 5].map((item) => (
                   <Star key={item} className="h-3.5 w-3.5 fill-red-400" />
@@ -284,7 +284,7 @@ const HomeSupportFlow = () => {
         </div>
         <div className="mx-auto mt-8 max-w-3xl space-y-3">
           {faqs.map((faq) => (
-            <details key={faq} className="rounded-2xl border border-white/10 bg-[#0b1020] px-5 py-4 text-left">
+            <details key={faq} className="premium-hover-card rounded-2xl border border-white/10 bg-[#0b1020] px-5 py-4 text-left">
               <summary className="cursor-pointer text-sm font-bold text-white">{faq}</summary>
               <p className="mt-3 text-sm leading-6 text-slate-300/70">
                 MindSupport keeps booking simple and private. Create an account when you are ready to save sessions, chat, and progress.
@@ -293,7 +293,7 @@ const HomeSupportFlow = () => {
           ))}
         </div>
 
-        <div className="mt-16 rounded-[22px] border border-red-400/25 bg-red-500/8 p-5">
+        <div className="premium-hover-card mt-16 rounded-[22px] border border-red-400/25 bg-red-500/8 p-5" data-motion>
           <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
             <div className="flex gap-4">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20 text-red-300">
@@ -306,7 +306,7 @@ const HomeSupportFlow = () => {
                 </p>
               </div>
             </div>
-            <Button className="rounded-full bg-red-400 px-6 text-xs font-bold text-white hover:bg-red-300" onClick={() => navigate("/wellness")}>
+            <Button className="motion-button rounded-full bg-red-400 px-6 text-xs font-bold text-white hover:bg-red-300" onClick={() => navigate("/wellness")}>
               Get crisis help
               <MessageCircle className="ml-2 h-4 w-4" />
             </Button>

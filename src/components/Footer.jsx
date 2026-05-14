@@ -26,13 +26,13 @@ const Footer = () => {
         { icon: Instagram, href: "#", label: "Instagram" },
         { icon: Linkedin, href: "#", label: "LinkedIn" }
     ];
-    return (<footer className="bg-gradient-to-t from-background via-muted/5 to-background border-t border-glass-border/30">
+    return (<footer className="reveal-on-scroll bg-gradient-to-t from-background via-muted/5 to-background border-t border-glass-border/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid lg:grid-cols-4 gap-12">
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-2 mb-6">
-              <div className="p-2 rounded-lg bg-gradient-primary glow-primary">
+              <div className="motion-icon-pop p-2 rounded-lg bg-gradient-primary glow-primary">
                 <Brain className="h-6 w-6 text-primary-foreground"/>
               </div>
               <span className="text-xl font-bold gradient-text">MindSupport</span>
@@ -83,7 +83,7 @@ const Footer = () => {
 
             {/* Social Links */}
             <div className="flex items-center space-x-4">
-              {socialLinks.map((social) => (<a key={social.label} href={social.href} aria-label={social.label} className="p-2 rounded-lg bg-glass/30 border border-glass-border/30 text-foreground/60 hover:text-foreground hover:bg-glass/50 transition-all duration-200">
+              {socialLinks.map((social) => (<a key={social.label} href={social.href} aria-label={social.label} className="motion-button p-2 rounded-lg bg-glass/30 border border-glass-border/30 text-foreground/60 hover:text-foreground hover:bg-glass/50 transition-all duration-200">
                   <social.icon className="h-4 w-4"/>
                 </a>))}
             </div>

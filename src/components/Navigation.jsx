@@ -155,12 +155,12 @@ const Navigation = () => {
         setNotificationsOpen(false);
         navigate("/login");
     };
-    return (<nav className="glass-nav fixed top-0 w-full z-50">
+    return (<nav className="glass-nav motion-nav fixed top-0 w-full z-50">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-lg bg-gradient-primary glow-primary">
+            <div className="motion-icon-pop p-2 rounded-lg bg-gradient-primary glow-primary">
               <Brain className="h-6 w-6 text-primary-foreground"/>
             </div>
             <span className="text-xl font-bold gradient-text">MindSupport</span>
@@ -169,7 +169,7 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden xl:block">
             <div className="ml-6 flex items-center gap-2">
-              {navItems.map((item) => (<a key={item.name} href={item.route} onClick={(e) => { e.preventDefault(); navigate(item.route); }} className="flex items-center space-x-1 px-2 2xl:px-3 py-2 rounded-lg text-foreground/80 hover:text-foreground hover:bg-glass/50 transition-all duration-200 whitespace-nowrap">
+              {navItems.map((item) => (<a key={item.name} href={item.route} onClick={(e) => { e.preventDefault(); navigate(item.route); }} className="motion-link flex items-center space-x-1 px-2 2xl:px-3 py-2 rounded-lg text-foreground/80 hover:text-foreground hover:bg-glass/50 transition-all duration-200 whitespace-nowrap">
                   <item.icon className="h-4 w-4"/>
                   <span className="text-sm font-medium whitespace-nowrap">{item.name}</span>
                 </a>))}
@@ -204,16 +204,16 @@ const Navigation = () => {
                   />
                 )}
               </div>
-              <Button variant="outline" onClick={signOut} className="ml-2 whitespace-nowrap">
+              <Button variant="outline" onClick={signOut} className="motion-button ml-2 whitespace-nowrap">
                 <LogOut className="h-4 w-4 mr-2"/>
                 <span className="text-sm font-semibold tracking-wide">Logout</span>
               </Button>
             </>) : (<>
-              <Button variant="outline" onClick={() => navigate("/login")} className="ml-2 whitespace-nowrap">
+              <Button variant="outline" onClick={() => navigate("/login")} className="motion-button ml-2 whitespace-nowrap">
                 <LogIn className="h-4 w-4 mr-2"/>
                 <span className="text-sm font-semibold tracking-wide">Login</span>
               </Button>
-              <Button onClick={() => navigate("/signup")} className="ml-2 whitespace-nowrap">
+              <Button onClick={() => navigate("/signup")} className="motion-button ml-2 whitespace-nowrap">
                 <UserPlus className="h-4 w-4 mr-2"/>
                 <span className="text-sm font-semibold tracking-wide">Create Account</span>
               </Button>

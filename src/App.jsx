@@ -17,44 +17,47 @@ import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import CounsellorDashboard from "./pages/CounsellorDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MotionProvider from "./components/MotionProvider";
 const queryClient = new QueryClient();
 const App = () => (<QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />}/>
-          <Route path="/book" element={<Counselling />}/>
-          <Route path="/counselling" element={<Counselling />}/>
-          <Route path="/counselling/:counsellorId" element={<Counselling />}/>
-          <Route path="/session-schedule" element={<ProtectedRoute roles={["user"]}>
-                <SessionSchedule />
-              </ProtectedRoute>}/>
-          <Route path="/resources" element={<ResourceHub />}/>
-          <Route path="/peer" element={<ProtectedRoute roles={["user", "admin"]}>
-                <PeerSupport />
-              </ProtectedRoute>}/>
-          <Route path="/admin" element={<ProtectedRoute roles={["admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>}/>
-          <Route path="/wellness" element={<ProtectedRoute roles={["user", "admin"]}>
-                <MyWellness />
-              </ProtectedRoute>}/>
-          <Route path="/dashboard" element={<ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>}/>
-          <Route path="/user" element={<ProtectedRoute roles={["user"]}>
-                <UserDashboard />
-              </ProtectedRoute>}/>
-          <Route path="/counsellor" element={<ProtectedRoute roles={["counsellor"]}>
-                <CounsellorDashboard />
-              </ProtectedRoute>}/>
-          <Route path="/signup" element={<Signup />}/>
-          <Route path="/login" element={<Login />}/>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />}/>
-        </Routes>
+        <MotionProvider>
+          <Routes>
+            <Route path="/" element={<Index />}/>
+            <Route path="/book" element={<Counselling />}/>
+            <Route path="/counselling" element={<Counselling />}/>
+            <Route path="/counselling/:counsellorId" element={<Counselling />}/>
+            <Route path="/session-schedule" element={<ProtectedRoute roles={["user"]}>
+                  <SessionSchedule />
+                </ProtectedRoute>}/>
+            <Route path="/resources" element={<ResourceHub />}/>
+            <Route path="/peer" element={<ProtectedRoute roles={["user", "admin"]}>
+                  <PeerSupport />
+                </ProtectedRoute>}/>
+            <Route path="/admin" element={<ProtectedRoute roles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>}/>
+            <Route path="/wellness" element={<ProtectedRoute roles={["user", "admin"]}>
+                  <MyWellness />
+                </ProtectedRoute>}/>
+            <Route path="/dashboard" element={<ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>}/>
+            <Route path="/user" element={<ProtectedRoute roles={["user"]}>
+                  <UserDashboard />
+                </ProtectedRoute>}/>
+            <Route path="/counsellor" element={<ProtectedRoute roles={["counsellor"]}>
+                  <CounsellorDashboard />
+                </ProtectedRoute>}/>
+            <Route path="/signup" element={<Signup />}/>
+            <Route path="/login" element={<Login />}/>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />}/>
+          </Routes>
+        </MotionProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>);

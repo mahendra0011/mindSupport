@@ -4,19 +4,19 @@ import heroImage from "@/assets/hero-mental-health.jpg";
 import { useNavigate } from "react-router-dom";
 const Hero = () => {
     const navigate = useNavigate();
-    return (<section className="min-h-screen flex items-center justify-center bg-gradient-hero pt-16">
+    return (<section className="animated-hero-bg min-h-screen flex items-center justify-center bg-gradient-hero pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Text Content */}
-          <div className="space-y-8">
+          <div className="space-y-8" data-motion>
             <div className="space-y-4">
-              <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-glass/50 border border-glass-border/30 backdrop-blur-sm">
+              <div className="premium-hover-card inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-glass/50 border border-glass-border/30 backdrop-blur-sm">
                 <Shield className="h-4 w-4 text-accent"/>
                 <span className="text-sm text-foreground/80">Confidential & Secure</span>
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-                <span className="gradient-text">Digital Mental Health</span>
+                <span className="motion-gradient-aura gradient-text">Digital Mental Health</span>
                 <br />
                 <span className="text-foreground">Support System</span>
               </h1>
@@ -45,11 +45,11 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-lg px-8 py-4 glow-primary pulse-glow group" onClick={() => navigate("/counselling")}>
+              <Button size="lg" className="motion-button bg-gradient-primary hover:opacity-90 text-lg px-8 py-4 glow-primary pulse-glow group" onClick={() => navigate("/counselling")}>
                 Find Counsellor
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform"/>
               </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-glass-border/50 hover:bg-glass/30 backdrop-blur-sm" onClick={() => navigate("/counselling")}>
+              <Button variant="outline" size="lg" className="motion-button text-lg px-8 py-4 border-glass-border/50 hover:bg-glass/30 backdrop-blur-sm" onClick={() => navigate("/counselling")}>
                 View Support Plans
               </Button>
             </div>
@@ -72,21 +72,21 @@ const Hero = () => {
           </div>
 
           {/* Hero Image */}
-          <div className="relative">
-            <div className="glass-card p-8 animate-float">
+          <div className="relative" data-motion>
+            <div className="premium-hover-card glass-card p-8 animate-float">
               <img src={heroImage} alt="Digital Mental Health Platform Visualization" className="w-full h-auto rounded-lg shadow-2xl"/>
               <div className="absolute inset-0 bg-gradient-primary/10 rounded-lg"></div>
             </div>
             
             {/* Floating Elements */}
-            <div className="absolute -top-4 -right-4 glass-card p-4 animate-float-delayed">
+            <div className="premium-hover-card absolute -top-4 -right-4 glass-card p-4 animate-float-delayed">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
                 <span className="text-sm text-foreground/80">Online Support</span>
               </div>
             </div>
             
-            <div className="absolute -bottom-4 -left-4 glass-card p-4 animate-float">
+            <div className="premium-hover-card absolute -bottom-4 -left-4 glass-card p-4 animate-float">
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-primary"/>
                 <span className="text-sm text-foreground/80">100% Confidential</span>
