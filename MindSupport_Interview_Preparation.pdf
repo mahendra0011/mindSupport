@@ -1,0 +1,1247 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Length 5029 >>
+stream
+BT
+0.16 0.20 0.45 rg
+/F2 20 Tf
+1 0 0 1 48.00 793.89 Tm
+(MindSupport Interview Preparation) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 768.39 Tm
+(Full-stack mental wellness and counselling platform) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 752.89 Tm
+(JavaScript-only | MongoDB-only | React | Node.js | Express | Socket.io) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 737.39 Tm
+(Prepared for project explanation, viva, portfolio review, and technical interview rounds.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 714.89 Tm
+(One-line pitch: MindSupport helps users find verified counsellors, book support packages, schedule) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 699.39 Tm
+(sessions, chat securely, track wellness, access resources, and receive emergency support while) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 683.89 Tm
+(admins manage approvals, safety, revenue, and platform operations.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 660.39 Tm
+(1. Project Overview) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 639.89 Tm
+(MindSupport is a full-stack counselling and wellness platform focused on mental health support) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 624.39 Tm
+(workflows.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 608.89 Tm
+(It has three major role-based experiences: User, Counsellor, and Admin.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 593.39 Tm
+(The platform supports counsellor discovery, counsellor approval, session booking, Google Meet) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 577.89 Tm
+(sessions, chat, wellness tracking, journaling, resources, payments, reviews, notifications, and) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 562.39 Tm
+(emergency support.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 539.89 Tm
+(Important interview point: This is not just a UI project. It includes backend APIs, MongoDB models,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 524.39 Tm
+(JWT authentication, role-based authorization, seed data, Socket.io real-time messaging, and) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 508.89 Tm
+(production deployment planning.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 485.39 Tm
+(2. Problem Statement) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 464.89 Tm
+(Students and general users often need private emotional support but do not know where to find a) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 449.39 Tm
+(verified counsellor, how to book sessions, or how to track their progress.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 433.89 Tm
+(MindSupport solves this by creating a structured platform where users can browse counsellors,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 418.39 Tm
+(choose a support plan, schedule sessions, chat with their booked counsellor, track mood/wellness,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 402.89 Tm
+(and access emergency resources.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 380.39 Tm
+(Core goals:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 364.89 Tm
+(- Make mental health support more accessible and organized.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 349.39 Tm
+(- Separate verified professionals and community mentors clearly.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 333.89 Tm
+(- Keep admin approval mandatory for counsellors.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 318.39 Tm
+(- Keep user-counsellor communication private and role controlled.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 302.89 Tm
+(- Provide emergency support and safety disclaimers.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 279.39 Tm
+(3. Tech Stack) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 258.89 Tm
+(Frontend: React, React Router, Redux Toolkit, React Query, Tailwind CSS, shadcn/ui, Radix UI,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 243.39 Tm
+(Lucide icons.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 227.89 Tm
+(Backend: Node.js and Express.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 212.39 Tm
+(Database: MongoDB with Mongoose models.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 196.89 Tm
+(Authentication: JWT bearer tokens and bcrypt password hashing.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 181.39 Tm
+(Real-time: Socket.io for notifications and chat updates.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 165.89 Tm
+(Charts: Recharts for dashboard analytics.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 150.39 Tm
+(Video sessions: Shared Google Meet link flow.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 134.89 Tm
+(Resources: MongoDB article data plus YouTube Data API through backend proxy.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 119.39 Tm
+(Deployment: Render Web Service with Express serving the React dist folder.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 96.89 Tm
+(Important: The project does not use TypeScript, Supabase, Gemini, or AI APIs.) Tj
+0.45 0.45 0.50 rg
+/F1 8 Tf
+1 0 0 1 48.00 28 Tm
+(MindSupport Interview Preparation) Tj
+1 0 0 1 511.28 28 Tm
+(Page 1 of 7) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Length 4847 >>
+stream
+BT
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 785.89 Tm
+(4. Architecture) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 765.39 Tm
+(The app follows a client-server architecture.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 742.89 Tm
+(Frontend:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 727.39 Tm
+(- React pages are route-level screens such as Index, Counselling, SessionSchedule, ResourceHub,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 711.89 Tm
+(UserDashboard, CounsellorDashboard, AdminDashboard, Login, and Signup.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 696.39 Tm
+(- Navigation changes depending on login state and user role.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 680.89 Tm
+(- Redux stores authentication state and React Query supports API-driven UI.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 658.39 Tm
+(Backend:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 642.89 Tm
+(- backend/server.js is a small entrypoint.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 627.39 Tm
+(- backend/src/app.js creates the Express app, HTTP server, Socket.io server, middleware, shared) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 611.89 Tm
+(helpers, and static dist serving.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 596.39 Tm
+(- backend/src/routes contains separate route modules for auth, user, counsellor, admin,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 580.89 Tm
+(marketplace, resources, communication, notifications, wellness, peer support, and analytics.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 565.39 Tm
+(- backend/src/models/index.js contains Mongoose schemas and models.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 542.89 Tm
+(Database:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 527.39 Tm
+(- MongoDB stores users, counsellor applications, appointments, messages, resources, journals,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 511.89 Tm
+(mood entries, assessments, reviews, payments, notifications, and peer support records.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 488.39 Tm
+(5. Main User Roles) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 467.89 Tm
+(User:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 452.39 Tm
+(- Can browse counsellors, choose a plan, schedule sessions, chat with booked counsellors, track) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 436.89 Tm
+(wellness, write journals, view resources, manage privacy settings, payments, and emergency) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 421.39 Tm
+(support.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 398.89 Tm
+(Counsellor:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 383.39 Tm
+(- Signs up with verification details and starts in pending state.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 367.89 Tm
+(- Cannot access the dashboard until admin approval.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 352.39 Tm
+(- After approval, can manage appointments, availability, patient details, notes, chat, reviews,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 336.89 Tm
+(earnings, settings, and Meet links.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 314.39 Tm
+(Admin:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 298.89 Tm
+(- Created manually from backend script or seed variables.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 283.39 Tm
+(- Can approve/reject counsellors, manage users, monitor sessions, view revenue, moderate) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 267.89 Tm
+(reviews, export reports, send announcements, and review emergency alerts.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 244.39 Tm
+(6. Counsellor Approval Flow) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 223.89 Tm
+(1. A person selects Counsellor during signup.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 208.39 Tm
+(2. They fill verification details: bio, specialization, experience, languages, pricing, location,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 192.89 Tm
+(availability, profile photo URL, certificates, ID details, license, education, references, and) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 177.39 Tm
+(approach.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 161.89 Tm
+(3. Backend creates the account as role = counsellor, status = pending, verificationStatus =) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 146.39 Tm
+(pending.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 130.89 Tm
+(4. Admin reviews the application from the admin dashboard.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 115.39 Tm
+(5. If approved, status becomes approved/active and the counsellor dashboard unlocks.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 99.89 Tm
+(6. If rejected, the account does not receive counsellor dashboard access.) Tj
+0.45 0.45 0.50 rg
+/F1 8 Tf
+1 0 0 1 48.00 28 Tm
+(MindSupport Interview Preparation) Tj
+1 0 0 1 511.28 28 Tm
+(Page 2 of 7) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Length 4820 >>
+stream
+BT
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 793.89 Tm
+(Interview highlight: This avoids unsafe self-approval and protects users by requiring manual) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 778.39 Tm
+(verification before counselling access is enabled.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 754.89 Tm
+(7. Counselling and Booking Feature) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 734.39 Tm
+(The counselling section works like a professional marketplace.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 718.89 Tm
+(- Users can search and filter counsellors by category or specialization.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 703.39 Tm
+(- Cards show photo/avatar, specialization, rating, experience, language, location, availability,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 687.89 Tm
+(and starting package price.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 672.39 Tm
+(- View Profile opens a detailed professional page.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 656.89 Tm
+(- Plans are one-time support packages, not per-session charges.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 634.39 Tm
+(Support packages:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 618.89 Tm
+(- Short-Term Support: 4-8 sessions, useful for stress, anxiety, exam pressure, and loneliness.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 603.39 Tm
+(- Medium-Term Support: 8-15 sessions, useful for mild depression, relationships, and emotional) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 587.89 Tm
+(healing.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 572.39 Tm
+(- Long-Term Therapy: 3-6+ months, useful for trauma, severe anxiety, and chronic depression.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 549.89 Tm
+(After choosing a plan, the user goes to the separate Session Schedule page and selects mode, date,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 534.39 Tm
+(and time.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 510.89 Tm
+(8. Session Schedule and Google Meet) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 490.39 Tm
+(Session scheduling is separated from counsellor profile selection.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 474.89 Tm
+(A user chooses:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 459.39 Tm
+(- Counselling mode: Google Meet, voice call, or in-person.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 443.89 Tm
+(- Preferred date.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 428.39 Tm
+(- Available time slot.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 412.89 Tm
+(- Confirmation email/details.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 390.39 Tm
+(Google Meet flow:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 374.89 Tm
+(- The project supports a shared Google Meet link through GOOGLE_MEET_DEFAULT_LINK or) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 359.39 Tm
+(counsellor/session-specific saved links.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 343.89 Tm
+(- The same reusable Meet room allows user and counsellor to join the same meeting.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 328.39 Tm
+(- The project avoids saving https://meet.google.com/new because it can create different rooms) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 312.89 Tm
+(for each person.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 290.39 Tm
+(Interview highlight: The system focuses on sharing a consistent meeting link rather than generating) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 274.89 Tm
+(separate Meet rooms for each participant.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 251.39 Tm
+(9. Chat and Notifications) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 230.89 Tm
+(The chat section is designed in a WhatsApp-like style.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 215.39 Tm
+(- Users can chat only with counsellors they have booked.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 199.89 Tm
+(- Counsellors can chat with assigned/booked users.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 184.39 Tm
+(- Chat supports message sending, replies, edit, delete, reactions, and attachments.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 168.89 Tm
+(- Notifications are sent for messages, bookings, reminders, emergency events, and platform) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 153.39 Tm
+(announcements.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 130.89 Tm
+(Socket.io is used for real-time readiness, rooms, notifications, and chat-related updates.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 115.39 Tm
+(Authorization checks ensure users cannot message random counsellors without an appointment) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 99.89 Tm
+(relationship.) Tj
+0.45 0.45 0.50 rg
+/F1 8 Tf
+1 0 0 1 48.00 28 Tm
+(MindSupport Interview Preparation) Tj
+1 0 0 1 511.28 28 Tm
+(Page 3 of 7) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Length 4223 >>
+stream
+BT
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 785.89 Tm
+(10. Wellness and Emergency Support) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 765.39 Tm
+(User wellness features include:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 749.89 Tm
+(- Mood tracker.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 734.39 Tm
+(- Journal.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 718.89 Tm
+(- Self-care resources.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 703.39 Tm
+(- Wellness progress and charts.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 687.89 Tm
+(- Notifications and privacy settings.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 665.39 Tm
+(Emergency support:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 649.89 Tm
+(- SOS support and emergency records are available.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 634.39 Tm
+(- Emergency keywords like suicide, self-harm, panic attack, abuse, and related terms are) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 618.89 Tm
+(detected on backend workflows.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 603.39 Tm
+(- Emergency records can notify relevant roles such as counsellor/admin.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 580.89 Tm
+(Safety disclaimer: MindSupport provides emotional support and educational mental health resources.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 565.39 Tm
+(It does not replace medical, psychiatric, or emergency care.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 541.89 Tm
+(11. Resource Hub) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 521.39 Tm
+(The Resource Hub includes videos and practical articles.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 505.89 Tm
+(- YouTube videos are fetched through a backend proxy using YOUTUBE_API_KEY.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 490.39 Tm
+(- Article resources are stored in MongoDB.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 474.89 Tm
+(- Article cards show thumbnails when available and generated fallback covers when thumbnails are) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 459.39 Tm
+(missing.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 443.89 Tm
+(- Resources cover motivation, stress, sleep, self-confidence, relationships, loneliness,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 428.39 Tm
+(recovery, trauma, meditation, burnout, and student pressure.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 405.89 Tm
+(Interview highlight: The YouTube API key stays backend-only, so it is not exposed in the React) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 390.39 Tm
+(bundle.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 366.89 Tm
+(12. Security and Privacy) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 346.39 Tm
+(Security decisions:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 330.89 Tm
+(- Passwords are hashed with bcrypt.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 315.39 Tm
+(- Authentication uses JWT bearer tokens.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 299.89 Tm
+(- Protected routes restrict dashboard access by role.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 284.39 Tm
+(- Pending counsellors are blocked from counsellor dashboard tools.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 268.89 Tm
+(- Admin accounts are manual only.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 253.39 Tm
+(- Users can use usernames for safer login and privacy.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 237.89 Tm
+(- Users can chat only with booked counsellors.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 222.39 Tm
+(- Sensitive environment values are kept in .env and Render environment variables.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 199.89 Tm
+(Privacy features:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 184.39 Tm
+(- Anonymous counselling option.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 168.89 Tm
+(- Private journals.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 153.39 Tm
+(- User settings for privacy preferences.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 137.89 Tm
+(- Role-aware access to appointments, messages, and patient data.) Tj
+0.45 0.45 0.50 rg
+/F1 8 Tf
+1 0 0 1 48.00 28 Tm
+(MindSupport Interview Preparation) Tj
+1 0 0 1 511.28 28 Tm
+(Page 4 of 7) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 4789 >>
+stream
+BT
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 785.89 Tm
+(13. MongoDB Collections) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 765.39 Tm
+(Important collections/models include:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 749.89 Tm
+(- User: users, counsellors, and admins with role/status fields.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 734.39 Tm
+(- CounsellorApplication: approval and verification data.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 718.89 Tm
+(- Appointment: booked sessions, mode, date, time, status, Meet link, plan details.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 703.39 Tm
+(- Message: chat content, replies, edits, delete state, reactions, attachments.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 687.89 Tm
+(- Notification: role/user notifications.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 672.39 Tm
+(- Resource: videos and article resources with thumbnails.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 656.89 Tm
+(- MoodEntry and Assessment: wellness tracking data.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 641.39 Tm
+(- Journal: private user entries.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 625.89 Tm
+(- Payment: session/package payment records.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 610.39 Tm
+(- Review: counsellor rating and feedback.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 594.89 Tm
+(- PeerPost, PeerComment, PeerReport: community features.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 579.39 Tm
+(- OtpVerification: OTP verification records.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 555.89 Tm
+(14. Deployment Summary) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 535.39 Tm
+(Render deployment can run as one Web Service:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 519.89 Tm
+(- Build command: npm install && npm run build) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 504.39 Tm
+(- Start command: npm start) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 488.89 Tm
+(- Express serves the built React dist folder.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 473.39 Tm
+(- Health check path: /api/health) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 450.89 Tm
+(Important environment variables:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 435.39 Tm
+(- NODE_ENV=production) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 419.89 Tm
+(- PORT=10000) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 404.39 Tm
+(- CLIENT_ORIGIN=https://your-render-service.onrender.com) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 388.89 Tm
+(- VITE_API_BASE_URL empty for same-service deploy) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 373.39 Tm
+(- MONGODB_URI and MONGODB_DATABASE for Atlas) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 357.89 Tm
+(- JWT_SECRET and JWT_EXPIRES_IN) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 342.39 Tm
+(- ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 326.89 Tm
+(- GOOGLE_MEET_DEFAULT_LINK) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 311.39 Tm
+(- YOUTUBE_API_KEY) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 288.89 Tm
+(Seed command: npm run seed:all) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 265.39 Tm
+(15. How to Explain This Project in an Interview) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 244.89 Tm
+(Suggested 60-second answer:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 229.39 Tm
+(MindSupport is a full-stack mental wellness and counselling platform built with React, Tailwind,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 213.89 Tm
+(Redux Toolkit, Node.js, Express, Socket.io, and MongoDB. It supports three roles: user, counsellor,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 198.39 Tm
+(and admin. Users can browse verified counsellors, select short/medium/long-term support packages,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 182.89 Tm
+(schedule sessions, join Google Meet sessions, chat securely with booked counsellors, track mood,) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 167.39 Tm
+(write journals, access resources, and use emergency support. Counsellors apply through a detailed) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 151.89 Tm
+(verification form and remain pending until an admin approves them. Admins manage users, counsellor) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 136.39 Tm
+(approvals, sessions, revenue, reviews, reports, resources, and emergency alerts. The backend uses) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 120.89 Tm
+(JWT auth, bcrypt password hashing, Mongoose models, role-based authorization, and MongoDB seed data) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 105.39 Tm
+(for deployment.) Tj
+0.45 0.45 0.50 rg
+/F1 8 Tf
+1 0 0 1 48.00 28 Tm
+(MindSupport Interview Preparation) Tj
+1 0 0 1 511.28 28 Tm
+(Page 5 of 7) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 5106 >>
+stream
+BT
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 793.89 Tm
+(Key points to emphasize:) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 778.39 Tm
+(- Role-based dashboards.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 762.89 Tm
+(- Counsellor verification and admin approval.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 747.39 Tm
+(- Booking and session scheduling workflow.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 731.89 Tm
+(- Real-time chat/notifications.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 716.39 Tm
+(- MongoDB-only backend.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 700.89 Tm
+(- Production deployment on Render.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 677.39 Tm
+(16. Interview Questions and Answer Points) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 656.89 Tm
+(Q1. What is MindSupport?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 641.39 Tm
+(A: It is a full-stack mental wellness and counselling platform where users can find counsellors,) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 625.89 Tm
+(book support packages, schedule sessions, chat securely, track wellness, access resources, and get) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 610.39 Tm
+(emergency support. Admins manage verification and platform operations.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 587.89 Tm
+(Q2. Why did you choose MERN-style architecture?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 572.39 Tm
+(A: React gives a component-based UI, Node/Express gives a flexible REST API, MongoDB fits) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 556.89 Tm
+(document-based user/session/message data, and Socket.io supports real-time communication.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 534.39 Tm
+(Q3. How does authentication work?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 518.89 Tm
+(A: Users log in with email or username. Passwords are hashed with bcrypt. The backend returns a JWT) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 503.39 Tm
+(token. Protected routes and backend middleware verify token and role before allowing access.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 480.89 Tm
+(Q4. How is authorization handled?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 465.39 Tm
+(A: The frontend uses ProtectedRoute and role checks. The backend uses authRequired and requireRoles) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 449.89 Tm
+(middleware. Counsellor status is also checked so pending counsellors cannot access approved) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 434.39 Tm
+(counsellor tools.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 411.89 Tm
+(Q5. Why are admins created manually?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 396.39 Tm
+(A: To avoid public admin signup and protect platform control. Admin accounts are created through) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 380.89 Tm
+(backend scripts or seed environment variables.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 358.39 Tm
+(Q6. Explain counsellor approval flow.) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 342.89 Tm
+(A: Counsellors register with profile and verification details. They start as pending. Admin reviews) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 327.39 Tm
+(documents and either approves or rejects. Only approved counsellors can access the counsellor) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 311.89 Tm
+(dashboard.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 289.39 Tm
+(Q7. How does booking work?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 273.89 Tm
+(A: The user browses counsellors, opens a profile, chooses a support package, then goes to the) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 258.39 Tm
+(session schedule page to select mode, date, and time. The appointment is stored in MongoDB.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 235.89 Tm
+(Q8. How do you ensure a user chats only with booked counsellors?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 220.39 Tm
+(A: Backend message authorization checks appointment relationships. A user can message only if there) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 204.89 Tm
+(is an active appointment with that counsellor.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 182.39 Tm
+(Q9. How is Google Meet integrated?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 166.89 Tm
+(A: The app stores or resolves a shared Google Meet link. Both user and counsellor open the same) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 151.39 Tm
+(reusable Meet room. The app avoids meet.google.com/new because that can create separate rooms.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 128.89 Tm
+(Q10. What are the main MongoDB models?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 113.39 Tm
+(A: User, CounsellorApplication, Appointment, Message, Notification, Resource, Journal, MoodEntry,) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 97.89 Tm
+(Assessment, Payment, Review, PeerPost, PeerComment, PeerReport, and OtpVerification.) Tj
+0.45 0.45 0.50 rg
+/F1 8 Tf
+1 0 0 1 48.00 28 Tm
+(MindSupport Interview Preparation) Tj
+1 0 0 1 511.28 28 Tm
+(Page 6 of 7) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 3490 >>
+stream
+BT
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 793.89 Tm
+(Q11. How does Resource Hub work?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 778.39 Tm
+(A: Articles are stored in MongoDB and videos are fetched through the backend YouTube API proxy.) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 762.89 Tm
+(Article thumbnails are stored or generated as fallback covers.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 740.39 Tm
+(Q12. How does emergency support work?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 724.89 Tm
+(A: The platform has SOS/emergency records and backend keyword detection for crisis terms. Emergency) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 709.39 Tm
+(events can notify counsellor/admin and display urgent help options.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 686.89 Tm
+(Q13. What was the most challenging part?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 671.39 Tm
+(A: Handling role-based workflows safely: user, pending counsellor, approved counsellor, and admin) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 655.89 Tm
+(all need different access. Another challenge was restricting chat to booked counsellors only.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 633.39 Tm
+(Q14. How would you improve this project?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 617.89 Tm
+(A: Add production payment gateway integration, stronger audit logs, calendar sync, real Google Meet) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 602.39 Tm
+(API integration with OAuth, email/SMS OTP providers, file uploads with Cloudinary, unit/integration) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 586.89 Tm
+(tests, and monitoring.) Tj
+0.18 0.16 0.45 rg
+/F2 11.5 Tf
+1 0 0 1 48.00 564.39 Tm
+(Q15. How did you prepare it for deployment?) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 548.89 Tm
+(A: The React app builds into dist and Express serves it in production. Render runs npm install &&) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 533.39 Tm
+(npm run build, then npm start. MongoDB Atlas provides persistence and environment variables hold) Tj
+0.05 0.05 0.07 rg
+/F1 10.5 Tf
+1 0 0 1 48.00 517.89 Tm
+(secrets.) Tj
+0.20 0.17 0.44 rg
+/F2 15 Tf
+1 0 0 1 48.00 494.39 Tm
+(17. Rapid Revision Checklist) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 473.89 Tm
+(- Know the one-line pitch.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 458.39 Tm
+(- Explain the three roles clearly.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 442.89 Tm
+(- Explain why counsellor approval is necessary.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 427.39 Tm
+(- Explain JWT + bcrypt authentication.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 411.89 Tm
+(- Explain MongoDB collections and relationships.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 396.39 Tm
+(- Explain booking and session scheduling.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 380.89 Tm
+(- Explain chat restriction to booked counsellors.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 365.39 Tm
+(- Explain Google Meet shared link logic.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 349.89 Tm
+(- Explain Resource Hub thumbnail/video flow.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 334.39 Tm
+(- Explain Render deployment settings.) Tj
+0.08 0.09 0.12 rg
+/F1 10.5 Tf
+1 0 0 1 60.00 318.89 Tm
+(- Be honest: no Supabase, no Gemini, no AI API, JavaScript-only.) Tj
+0.45 0.45 0.50 rg
+/F1 8 Tf
+1 0 0 1 48.00 28 Tm
+(MindSupport Interview Preparation) Tj
+1 0 0 1 511.28 28 Tm
+(Page 7 of 7) Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 3 0 R >>
+endobj
+11 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 4 0 R >>
+endobj
+12 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 5 0 R >>
+endobj
+13 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 6 0 R >>
+endobj
+14 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 7 0 R >>
+endobj
+15 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 8 0 R >>
+endobj
+16 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 9 0 R >>
+endobj
+17 0 obj
+<< /Type /Pages /Kids [10 0 R 11 0 R 12 0 R 13 0 R 14 0 R 15 0 R 16 0 R] /Count 7 >>
+endobj
+18 0 obj
+<< /Type /Catalog /Pages 17 0 R >>
+endobj
+xref
+0 19
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000000154 00000 n 
+0000005234 00000 n 
+0000010132 00000 n 
+0000015003 00000 n 
+0000019277 00000 n 
+0000024117 00000 n 
+0000029274 00000 n 
+0000032815 00000 n 
+0000032959 00000 n 
+0000033103 00000 n 
+0000033247 00000 n 
+0000033391 00000 n 
+0000033535 00000 n 
+0000033679 00000 n 
+0000033823 00000 n 
+0000033924 00000 n 
+trailer
+<< /Size 19 /Root 18 0 R >>
+startxref
+33975
+%%EOF

@@ -1,4 +1,4 @@
-export const API_BASE = import.meta?.env?.VITE_API_BASE_URL?.trim?.() || "";
+export const API_BASE = (import.meta?.env?.VITE_API_BASE_URL?.trim?.() || "").replace(/\/+$/, "");
 export const AUTH_TOKEN_KEY = "mindsupport_token";
 export const AUTH_USER_KEY = "mindsupport_user";
 export function getStoredToken() {
@@ -21,6 +21,18 @@ export function clearSession() {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
 }
+async function readApiResponse(response) {
+    const text = await response.text();
+    if (!text.trim())
+        return undefined;
+    try {
+        return JSON.parse(text);
+    }
+    catch {
+        const contentType = response.headers.get("content-type") || "unknown content type";
+        throw new Error(`Expected JSON from API but received ${contentType}. Check VITE_API_BASE_URL and backend deployment.`);
+    }
+}
 export async function apiFetch(path, init = {}) {
     const token = getStoredToken();
     const headers = new Headers(init.headers || {});
@@ -36,15 +48,15 @@ export async function apiFetch(path, init = {}) {
         const fallback = `${response.status} ${response.statusText}`;
         let message = fallback;
         try {
-            const data = await response.json();
+            const data = await readApiResponse(response);
             message = data?.error || data?.message || fallback;
         }
         catch {
-            message = (await response.text().catch(() => "")) || fallback;
+            message = fallback;
         }
         throw new Error(message);
     }
     if (response.status === 204)
         return undefined;
-    return response.json();
+    return readApiResponse(response);
 }

@@ -38,18 +38,34 @@ const app = express();
 const httpServer = createServer(app);
 const io = createRealtimeServer(httpServer);
 
+function allowedCorsOrigins() {
+  return [CLIENT_ORIGIN, ...(process.env.CORS_ORIGIN || "").split(",")]
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function matchesCorsOrigin(origin, allowedOrigin) {
+  if (!allowedOrigin) return false;
+  if (allowedOrigin === "*") return true;
+  if (origin === allowedOrigin) return true;
+  try {
+    const browserOrigin = new URL(origin);
+    const configuredOrigin = new URL(/^https?:\/\//i.test(allowedOrigin) ? allowedOrigin : `https://${allowedOrigin}`);
+    return browserOrigin.hostname === configuredOrigin.hostname && browserOrigin.port === configuredOrigin.port;
+  } catch {
+    return false;
+  }
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || origin === CLIENT_ORIGIN || process.env.CORS_ORIGIN === "*") {
+      const allowedOrigins = allowedCorsOrigins();
+      if (!origin || allowedOrigins.some((allowedOrigin) => matchesCorsOrigin(origin, allowedOrigin))) {
         callback(null, true);
         return;
       }
-      const extra = (process.env.CORS_ORIGIN || "")
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
-      callback(null, extra.includes(origin));
+      callback(null, false);
     },
     credentials: true,
   })
