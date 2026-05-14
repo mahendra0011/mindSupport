@@ -215,37 +215,37 @@ const Counselling = () => {
     <div className="min-h-screen bg-[#050914] text-foreground">
       <Navigation />
       <main className="pt-16">
-        <section className="dashboard-motion relative overflow-hidden py-7 md:py-10">
+        <section className="dashboard-motion relative overflow-hidden py-10 md:py-12">
           <div className="absolute -left-24 top-20 h-72 w-72 rounded-full bg-violet-700/15 blur-3xl" />
           <div className="absolute right-8 top-44 h-64 w-64 rounded-full bg-sky-500/10 blur-3xl" />
-          <div className="relative mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
-            <div className="mb-8 grid gap-5 lg:grid-cols-[1fr_0.8fr] lg:items-end">
+          <div className="relative mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
+            <div className="mb-7 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Our counsellors</p>
-                <h1 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight md:text-5xl">Find someone you click with</h1>
+                <h1 className="mt-2 max-w-2xl text-[2rem] font-bold leading-tight tracking-tight md:text-[2.65rem]">Find someone you click with</h1>
               </div>
-              <p className="max-w-xl text-sm leading-7 text-slate-300/75 md:justify-self-end md:text-lg">
-                Verified, multilingual professionals and community mentors across stress, relationships, trauma, student pressure, and more.
+              <p className="max-w-md text-sm leading-7 text-slate-300/75 md:justify-self-end md:text-base">
+                Verified, multilingual professionals across stress, relationships, trauma, student pressure, and more.
               </p>
             </div>
 
-            <div className="mb-8 rounded-[28px] border border-white/10 bg-[#0b1020] p-5 shadow-[0_24px_70px_rgba(4,7,18,0.3)]">
+            <div className="mb-7 rounded-[24px] border border-white/10 bg-[#0b1020] p-4 shadow-[0_22px_60px_rgba(4,7,18,0.28)] md:p-5">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-5 top-4 h-5 w-5 text-slate-400" />
+                <Search className="pointer-events-none absolute left-5 top-3.5 h-4 w-4 text-slate-400" />
                 <Input
-                  className="h-14 rounded-[24px] border-white/10 bg-[#050914] pl-14 text-base"
+                  className="h-12 rounded-[22px] border-white/10 bg-[#050914] pl-12 text-sm"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search by name or specialty (e.g. anxiety, relationships)..."
                 />
               </div>
-              <div className="mt-5 flex flex-wrap gap-2.5">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {categories.slice(0, 10).map((item) => (
                   <button
                     key={item}
                     type="button"
                     onClick={() => setCategory(item)}
-                    className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                    className={`rounded-full border px-4 py-1.5 text-xs font-semibold transition ${
                       category === item
                         ? "border-transparent bg-blue-500 text-white shadow-[0_10px_24px_rgba(59,130,246,0.24)]"
                         : "border-white/8 bg-[#151b30] text-slate-300 hover:border-violet-400/45 hover:text-white"
@@ -255,7 +255,7 @@ const Counselling = () => {
                   </button>
                 ))}
               </div>
-              <p className="mt-4 text-sm text-slate-400">
+              <p className="mt-4 text-xs font-medium text-slate-400">
                 Showing {filteredCounsellors.length} of {counsellors.length} counsellors
               </p>
             </div>
@@ -290,25 +290,24 @@ function CounsellorCard({ counsellor, tone, booking, onView }) {
   const languages = counsellor.languages?.length ? counsellor.languages : ["English"];
   const modes = counsellor.consultationModes?.length ? counsellor.consultationModes : ["google-meet", "voice-call", "in-person"];
   return (
-    <article className="dashboard-card-motion group relative flex min-h-[420px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1020]/95 p-6 shadow-[0_20px_55px_rgba(4,7,18,0.32)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/80 to-transparent" />
-      <div className="pointer-events-none absolute -bottom-16 right-0 h-32 w-32 rounded-full bg-violet-500/15 blur-3xl transition group-hover:bg-violet-500/25" />
+    <article className="dashboard-card-motion group relative flex min-h-[354px] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#0b1020]/95 p-5 shadow-[0_18px_46px_rgba(4,7,18,0.3)]">
+      <div className="pointer-events-none absolute -bottom-16 right-0 h-32 w-32 rounded-full bg-violet-500/12 blur-3xl transition group-hover:bg-violet-500/22" />
       <div className="relative flex gap-4">
         <div className="relative shrink-0">
-          <Avatar className={`h-20 w-20 rounded-[24px] border-0 bg-gradient-to-br ${tone}`}>
+          <Avatar className={`h-16 w-16 rounded-[20px] border-0 bg-gradient-to-br ${tone}`}>
             <AvatarImage src={counsellor.profilePhotoUrl} alt={counsellor.name} />
-            <AvatarFallback className={`rounded-[24px] bg-gradient-to-br text-2xl font-bold ${tone}`}>{initials(counsellor.name)}</AvatarFallback>
+            <AvatarFallback className={`rounded-[20px] bg-gradient-to-br text-xl font-bold ${tone}`}>{initials(counsellor.name)}</AvatarFallback>
           </Avatar>
-          <span className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-4 border-[#0b1020] ${accepting ? "bg-emerald-400" : "bg-rose-400"}`} />
+          <span className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-[3px] border-[#0b1020] ${accepting ? "bg-emerald-400" : "bg-rose-400"}`} />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-xl font-bold leading-tight">{counsellor.name}</h2>
-          <p className="mt-1 text-base text-slate-300/70">{counsellor.specialization || "Mental wellness counsellor"}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold">
+          <h2 className="text-lg font-bold leading-tight">{counsellor.name}</h2>
+          <p className="mt-0.5 text-sm text-slate-300/70">{counsellor.specialization || "Mental wellness counsellor"}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
             <Star className="h-3.5 w-3.5 fill-red-400 text-red-400" />
             <span>{Number(counsellor.rating || 4.8).toFixed(1)}</span>
             <span className="text-slate-400">({counsellor.reviews || 0})</span>
-            <span className={`ml-1 inline-flex items-center gap-1.5 text-sm ${accepting ? "text-emerald-300" : "text-rose-300"}`}>
+            <span className={`ml-1 inline-flex items-center gap-1.5 ${accepting ? "text-emerald-300" : "text-rose-300"}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${accepting ? "bg-emerald-400" : "bg-rose-400"}`} />
               {accepting ? "Available" : "Paused"}
             </span>
@@ -316,51 +315,51 @@ function CounsellorCard({ counsellor, tone, booking, onView }) {
         </div>
       </div>
 
-      <p className="relative mt-6 line-clamp-2 min-h-[52px] text-base leading-7 text-slate-300/70">
+      <p className="relative mt-5 line-clamp-2 min-h-[44px] text-sm leading-6 text-slate-300/70">
         {counsellor.bio || "Warm, practical support focused on emotional clarity, coping skills, and steady progress."}
       </p>
 
-      <div className="relative mt-4 flex min-h-[34px] flex-wrap gap-2">
+      <div className="relative mt-3 flex min-h-[28px] flex-wrap gap-2">
         {(counsellor.categories || []).slice(0, 3).map((item) => (
-          <span key={item} className="rounded-full bg-[#151b30] px-3 py-1 text-xs font-semibold text-slate-100">
+          <span key={item} className="rounded-full bg-[#151b30] px-2.5 py-1 text-[11px] font-semibold text-slate-100">
             {item}
           </span>
         ))}
       </div>
 
-      <div className="relative mt-6 grid grid-cols-2 gap-4 text-slate-300/80">
+      <div className="relative mt-5 grid grid-cols-2 gap-4 text-slate-300/80">
         <IconLine icon={BriefcaseBusiness} text={`${counsellor.experience || "Verified"} exp`} />
         <IconLine icon={MapPin} text={counsellor.location || "Online"} />
       </div>
-      <div className="relative mt-4">
-        <IconLine icon={Languages} text={languages.join(" · ")} />
+      <div className="relative mt-3">
+        <IconLine icon={Languages} text={languages.join(" / ")} />
       </div>
 
-      <div className="relative my-5 h-px bg-white/8" />
+      <div className="relative my-4 h-px bg-white/8" />
 
       <div className="relative mt-auto">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Starts at</p>
-            <p className="mt-1 whitespace-nowrap text-2xl font-bold text-slate-100">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">Starts at</p>
+            <p className="mt-1 whitespace-nowrap text-[1.65rem] font-bold leading-none text-slate-100">
               {formatRupees(lowestPrice(counsellor))}
-              <span className="text-xs font-semibold text-slate-400"> / package</span>
+              <span className="text-[11px] font-semibold text-slate-400"> / package</span>
             </p>
           </div>
-          <span className="inline-flex max-w-[190px] items-center gap-1.5 rounded-full bg-violet-500/25 px-3 py-1.5 text-[11px] font-semibold leading-tight text-violet-300">
+          <span className="inline-flex max-w-[176px] items-center gap-1 rounded-full bg-violet-500/25 px-2.5 py-1 text-[10px] font-semibold leading-tight text-violet-300">
             <Video className="h-3.5 w-3.5" />
-            {modes.map(compactModeLabel).join(" · ")}
+            {modes.map(compactModeLabel).join(" / ")}
           </span>
         </div>
         {booking && (
-          <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
+          <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
             Already booked: {booking.date} at {booking.time}
           </div>
         )}
         <Button
           onClick={onView}
           variant="outline"
-          className="mt-5 h-12 w-full rounded-2xl border-white/10 bg-transparent text-base font-bold text-slate-100 hover:border-violet-400/50 hover:bg-violet-500/15 hover:text-white"
+          className="mt-4 h-10 w-full rounded-2xl border-white/10 bg-transparent text-sm font-bold text-slate-100 hover:border-violet-400/50 hover:bg-violet-500/15 hover:text-white"
         >
           View Profile
         </Button>
@@ -379,7 +378,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
         <section className="dashboard-motion relative overflow-hidden py-8 md:py-10">
           <div className="absolute -left-24 top-24 h-72 w-72 rounded-full bg-violet-700/15 blur-3xl" />
           <div className="absolute right-8 top-44 h-64 w-64 rounded-full bg-sky-500/10 blur-3xl" />
-          <div className="relative mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+          <div className="relative mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
             <button type="button" onClick={onBack} className="mb-5 flex items-center gap-2 text-sm text-slate-300 transition hover:text-white">
               <ArrowLeft className="h-4 w-4" />
               Back to counsellors
@@ -390,10 +389,10 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
             ) : !counsellor ? (
               <EmptyPanel text="Counsellor profile not found." />
             ) : (
-              <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_380px]">
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
                 <div className="space-y-6">
-                  <Card className="dashboard-card-motion overflow-hidden rounded-[30px] border-white/10 bg-[#0b1020] shadow-[0_24px_70px_rgba(4,7,18,0.36)]">
-                    <CardContent className="relative p-6 md:p-7">
+                  <Card className="dashboard-card-motion overflow-hidden rounded-[28px] border-white/10 bg-[#0b1020] shadow-[0_22px_60px_rgba(4,7,18,0.34)]">
+                    <CardContent className="relative p-5 md:p-6">
                       <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/15 blur-3xl" />
                       <div className="relative flex flex-col gap-6 md:flex-row">
                         <Avatar className="h-28 w-28 rounded-[30px] border-0 bg-gradient-to-br from-orange-200 to-amber-300 text-violet-500">
@@ -404,7 +403,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                         </Avatar>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{counsellor.name}</h1>
+                            <h1 className="text-3xl font-bold tracking-tight md:text-[2.15rem]">{counsellor.name}</h1>
                             <Badge className="rounded-full bg-emerald-400/15 text-emerald-300">{counsellor.badge || "Verified"}</Badge>
                           </div>
                           <p className="mt-1 text-base text-slate-300/80">{counsellor.specialization || "Mental wellness counsellor"}</p>
@@ -428,7 +427,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                         </div>
                       </div>
 
-                      <div className="relative mt-7 grid gap-3 md:grid-cols-3">
+                      <div className="relative mt-6 grid gap-3 md:grid-cols-3">
                         <InfoTile icon={BriefcaseBusiness} label="Experience" value={counsellor.experience || "Verified"} />
                         <InfoTile icon={GraduationCap} label="Qualifications" value={counsellor.education || "Verified qualification"} />
                         <InfoTile icon={Languages} label="Languages" value={(counsellor.languages || ["English"]).join(", ")} />
@@ -436,7 +435,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                     </CardContent>
                   </Card>
 
-                  <Card className="dashboard-card-motion rounded-[28px] border-white/10 bg-[#0b1020]">
+                  <Card className="dashboard-card-motion rounded-[24px] border-white/10 bg-[#0b1020]">
                     <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
                       <CardTitle className="text-lg">About</CardTitle>
                     </CardHeader>
@@ -447,7 +446,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                     </CardContent>
                   </Card>
 
-                  <Card className="dashboard-card-motion rounded-[28px] border-white/10 bg-[#0b1020]">
+                  <Card className="dashboard-card-motion rounded-[24px] border-white/10 bg-[#0b1020]">
                     <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
                       <CardTitle className="text-lg">Therapy plans</CardTitle>
                       <CardDescription>Select a plan, then continue to the separate schedule page.</CardDescription>
@@ -458,7 +457,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                           key={plan.id}
                           type="button"
                           onClick={() => setSelectedPlanId(plan.id)}
-                          className={`min-h-[190px] rounded-[24px] border p-5 text-left transition ${
+                          className={`min-h-[164px] rounded-[22px] border p-5 text-left transition ${
                             selectedPlan?.id === plan.id
                               ? "border-violet-300 bg-violet-500 text-white shadow-[0_20px_44px_rgba(139,92,246,0.28)]"
                               : "border-white/10 bg-[#070b15] hover:border-violet-400/50"
@@ -488,8 +487,8 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                 </div>
 
                 <aside className="lg:sticky lg:top-24 lg:self-start">
-                  <Card className="dashboard-card-motion overflow-hidden rounded-[30px] border-white/10 bg-[#0b1020] shadow-[0_24px_70px_rgba(4,7,18,0.38)]">
-                    <CardContent className="relative p-6">
+                  <Card className="dashboard-card-motion overflow-hidden rounded-[26px] border-white/10 bg-[#0b1020] shadow-[0_22px_60px_rgba(4,7,18,0.36)]">
+                    <CardContent className="relative p-5">
                       <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-violet-500/15 blur-3xl" />
                       <div className="relative">
                       <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Selected plan</p>

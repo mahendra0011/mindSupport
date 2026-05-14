@@ -25,15 +25,9 @@ const App = () => (<QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />}/>
-          <Route path="/book" element={<ProtectedRoute roles={["user"]}>
-                <Counselling />
-              </ProtectedRoute>}/>
-          <Route path="/counselling" element={<ProtectedRoute roles={["user"]}>
-                <Counselling />
-              </ProtectedRoute>}/>
-          <Route path="/counselling/:counsellorId" element={<ProtectedRoute roles={["user"]}>
-                <Counselling />
-              </ProtectedRoute>}/>
+          <Route path="/book" element={<Counselling />}/>
+          <Route path="/counselling" element={<Counselling />}/>
+          <Route path="/counselling/:counsellorId" element={<Counselling />}/>
           <Route path="/session-schedule" element={<ProtectedRoute roles={["user"]}>
                 <SessionSchedule />
               </ProtectedRoute>}/>
