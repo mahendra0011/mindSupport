@@ -497,7 +497,7 @@ const UserDashboard = () => {
         method: "POST",
         body: JSON.stringify({ appointmentId: target?.id }),
       });
-      toast({ title: "Payment confirmed", description: "Invoice added to your payment history." });
+      toast({ title: "Payment confirmed", description: "Your one-time counselling package invoice is paid." });
       loadDashboard();
     } catch (error) {
       toast({ variant: "destructive", title: "Payment failed", description: error?.message || "" });
@@ -1219,15 +1219,15 @@ const UserDashboard = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CreditCard className="h-5 w-5 text-primary" />
-                        Session Payments
+                        Counselling Package Payments
                       </CardTitle>
-                      <CardDescription>Pay per session or support plan. No monthly plan is required.</CardDescription>
+                      <CardDescription>Pay once for the booked counsellor package. No per-session billing is shown.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <PanelText>{data.payments.summary || "Session payments only"}</PanelText>
-                      <PanelText>Invoices are stored in rupees and linked to booked counselling sessions.</PanelText>
+                      <PanelText>{data.payments.summary || "One-time counselling package payments only"}</PanelText>
+                      <PanelText>Invoices are stored in rupees and linked to your booked counsellor package.</PanelText>
                       <div className="flex flex-wrap gap-2">
-                        <Button onClick={payNextSession} disabled={paying}>{paying ? "Processing..." : "Pay next session"}</Button>
+                        <Button onClick={payNextSession} disabled={paying}>{paying ? "Processing..." : "Pay package invoice"}</Button>
                         <Button variant="outline" onClick={() => navigate("/counselling")}>Choose counsellor plan</Button>
                       </div>
                     </CardContent>
@@ -1235,7 +1235,7 @@ const UserDashboard = () => {
                   <Card className="dashboard-card-motion glass-card">
                     <CardHeader>
                       <CardTitle>Invoices</CardTitle>
-                      <CardDescription>Session payment history.</CardDescription>
+                      <CardDescription>One-time package payment history.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {(data.payments.invoices || []).length === 0 ? (

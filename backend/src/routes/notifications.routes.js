@@ -88,25 +88,38 @@ app.post(
     const commissionRate = 20;
     const platformFee = Math.round(amount * (commissionRate / 100));
     const counsellorPayout = Math.max(0, amount - platformFee);
-    const payment = await Payment.create({
-      user: user._id,
-      appointment: appointment?._id,
-      invoiceNumber: `INV-${Date.now().toString().slice(-8)}`,
-      amount,
-      kind: "session",
-      platformCommissionRate: commissionRate,
-      platformFee,
-      counsellorPayout,
-      plan: req.body?.plan || (appointment?.supportPlanName || "Counselling session"),
-      description: req.body?.description || "MindSupport counselling payment",
-      status: "paid",
-      paidAt: new Date(),
-    });
+    let payment = appointment
+      ? await Payment.findOne({ user: user._id, appointment: appointment._id, status: "pending" }).sort({ createdAt: -1 })
+      : null;
+    if (payment) {
+      payment.amount = amount;
+      payment.platformCommissionRate = commissionRate;
+      payment.platformFee = platformFee;
+      payment.counsellorPayout = counsellorPayout;
+      payment.status = "paid";
+      payment.paidAt = new Date();
+      await payment.save();
+    } else {
+      payment = await Payment.create({
+        user: user._id,
+        appointment: appointment?._id,
+        invoiceNumber: `INV-${Date.now().toString().slice(-8)}`,
+        amount,
+        kind: "session",
+        platformCommissionRate: commissionRate,
+        platformFee,
+        counsellorPayout,
+        plan: req.body?.plan || (appointment?.supportPlanName ? `${appointment.supportPlanName} one-time booking` : "Counselling package booking"),
+        description: req.body?.description || "MindSupport one-time counselling package payment",
+        status: "paid",
+        paidAt: new Date(),
+      });
+    }
     await createNotification({
       user: user._id,
       type: "payment",
       title: "Payment confirmed",
-      message: `Invoice ${payment.invoiceNumber} for Rs. ${payment.amount} is paid.`,
+      message: `One-time package invoice ${payment.invoiceNumber} for Rs. ${payment.amount} is paid.`,
       metadata: { paymentId: String(payment._id) },
     });
     if (appointment?.counsellor?._id) {

@@ -35,7 +35,8 @@ const fallbackPlans = [
     cadence: "One session every two days",
     summary: "Quick emotional support and guidance",
     bestFor: ["Stress", "Anxiety", "Exam pressure", "Loneliness"],
-    perSessionPrice: 499,
+    bookingPrice: 1499,
+    perSessionPrice: 1499,
   },
   {
     id: "medium-term",
@@ -44,7 +45,8 @@ const fallbackPlans = [
     cadence: "Weekly or bi-weekly",
     summary: "Emotional recovery and personal growth",
     bestFor: ["Mild depression", "Relationship issues", "Emotional healing"],
-    perSessionPrice: 429,
+    bookingPrice: 2499,
+    perSessionPrice: 2499,
   },
   {
     id: "long-term",
@@ -53,7 +55,8 @@ const fallbackPlans = [
     cadence: "Weekly or bi-weekly sessions",
     summary: "Ongoing therapy and steady progress",
     bestFor: ["Trauma", "Severe anxiety", "Chronic depression"],
-    perSessionPrice: 379,
+    bookingPrice: 3999,
+    perSessionPrice: 3999,
   },
 ];
 
@@ -64,6 +67,7 @@ const modeOptions = [
   { id: "voice-call", label: "Voice call", icon: Phone, text: "Phone-based session, useful for low bandwidth." },
 ];
 const timeSlots = ["08:00", "09:30", "11:00", "13:30", "15:00", "17:00", "19:30"];
+const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function dateFromOffset(offset) {
   const date = new Date();
@@ -101,9 +105,25 @@ function plansFor(counsellor) {
   return counsellor?.supportPlans?.length ? counsellor.supportPlans : fallbackPlans;
 }
 
+function planPrice(plan) {
+  return Number(plan?.bookingPrice || plan?.perSessionPrice || 0);
+}
+
 function planFromList(counsellor, planId) {
   const plans = plansFor(counsellor);
   return plans.find((plan) => plan.id === planId) || plans[0];
+}
+
+function dateDayName(value) {
+  if (!value) return "";
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? "" : dayNames[date.getDay()];
+}
+
+function availabilityForDate(counsellor, value) {
+  const day = dateDayName(value);
+  if (!day) return [];
+  return (counsellor?.availability || []).filter((item) => String(item).toLowerCase().startsWith(day.toLowerCase()));
 }
 
 function modeLabel(value = "") {
@@ -158,6 +178,9 @@ const SessionSchedule = () => {
     (appointment) => appointment.counsellorId === selectedCounsellor?.id && activeStatuses.includes(appointment.status)
   );
   const upcomingSessions = appointments.filter((appointment) => activeStatuses.includes(appointment.status));
+  const acceptingBookings = selectedCounsellor?.bookingEnabled !== false;
+  const dateUnavailable = Boolean(booking.date && (selectedCounsellor?.unavailableDates || []).includes(booking.date));
+  const selectedDateAvailability = availabilityForDate(selectedCounsellor, booking.date);
 
   useEffect(() => {
     if (!selectedCounsellor) return;
@@ -190,6 +213,14 @@ const SessionSchedule = () => {
     }
     if (activeBooking) {
       toast({ variant: "destructive", title: "Already booked", description: "This counsellor is already in your active schedule." });
+      return;
+    }
+    if (!acceptingBookings) {
+      toast({ variant: "destructive", title: "Bookings paused", description: "This counsellor is not accepting new bookings right now." });
+      return;
+    }
+    if (dateUnavailable) {
+      toast({ variant: "destructive", title: "Date unavailable", description: "Choose another date for this counsellor." });
       return;
     }
     setSubmitting(true);
@@ -230,9 +261,9 @@ const SessionSchedule = () => {
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <Badge className="border border-primary/25 bg-primary/15 text-primary">Session Schedule</Badge>
-                <h1 className="mt-4 text-3xl font-bold md:text-5xl">Schedule your counselling session</h1>
+                <h1 className="mt-4 text-3xl font-bold md:text-5xl">Book your counselling package</h1>
                 <p className="mt-3 max-w-3xl text-slate-300/75">
-                  Book a counsellor once, choose the plan, select date/time, and manage the active schedule from here.
+                  Pay once for the selected support package, then manage your appointment date, time, and mode from here.
                 </p>
               </div>
               <Button variant="outline" className="rounded-full" onClick={() => navigate("/counselling")}>
@@ -248,7 +279,7 @@ const SessionSchedule = () => {
                     <CalendarClock className="h-5 w-5 text-primary" />
                     Booking Details
                   </CardTitle>
-                  <CardDescription>Pick your counsellor, support plan, mode, date, and slot.</CardDescription>
+                  <CardDescription>Pick your counsellor, support package, mode, date, and slot.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-7 p-7 pt-2 md:p-8 md:pt-3">
                   {loading ? (
@@ -342,8 +373,8 @@ const SessionSchedule = () => {
                               {selectedPlan?.id === plan.id && <CheckCircle2 className="h-5 w-5" />}
                             </div>
                             <p className="mt-2 text-sm opacity-80">{plan.duration}</p>
-                            <p className="mt-4 text-2xl font-bold">{formatRupees(plan.perSessionPrice)}</p>
-                            <p className="text-xs opacity-75">per session</p>
+                            <p className="mt-4 text-2xl font-bold">{formatRupees(planPrice(plan))}</p>
+                            <p className="text-xs opacity-75">one-time package</p>
                           </button>
                         ))}
                       </div>
@@ -394,6 +425,21 @@ const SessionSchedule = () => {
                               </button>
                             ))}
                           </div>
+                          {booking.date && (
+                            <div className={`rounded-2xl border p-3 text-xs ${
+                              dateUnavailable
+                                ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                                : selectedDateAvailability.length
+                                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+                                  : "border-amber-400/20 bg-amber-400/10 text-amber-100"
+                            }`}>
+                              {dateUnavailable
+                                ? "This date is marked unavailable by the counsellor."
+                                : selectedDateAvailability.length
+                                  ? `Counsellor availability: ${selectedDateAvailability.join(", ")}`
+                                  : "No day-specific hours are set for this date. You can still send a request."}
+                            </div>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label>Available time slots</Label>
@@ -432,13 +478,23 @@ const SessionSchedule = () => {
                             {activeBooking.supportPlanName || "Counselling session"} on {activeBooking.date} at {activeBooking.time}. You can join, chat, or wait for counsellor confirmation from your dashboard.
                           </p>
                         </div>
+                      ) : !acceptingBookings ? (
+                        <div className="rounded-[24px] border border-rose-400/20 bg-rose-400/10 p-5 text-rose-100">
+                          <div className="font-bold">Bookings are paused</div>
+                          <p className="mt-1 text-sm opacity-85">This counsellor has disabled new bookings for now.</p>
+                        </div>
+                      ) : dateUnavailable ? (
+                        <div className="rounded-[24px] border border-rose-400/20 bg-rose-400/10 p-5 text-rose-100">
+                          <div className="font-bold">Choose another date</div>
+                          <p className="mt-1 text-sm opacity-85">The selected counsellor marked this date unavailable.</p>
+                        </div>
                       ) : (
                         <Button
                           onClick={submitBooking}
                           disabled={submitting}
                           className="h-14 w-full rounded-full bg-violet-500 text-lg font-bold text-white hover:bg-violet-400"
                         >
-                          {submitting ? "Booking counsellor..." : "Confirm one-time booking"}
+                          {submitting ? "Booking counsellor..." : "Book counsellor and create one-time invoice"}
                         </Button>
                       )}
                     </>
@@ -456,13 +512,13 @@ const SessionSchedule = () => {
                   </CardHeader>
                   <CardContent className="space-y-4 p-6 pt-2">
                     <SummaryLine label="Counsellor" value={selectedCounsellor?.name || "Select counsellor"} />
-                    <SummaryLine label="Plan" value={selectedPlan?.name || "Select plan"} />
-                    <SummaryLine label="Price" value={formatRupees(selectedPlan?.perSessionPrice)} />
+                    <SummaryLine label="Package" value={selectedPlan?.name || "Select plan"} />
+                    <SummaryLine label="One-time payment" value={formatRupees(planPrice(selectedPlan))} />
                     <SummaryLine label="Mode" value={modeLabel(booking.mode)} />
                     <SummaryLine label="Date" value={booking.date || "Choose date"} />
                     <SummaryLine label="Time" value={booking.time || "Choose slot"} />
                     <div className="rounded-2xl border border-white/8 bg-[#070b15] p-4 text-sm text-slate-300/75">
-                      20% platform fee is recorded for admin revenue tracking. Counsellor payout is calculated automatically after payment.
+                      A pending one-time invoice is created when you book. 20% platform fee is recorded for admin revenue tracking after payment.
                     </div>
                   </CardContent>
                 </Card>

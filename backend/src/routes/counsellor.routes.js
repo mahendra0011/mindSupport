@@ -180,7 +180,7 @@ app.get(
     });
     const sessionRevenue = appointments
       .filter((appointment) => appointment.status === "completed")
-      .reduce((sum) => sum + (Number(req.user.sessionPricing) || 700), 0);
+      .reduce((sum, appointment) => sum + (Number(appointment.supportPlanPrice) || Number(req.user.sessionPricing) || 700), 0);
     const platformFee = Math.round(sessionRevenue * 0.2);
     const counsellorPayout = Math.max(0, sessionRevenue - platformFee);
     res.json({
@@ -241,6 +241,14 @@ app.put(
   requireRoles("counsellor"),
   asyncRoute(async (req, res) => {
     req.user.availability = Array.isArray(req.body?.availability) ? req.body.availability : req.user.availability;
+    if (Array.isArray(req.body?.unavailableDates)) {
+      req.user.unavailableDates = req.body.unavailableDates
+        .map((item) => String(item || "").trim())
+        .filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item));
+    }
+    if (typeof req.body?.bookingEnabled === "boolean") {
+      req.user.bookingEnabled = req.body.bookingEnabled;
+    }
     if (req.body?.privacySettings) {
       req.user.privacySettings = { ...(req.user.privacySettings?.toObject?.() || req.user.privacySettings || {}), ...req.body.privacySettings };
     }

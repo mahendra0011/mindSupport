@@ -14,12 +14,15 @@ import {
   ArrowLeft,
   BriefcaseBusiness,
   Check,
+  CreditCard,
   GraduationCap,
   Languages,
   MapPin,
   Search,
   ShieldCheck,
+  Sparkles,
   Star,
+  Users,
 } from "lucide-react";
 
 const fallbackPlans = [
@@ -30,7 +33,8 @@ const fallbackPlans = [
     cadence: "One session every two days",
     summary: "Quick emotional support and guidance",
     bestFor: ["Stress", "Anxiety", "Exam pressure", "Loneliness"],
-    perSessionPrice: 499,
+    bookingPrice: 1499,
+    perSessionPrice: 1499,
   },
   {
     id: "medium-term",
@@ -39,7 +43,8 @@ const fallbackPlans = [
     cadence: "Weekly or bi-weekly",
     summary: "Emotional recovery and personal growth",
     bestFor: ["Mild depression", "Relationship issues", "Emotional healing"],
-    perSessionPrice: 429,
+    bookingPrice: 2499,
+    perSessionPrice: 2499,
   },
   {
     id: "long-term",
@@ -48,7 +53,8 @@ const fallbackPlans = [
     cadence: "Weekly or bi-weekly sessions",
     summary: "Ongoing therapy and steady progress",
     bestFor: ["Trauma", "Severe anxiety", "Chronic depression"],
-    perSessionPrice: 379,
+    bookingPrice: 3999,
+    perSessionPrice: 3999,
   },
 ];
 
@@ -94,8 +100,12 @@ function plansFor(counsellor) {
   return counsellor?.supportPlans?.length ? counsellor.supportPlans : fallbackPlans;
 }
 
+function planPrice(plan) {
+  return Number(plan?.bookingPrice || plan?.perSessionPrice || 0);
+}
+
 function lowestPrice(counsellor) {
-  return Math.min(...plansFor(counsellor).map((plan) => Number(plan.perSessionPrice) || 499));
+  return Math.min(...plansFor(counsellor).map((plan) => planPrice(plan) || 1499));
 }
 
 function planFromList(counsellor, planId) {
@@ -211,11 +221,16 @@ const Counselling = () => {
           <div className="relative mx-auto max-w-[1540px] px-4 sm:px-6 lg:px-8">
             <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl">
-                <Badge className="border border-primary/25 bg-primary/15 text-primary">Counselling marketplace</Badge>
-                <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-5xl">Find your counsellor or therapist</h1>
+                <Badge className="border border-primary/25 bg-primary/15 text-primary">Professional counselling marketplace</Badge>
+                <h1 className="mt-4 text-3xl font-bold tracking-tight md:text-5xl">Book trusted support with one clear package payment</h1>
                 <p className="mt-3 text-base text-muted-foreground md:text-lg">
-                  View verified profiles, compare affordable care plans, and book once with the counsellor who fits your needs.
+                  Compare verified counsellors, review therapy plans, and book the right expert once with transparent rupee pricing.
                 </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <HeroStat icon={Users} value={`${counsellors.length || "12"}+`} label="Approved experts" />
+                  <HeroStat icon={CreditCard} value="One-time" label="Package payment" />
+                  <HeroStat icon={ShieldCheck} value="Verified" label="Professional profiles" />
+                </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-[minmax(220px,320px)_190px]">
                 <div className="relative">
@@ -269,8 +284,10 @@ const Counselling = () => {
 
 function CounsellorCard({ counsellor, tone, booking, onView }) {
   const plans = plansFor(counsellor);
+  const accepting = counsellor.bookingEnabled !== false;
   return (
-    <article className="dashboard-card-motion flex min-h-[360px] flex-col rounded-[28px] border border-white/8 bg-[#0d1220]/95 p-7 shadow-[0_20px_70px_rgba(4,7,18,0.45)]">
+    <article className="dashboard-card-motion relative flex min-h-[390px] flex-col overflow-hidden rounded-[28px] border border-white/8 bg-[#0d1220]/95 p-7 shadow-[0_20px_70px_rgba(4,7,18,0.45)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-400 via-sky-400 to-emerald-300" />
       <div className="flex gap-5">
         <Avatar className={`h-20 w-20 rounded-[24px] border-0 bg-gradient-to-br ${tone}`}>
           <AvatarImage src={counsellor.profilePhotoUrl} alt={counsellor.name} />
@@ -283,6 +300,9 @@ function CounsellorCard({ counsellor, tone, booking, onView }) {
             <Star className="h-4 w-4 fill-red-400 text-red-400" />
             <span>{Number(counsellor.rating || 4.8).toFixed(1)}</span>
             <span className="text-slate-400">({counsellor.reviews || 0})</span>
+            <span className={`rounded-full px-2.5 py-1 text-xs ${accepting ? "bg-emerald-400/10 text-emerald-300" : "bg-rose-400/10 text-rose-300"}`}>
+              {accepting ? "Accepting bookings" : "Currently unavailable"}
+            </span>
           </div>
         </div>
       </div>
@@ -304,8 +324,8 @@ function CounsellorCard({ counsellor, tone, booking, onView }) {
 
       <div className="mt-auto">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Available plans</p>
-          <p className="text-sm font-semibold text-emerald-300">from {formatRupees(lowestPrice(counsellor))}</p>
+          <p className="text-sm uppercase tracking-[0.18em] text-slate-400">Package plans</p>
+          <p className="text-sm font-semibold text-emerald-300">from {formatRupees(lowestPrice(counsellor))} once</p>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {plans.map((plan) => (
@@ -320,7 +340,7 @@ function CounsellorCard({ counsellor, tone, booking, onView }) {
           </div>
         )}
         <Button onClick={onView} className="mt-7 h-12 w-full rounded-full bg-violet-500 text-base font-bold text-white hover:bg-violet-400">
-          View Profile
+          View Profile & Book
         </Button>
       </div>
     </article>
@@ -422,8 +442,8 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                           </div>
                           <p className="mt-2 text-sm opacity-80">{plan.duration}</p>
                           <div className="mt-6 text-3xl font-bold">
-                            {formatRupees(plan.perSessionPrice)}
-                            <span className="text-sm font-semibold opacity-75">/session</span>
+                            {formatRupees(planPrice(plan))}
+                            <span className="text-sm font-semibold opacity-75"> once</span>
                           </div>
                         </button>
                       ))}
@@ -441,8 +461,12 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                       <div className="mt-8 space-y-4 text-lg">
                         <SummaryLine label="Duration" value={selectedPlan?.duration} />
                         <SummaryLine label="Cadence" value={selectedPlan?.cadence} />
-                        <SummaryLine label="Per session" value={formatRupees(selectedPlan?.perSessionPrice)} />
+                        <SummaryLine label="One-time payment" value={formatRupees(planPrice(selectedPlan))} />
                         <SummaryLine label="Mode" value={(counsellor.consultationModes || ["google-meet"]).map(modeLabel).join(", ")} />
+                      </div>
+                      <div className="mt-6 rounded-3xl border border-violet-400/20 bg-violet-400/10 p-4 text-sm text-violet-100">
+                        <Sparkles className="mb-2 h-4 w-4" />
+                        One booking unlocks the selected support package with this counsellor. No per-session charge is shown to the user.
                       </div>
 
                       <div className="mt-8">
@@ -469,7 +493,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                         onClick={() => onSchedule(selectedPlan?.id)}
                         className="mt-7 h-14 w-full rounded-full bg-violet-500 text-lg font-bold text-white hover:bg-violet-400"
                       >
-                        {booking ? "Open session schedule" : "Schedule session"}
+                        {booking ? "Open session schedule" : "Book counsellor"}
                       </Button>
                     </CardContent>
                   </Card>
@@ -485,6 +509,16 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
         </section>
       </main>
       <Footer />
+    </div>
+  );
+}
+
+function HeroStat({ icon: Icon, value, label }) {
+  return (
+    <div className="rounded-2xl border border-white/8 bg-[#0d1220]/80 p-4">
+      <Icon className="mb-3 h-5 w-5 text-primary" />
+      <div className="text-xl font-bold">{value}</div>
+      <div className="text-xs text-slate-300/65">{label}</div>
     </div>
   );
 }

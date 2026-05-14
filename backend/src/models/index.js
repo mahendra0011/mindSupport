@@ -61,6 +61,8 @@ const userSchema = new mongoose.Schema(
     responseTime: { type: String, default: "Within 24 hours" },
     platformCommission: { type: Number, default: 20 },
     availability: [{ type: String }],
+    unavailableDates: [{ type: String }],
+    bookingEnabled: { type: Boolean, default: true },
     meetLink: { type: String, default: "" },
     privacySettings: {
       showOnlineStatus: { type: Boolean, default: true },

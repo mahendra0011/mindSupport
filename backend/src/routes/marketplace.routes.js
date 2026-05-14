@@ -64,7 +64,7 @@ const supportPlans = [
     cadence: "One session every two days",
     bestFor: ["Stress", "Anxiety", "Exam pressure", "Loneliness"],
     summary: "Quick emotional support and guidance",
-    multiplier: 1,
+    multiplier: 3,
   },
   {
     id: "medium-term",
@@ -73,7 +73,7 @@ const supportPlans = [
     cadence: "Weekly or bi-weekly",
     bestFor: ["Mild depression", "Relationship issues", "Emotional healing"],
     summary: "Emotional recovery and personal growth",
-    multiplier: 0.86,
+    multiplier: 5,
   },
   {
     id: "long-term",
@@ -82,7 +82,7 @@ const supportPlans = [
     cadence: "Weekly or bi-weekly sessions",
     bestFor: ["Trauma", "Severe anxiety", "Chronic depression"],
     summary: "Ongoing therapy and steady progress",
-    multiplier: 0.76,
+    multiplier: 8,
   },
 ];
 
@@ -95,7 +95,16 @@ function affordableBasePrice(user) {
 }
 
 function planPriceFor(user, plan) {
-  return Math.max(199, Math.round((affordableBasePrice(user) * plan.multiplier) / 10) * 10);
+  return Math.max(599, Math.round((affordableBasePrice(user) * plan.multiplier) / 50) * 50 - 1);
+}
+
+function paymentSplit(amount) {
+  const platformFee = Math.round(Number(amount || 0) * 0.2);
+  return {
+    platformCommissionRate: 20,
+    platformFee,
+    counsellorPayout: Math.max(0, Number(amount || 0) - platformFee),
+  };
 }
 
 function publicCounsellorProfile(user) {
@@ -119,10 +128,14 @@ function publicCounsellorProfile(user) {
     reviews: user.reviews,
     responseTime: user.responseTime,
     availability: user.availability,
+    unavailableDates: user.unavailableDates || [],
+    bookingEnabled: user.bookingEnabled !== false,
     consultationModes: user.consultationModes?.length ? user.consultationModes : ["google-meet", "in-person", "voice-call"],
     supportPlans: supportPlans.map((plan) => ({
       ...plan,
+      bookingPrice: planPriceFor(user, plan),
       perSessionPrice: planPriceFor(user, plan),
+      priceLabel: "One-time package",
     })),
   };
 }
@@ -212,9 +225,17 @@ app.post(
       res.status(400).json({ error: "No active counsellor is available" });
       return;
     }
+    if (counsellor.bookingEnabled === false) {
+      res.status(409).json({ error: "This counsellor is not accepting new bookings right now" });
+      return;
+    }
     const { date, time } = req.body || {};
     if (!date || !time) {
       res.status(400).json({ error: "Date and time are required" });
+      return;
+    }
+    if ((counsellor.unavailableDates || []).includes(date)) {
+      res.status(409).json({ error: "This counsellor marked that date unavailable" });
       return;
     }
     const existingBooking = await Appointment.findOne({
@@ -256,6 +277,17 @@ app.post(
       meetingProvider: mode === "in-person" || mode === "voice-call" ? "" : "google-meet",
       meetingLink: sharedMeetingLink,
     });
+    const payment = await Payment.create({
+      user: student._id,
+      appointment: appointment._id,
+      invoiceNumber: `INV-${Date.now().toString().slice(-8)}`,
+      amount: supportPlanPrice,
+      kind: "session",
+      ...paymentSplit(supportPlanPrice),
+      plan: `${plan.name} one-time booking`,
+      description: `One-time package payment for ${counsellor.name}`,
+      status: "pending",
+    });
     await createNotification({
       user: counsellor._id,
       type: "booking",
@@ -267,8 +299,8 @@ app.post(
       user: student._id,
       type: "booking",
       title: "Booking request sent",
-      message: `${counsellor.name} will review your ${plan.name} request.`,
-      metadata: { appointmentId: String(appointment._id) },
+      message: `${counsellor.name} will review your ${plan.name} request. One-time package invoice Rs. ${supportPlanPrice} is ready.`,
+      metadata: { appointmentId: String(appointment._id), paymentId: String(payment._id) },
     });
     await createNotification({
       audienceRole: "admin",

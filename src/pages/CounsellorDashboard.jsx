@@ -6,6 +6,7 @@ import {
   BarChart3,
   Bell,
   CalendarCheck,
+  CalendarX,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
@@ -20,6 +21,8 @@ import {
   MessageSquareText,
   NotebookPen,
   Pencil,
+  PlusCircle,
+  Power,
   Reply,
   RefreshCw,
   Search,
@@ -89,6 +92,7 @@ const noteTemplates = [
 ];
 
 const statusTone = {
+  upcoming: "bg-blue-500/15 text-blue-600 border-blue-500/20",
   pending: "bg-amber-500/15 text-amber-600 border-amber-500/20",
   confirmed: "bg-blue-500/15 text-blue-600 border-blue-500/20",
   completed: "bg-emerald-500/15 text-emerald-600 border-emerald-500/20",
@@ -117,12 +121,64 @@ const defaultNotificationSettings = {
   emergency: true,
 };
 
+const dayOptions = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+function newAvailabilityRow(day = "Monday", start = "10:00", end = "16:00") {
+  return { id: `${day}-${Date.now()}-${Math.random().toString(16).slice(2)}`, day, start, end };
+}
+
+function parseAvailabilityRows(items = []) {
+  if (!items.length) return [newAvailabilityRow("Monday", "10:00", "16:00")];
+  return items.map((item, index) => {
+    const text = String(item || "");
+    const match = text.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s*:?\s*(\d{1,2}:?\d{0,2})\s*(?:-|–|to)\s*(\d{1,2}:?\d{0,2})/i);
+    const dayMap = { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" };
+    const normalizeTime = (value, fallback) => {
+      const raw = String(value || "").replace(/[^0-9:]/g, "");
+      if (!raw) return fallback;
+      if (raw.includes(":")) return raw.length === 4 ? `0${raw}` : raw;
+      return `${raw.padStart(2, "0")}:00`;
+    };
+    if (!match) return newAvailabilityRow(dayOptions[index % dayOptions.length], "10:00", "16:00");
+    const key = match[1].slice(0, 3).toLowerCase();
+    return {
+      id: `${index}-${text}`,
+      day: dayMap[key] || match[1],
+      start: normalizeTime(match[2], "10:00"),
+      end: normalizeTime(match[3], "16:00"),
+    };
+  });
+}
+
+function serializeAvailabilityRows(rows = []) {
+  return rows
+    .filter((row) => row.day && row.start && row.end)
+    .map((row) => `${row.day}: ${row.start}-${row.end}`);
+}
+
 function todayYMD() {
   return new Date().toISOString().slice(0, 10);
 }
 
 function formatMoney(value) {
   return `Rs. ${Number(value || 0).toLocaleString("en-IN")}`;
+}
+
+function sessionStatusLabel(status = "") {
+  if (["pending", "confirmed"].includes(status)) return "Upcoming";
+  if (status === "completed") return "Completed";
+  if (["cancelled", "declined"].includes(status)) return "Cancelled";
+  return status || "Upcoming";
+}
+
+function counsellingModeLabel(mode = "") {
+  const labels = {
+    "google-meet": "Google Meet",
+    "voice-call": "Voice Call",
+    "in-person": "In-person",
+    online: "Google Meet",
+  };
+  return labels[mode] || mode || "Google Meet";
 }
 
 function initials(name = "MS") {
@@ -144,7 +200,10 @@ const CounsellorDashboard = () => {
   const [data, setData] = useState(fallback);
   const [loading, setLoading] = useState(true);
   const [notes, setNotes] = useState({});
-  const [availability, setAvailability] = useState("");
+  const [availabilityRows, setAvailabilityRows] = useState(() => parseAvailabilityRows([]));
+  const [unavailableDates, setUnavailableDates] = useState([]);
+  const [unavailableDateDraft, setUnavailableDateDraft] = useState("");
+  const [bookingEnabled, setBookingEnabled] = useState(true);
   const [meetLink, setMeetLink] = useState("");
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [activeConversationId, setActiveConversationId] = useState("");
@@ -166,7 +225,9 @@ const CounsellorDashboard = () => {
       const result = await apiFetch("/api/counsellor/dashboard");
       const next = { ...fallback, ...result };
       setData(next);
-      setAvailability((next.profile?.availability || []).join(", "));
+      setAvailabilityRows(parseAvailabilityRows(next.profile?.availability || []));
+      setUnavailableDates(next.profile?.unavailableDates || []);
+      setBookingEnabled(next.profile?.bookingEnabled !== false);
       setMeetLink(next.profile?.meetLink || "");
       setUsernameDraft(next.profile?.username || "");
       setPrivacySettings({ ...defaultPrivacySettings, ...(next.profile?.privacySettings || {}) });
@@ -207,6 +268,13 @@ const CounsellorDashboard = () => {
   const activeSessions = appointments.filter((item) => ["pending", "confirmed"].includes(item.status));
   const completedSessions = appointments.filter((item) => item.status === "completed");
   const todaySessions = appointments.filter((item) => item.date === today && ["pending", "confirmed"].includes(item.status));
+  const upcomingAppointments = useMemo(
+    () =>
+      appointments
+        .filter((item) => ["pending", "confirmed"].includes(item.status))
+        .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)),
+    [appointments]
+  );
   const selectedPatient = patients.find((patient) => patient.id === selectedPatientId) || patients[0];
   const activePatient = patients.find((patient) => patient.id === activeConversationId) || patients[0];
 
@@ -284,10 +352,9 @@ const CounsellorDashboard = () => {
         apiFetch("/api/counsellor/availability", {
           method: "PUT",
           body: JSON.stringify({
-            availability: availability
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean),
+            availability: serializeAvailabilityRows(availabilityRows),
+            unavailableDates,
+            bookingEnabled,
             meetLink: meetLink.trim(),
             privacySettings,
             notificationSettings,
@@ -380,6 +447,28 @@ const CounsellorDashboard = () => {
         [key]: value,
       },
     }));
+  };
+
+  const updateAvailabilityRow = (id, key, value) => {
+    setAvailabilityRows((current) => current.map((row) => (row.id === id ? { ...row, [key]: value } : row)));
+  };
+
+  const addAvailabilityRow = () => {
+    setAvailabilityRows((current) => [...current, newAvailabilityRow(dayOptions[current.length % dayOptions.length], "10:00", "16:00")]);
+  };
+
+  const removeAvailabilityRow = (id) => {
+    setAvailabilityRows((current) => (current.length > 1 ? current.filter((row) => row.id !== id) : current));
+  };
+
+  const addUnavailableDate = () => {
+    if (!unavailableDateDraft || unavailableDates.includes(unavailableDateDraft)) return;
+    setUnavailableDates((current) => [...current, unavailableDateDraft].sort());
+    setUnavailableDateDraft("");
+  };
+
+  const removeUnavailableDate = (date) => {
+    setUnavailableDates((current) => current.filter((item) => item !== date));
   };
 
   const rescheduleAppointment = async (appointment) => {
@@ -550,7 +639,34 @@ const CounsellorDashboard = () => {
               </TabsContent>
 
               <TabsContent value="sessions" className="dashboard-tab-motion space-y-6">
+                <Card className="glass-card border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CalendarCheck className="h-5 w-5 text-primary" />
+                      Upcoming Appointments
+                    </CardTitle>
+                    <CardDescription>User name, session type, date/time, mode, status, and rescheduling controls.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-3 xl:grid-cols-2">
+                    {upcomingAppointments.length ? (
+                      upcomingAppointments.map((appointment) => (
+                        <UpcomingAppointmentCard
+                          key={appointment.id}
+                          appointment={appointment}
+                          draft={sessionDrafts[appointment.id] || {}}
+                          onDraft={(key, value) => updateDraft(appointment.id, key, value)}
+                          onReschedule={() => rescheduleAppointment(appointment)}
+                          onMeet={() => createMeet(appointment.id, sessionDrafts[appointment.id]?.meetingLink || "")}
+                        />
+                      ))
+                    ) : (
+                      <EmptyState icon={CalendarCheck} title="No upcoming appointments" text="Confirmed and pending bookings appear here." />
+                    )}
+                  </CardContent>
+                </Card>
+
                 <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+                  <div className="space-y-6">
                   <Card className="glass-card">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -575,6 +691,22 @@ const CounsellorDashboard = () => {
                       )}
                     </CardContent>
                   </Card>
+
+                  <AvailabilityManager
+                    bookingEnabled={bookingEnabled}
+                    setBookingEnabled={setBookingEnabled}
+                    rows={availabilityRows}
+                    onRowChange={updateAvailabilityRow}
+                    onAddRow={addAvailabilityRow}
+                    onRemoveRow={removeAvailabilityRow}
+                    unavailableDates={unavailableDates}
+                    unavailableDateDraft={unavailableDateDraft}
+                    setUnavailableDateDraft={setUnavailableDateDraft}
+                    onAddUnavailableDate={addUnavailableDate}
+                    onRemoveUnavailableDate={removeUnavailableDate}
+                    onSave={saveProfileTools}
+                  />
+                  </div>
 
                   <Card className="glass-card">
                     <CardHeader>
@@ -1104,15 +1236,15 @@ const CounsellorDashboard = () => {
                         />
                         <p className="mt-2 text-xs text-foreground/60">Use 3-24 lowercase letters, numbers, or underscores. Users can sign in with username or email.</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium">Availability</label>
-                        <Textarea
-                          rows={4}
-                          className="mt-2"
-                          value={availability}
-                          onChange={(event) => setAvailability(event.target.value)}
-                          placeholder="Mon 10:00-14:00, Wed 12:00-17:00, Fri 16:00-19:00"
-                        />
+                      <div className="rounded-xl border border-glass-border/40 bg-background/60 p-4">
+                        <div className="flex items-center gap-2 font-medium">
+                          <CalendarCheck className="h-4 w-4 text-primary" />
+                          Booking availability
+                        </div>
+                        <p className="mt-2 text-sm text-foreground/65">
+                          {bookingEnabled ? "Bookings are enabled" : "Bookings are paused"} with {availabilityRows.length} weekly slot{availabilityRows.length === 1 ? "" : "s"} and {unavailableDates.length} unavailable date{unavailableDates.length === 1 ? "" : "s"}.
+                        </p>
+                        <p className="mt-1 text-xs text-foreground/50">Use the Sessions tab to add days, time slots, unavailable dates, and booking availability.</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium">Default Google Meet link</label>
@@ -1287,15 +1419,170 @@ function RequestRow({ appointment, onConfirm, onDecline, onMeet }) {
   );
 }
 
+function UpcomingAppointmentCard({ appointment, draft, onDraft, onReschedule, onMeet }) {
+  const displayStatus = sessionStatusLabel(appointment.status);
+  return (
+    <div className="dashboard-card-motion rounded-2xl border border-glass-border/40 bg-background/70 p-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-lg font-semibold">{appointment.studentName || appointment.studentEmail || "User"}</h3>
+            <Badge className={statusTone[appointment.status] || statusTone.upcoming}>{displayStatus}</Badge>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <AppointmentInfo label="User name" value={appointment.studentName || appointment.studentEmail || "Hidden user"} />
+            <AppointmentInfo label="Session type" value={appointment.supportPlanName || "Counselling package"} />
+            <AppointmentInfo label="Date & time" value={`${appointment.date} at ${appointment.time}`} />
+            <AppointmentInfo label="Counselling mode" value={counsellingModeLabel(appointment.mode)} />
+          </div>
+        </div>
+        <div className="w-full space-y-2 lg:w-56">
+          <div className="grid grid-cols-2 gap-2">
+            <Input type="date" value={draft.date || ""} onChange={(event) => onDraft("date", event.target.value)} />
+            <Input type="time" value={draft.time || ""} onChange={(event) => onDraft("time", event.target.value)} />
+          </div>
+          <Button size="sm" variant="outline" className="w-full" onClick={onReschedule}>
+            Reschedule
+          </Button>
+          {appointment.meetingLink ? (
+            <Button size="sm" className="w-full" asChild>
+              <a href={appointment.meetingLink} target="_blank" rel="noreferrer">
+                <LinkIcon className="mr-1 h-4 w-4" />
+                Open Meet
+              </a>
+            </Button>
+          ) : appointment.mode === "google-meet" || appointment.mode === "online" ? (
+            <Button size="sm" className="w-full" onClick={onMeet}>
+              <Video className="mr-1 h-4 w-4" />
+              Save Meet
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AppointmentInfo({ label, value }) {
+  return (
+    <div className="rounded-xl border border-glass-border/30 bg-background/60 p-3">
+      <div className="text-xs uppercase tracking-wide text-foreground/45">{label}</div>
+      <div className="mt-1 text-sm font-semibold">{value || "Not available"}</div>
+    </div>
+  );
+}
+
+function AvailabilityManager({
+  bookingEnabled,
+  setBookingEnabled,
+  rows,
+  onRowChange,
+  onAddRow,
+  onRemoveRow,
+  unavailableDates,
+  unavailableDateDraft,
+  setUnavailableDateDraft,
+  onAddUnavailableDate,
+  onRemoveUnavailableDate,
+  onSave,
+}) {
+  return (
+    <Card className="glass-card">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CalendarX className="h-5 w-5 text-secondary" />
+          Availability Management
+        </CardTitle>
+        <CardDescription>Set available days, add time slots, mark unavailable dates, and enable or disable bookings.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setBookingEnabled(!bookingEnabled)}
+          className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition ${
+            bookingEnabled ? "border-emerald-500/25 bg-emerald-500/10" : "border-rose-500/25 bg-rose-500/10"
+          }`}
+        >
+          <span>
+            <span className="block font-semibold">{bookingEnabled ? "Booking availability enabled" : "Booking availability paused"}</span>
+            <span className="mt-1 block text-xs text-foreground/60">Users can book only when this is enabled.</span>
+          </span>
+          <Power className={`h-5 w-5 ${bookingEnabled ? "text-emerald-500" : "text-rose-500"}`} />
+        </button>
+
+        <div className="space-y-3">
+          {rows.map((row) => (
+            <div key={row.id} className="grid gap-2 rounded-xl border border-glass-border/40 bg-background/60 p-3 sm:grid-cols-[1fr_90px_90px_36px]">
+              <Select value={row.day} onValueChange={(value) => onRowChange(row.id, "day", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {dayOptions.map((day) => (
+                    <SelectItem key={day} value={day}>
+                      {day}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input type="time" value={row.start} onChange={(event) => onRowChange(row.id, "start", event.target.value)} />
+              <Input type="time" value={row.end} onChange={(event) => onRowChange(row.id, "end", event.target.value)} />
+              <Button type="button" variant="outline" size="icon" onClick={() => onRemoveRow(row.id)} aria-label="Remove availability slot">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" className="w-full" onClick={onAddRow}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add available time slot
+          </Button>
+        </div>
+
+        <div className="rounded-xl border border-glass-border/40 bg-background/60 p-3">
+          <div className="text-sm font-semibold">Unavailable dates</div>
+          <div className="mt-3 flex gap-2">
+            <Input type="date" value={unavailableDateDraft} onChange={(event) => setUnavailableDateDraft(event.target.value)} />
+            <Button type="button" variant="outline" onClick={onAddUnavailableDate}>
+              Add
+            </Button>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {unavailableDates.length ? (
+              unavailableDates.map((date) => (
+                <button
+                  type="button"
+                  key={date}
+                  onClick={() => onRemoveUnavailableDate(date)}
+                  className="rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-500"
+                >
+                  {date} x
+                </button>
+              ))
+            ) : (
+              <span className="text-xs text-foreground/55">No unavailable dates marked.</span>
+            )}
+          </div>
+        </div>
+
+        <Button onClick={onSave} className="w-full">
+          Save availability
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 function SessionCard({ appointment, draft, onDraft, onReschedule, onComplete, onCancel, onMeet }) {
+  const displayStatus = sessionStatusLabel(appointment.status);
   return (
     <div className="rounded-2xl border border-glass-border/40 bg-background/60 p-4">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold">{appointment.studentName || appointment.studentEmail}</h3>
-            <Badge className={statusTone[appointment.status] || "bg-foreground/10 text-foreground"}>{appointment.status}</Badge>
-            <Badge className="bg-foreground/10 text-foreground">{appointment.mode}</Badge>
+            <Badge className={statusTone[appointment.status] || statusTone.upcoming}>{displayStatus}</Badge>
+            <Badge className="bg-foreground/10 text-foreground">{counsellingModeLabel(appointment.mode)}</Badge>
+            <Badge variant="secondary">{appointment.supportPlanName || "Counselling package"}</Badge>
           </div>
           <p className="mt-1 text-sm text-foreground/60">{appointment.date} at {appointment.time}</p>
           {appointment.concern && <p className="mt-2 text-sm text-foreground/75">{appointment.concern}</p>}

@@ -149,7 +149,7 @@ app.get(
       messages: normalizedMessages,
       notifications: notifications.map(normalizeNotification),
       payments: {
-        summary: "Session payments only",
+        summary: "One-time counselling package payments only",
         invoices: normalizedPayments.filter((payment) => payment.kind === "session"),
       },
       emergency: {
