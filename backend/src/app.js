@@ -134,10 +134,12 @@ function listFromInput(value) {
 function normalizeApplication(application) {
   if (!application) return null;
   const raw = application.toJSON ? application.toJSON() : application;
-  const user = raw.user && typeof raw.user === "object" ? raw.user : null;
+  const hasPopulatedUser = raw.user && typeof raw.user === "object" && (raw.user.email || raw.user.name || raw.user.role || raw.user.status);
+  const user = hasPopulatedUser ? raw.user : null;
+  const userId = user?.id || user?._id || raw.user?.toString?.() || raw.user;
   return {
     ...raw,
-    userId: user?.id || user?._id || raw.user,
+    userId,
     userName: user?.name || "",
     userEmail: user?.email || "",
     userRole: user?.role || "",

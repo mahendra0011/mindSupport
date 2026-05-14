@@ -81,9 +81,20 @@ app.post(
     const bio = String(req.body?.bio || "").trim();
     const specialization = String(req.body?.specialization || "").trim();
     const experience = String(req.body?.experience || "").trim();
+    const location = String(req.body?.location || "").trim();
+    const consultationModes = listFromInput(req.body?.consultationModes);
+    const responseTime = String(req.body?.responseTime || "Within 24 hours").trim();
     const idDocumentNumber = String(req.body?.idDocumentNumber || "").trim();
-    if (!fullName || !bio || !specialization || !experience || !idDocumentNumber) {
-      res.status(400).json({ error: "Full name, bio, specialization, experience, and ID verification are required" });
+    if (!fullName || !bio || !specialization || !experience || !location || !idDocumentNumber) {
+      res.status(400).json({ error: "Full name, bio, specialization, experience, location, and ID verification are required" });
+      return;
+    }
+    if (!consultationModes.length) {
+      res.status(400).json({ error: "Select at least one counselling mode" });
+      return;
+    }
+    if (!Number(req.body?.sessionPricing) || Number(req.body?.sessionPricing) < 1) {
+      res.status(400).json({ error: "Enter an affordable base session price" });
       return;
     }
     if (requestedType === "professional" && !String(req.body?.licenseNumber || "").trim()) {
@@ -100,6 +111,9 @@ app.post(
       experience,
       languages: listFromInput(req.body?.languages),
       sessionPricing: Number(req.body?.sessionPricing) || 0,
+      location,
+      consultationModes,
+      responseTime,
       profilePhotoUrl: String(req.body?.profilePhotoUrl || "").trim(),
       certificateLinks: listFromInput(req.body?.certificateLinks),
       linkedin: String(req.body?.linkedin || "").trim(),
@@ -115,6 +129,9 @@ app.post(
       verificationNotes: String(req.body?.verificationNotes || "").trim(),
     });
     req.user.verificationStatus = "pending";
+    req.user.location = location;
+    req.user.consultationModes = consultationModes;
+    req.user.responseTime = responseTime;
     await req.user.save();
     res.status(201).json(normalizeApplication(await application.populate("user", "name email role status")));
   })

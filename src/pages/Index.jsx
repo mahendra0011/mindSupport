@@ -1,7 +1,7 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
-import AdvancedFeatures from "@/components/AdvancedFeatures";
+import HomeSupportFlow from "@/components/HomeSupportFlow";
 import CallToAction from "@/components/CallToAction";
 import Footer from "@/components/Footer";
 const Index = () => {
@@ -9,7 +9,7 @@ const Index = () => {
       <Navigation />
       <Hero />
       <Features />
-      <AdvancedFeatures />
+      <HomeSupportFlow />
       <CallToAction />
       <Footer />
     </div>);

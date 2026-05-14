@@ -379,6 +379,8 @@ app.patch(
       applicant.profilePhotoUrl = application.profilePhotoUrl;
       applicant.certificateLinks = application.certificateLinks;
       applicant.linkedin = application.linkedin;
+      applicant.location = application.location || applicant.location;
+      applicant.consultationModes = application.consultationModes?.length ? application.consultationModes : applicant.consultationModes;
       applicant.licenseNumber = application.licenseNumber;
       applicant.idVerification = `${application.idDocumentType}: ${application.idDocumentNumber}`;
       applicant.categories = application.categories;
@@ -387,7 +389,7 @@ app.patch(
       applicant.verificationBadge = badgeForCounsellorType(type);
       applicant.verificationStatus = "approved";
       applicant.meetLink = applicant.meetLink || buildMeetLink();
-      applicant.responseTime = type === "professional" ? "Fast Response" : "Within 24 hours";
+      applicant.responseTime = application.responseTime || (type === "professional" ? "Fast Response" : "Within 24 hours");
       applicant.reviews = applicant.reviews || 0;
       await applicant.save();
     }

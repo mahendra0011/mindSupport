@@ -15,7 +15,6 @@ import { apiFetch } from "@/lib/api";
 import {
   ArrowRight,
   CalendarClock,
-  CheckCircle2,
   Clock3,
   HeartHandshake,
   MapPin,
@@ -196,13 +195,12 @@ const SessionSchedule = () => {
   };
 
   const selectCounsellor = (id) => {
+    const nextCounsellor = counsellors.find((counsellor) => counsellor.id === id);
+    const nextPlans = plansFor(nextCounsellor);
+    const nextPlanId = nextPlans.some((plan) => plan.id === selectedPlanId) ? selectedPlanId : nextPlans[0]?.id || "short-term";
     setSelectedId(id);
-    updateUrl(id);
-  };
-
-  const selectPlan = (id) => {
-    setSelectedPlanId(id);
-    if (selectedCounsellor?.id) updateUrl(selectedCounsellor.id, id);
+    setSelectedPlanId(nextPlanId);
+    updateUrl(id, nextPlanId);
   };
 
   const submitBooking = async () => {
@@ -336,30 +334,6 @@ const SessionSchedule = () => {
                             </div>
                           </div>
                         </div>
-                      </div>
-
-                      <SectionLabel title="Choose support package" text="All plans use one-time package pricing." />
-                      <div className="grid gap-3 md:grid-cols-3">
-                        {plansFor(selectedCounsellor).map((plan) => (
-                          <button
-                            key={plan.id}
-                            type="button"
-                            onClick={() => selectPlan(plan.id)}
-                            className={`rounded-[18px] border p-4 text-left transition ${
-                              selectedPlan?.id === plan.id
-                                ? "border-violet-400 bg-violet-500 text-white shadow-[0_14px_34px_rgba(139,92,246,0.24)]"
-                                : "border-white/8 bg-[#070b15] hover:border-violet-400/50"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <h3 className="font-bold">{plan.name}</h3>
-                              {selectedPlan?.id === plan.id && <CheckCircle2 className="h-5 w-5" />}
-                            </div>
-                            <p className="mt-2 text-sm opacity-80">{plan.duration}</p>
-                            <p className="mt-3 text-xl font-bold">{formatRupees(planPrice(plan))}</p>
-                            <p className="text-xs opacity-75">one-time package</p>
-                          </button>
-                        ))}
                       </div>
 
                       <SectionLabel title="Session mode" text="Choose how you want to attend this appointment." />

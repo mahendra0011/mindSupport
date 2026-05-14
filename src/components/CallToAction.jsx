@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Shield, Heart, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 const CallToAction = () => {
+    const navigate = useNavigate();
     return (<section className="py-24 bg-gradient-to-br from-primary/10 via-background to-secondary/10 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-hero opacity-50"></div>
@@ -22,11 +24,11 @@ const CallToAction = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-lg px-12 py-6 glow-primary pulse-glow group text-xl">
-              Get Started Free
+            <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-lg px-12 py-6 glow-primary pulse-glow group text-xl" onClick={() => navigate("/signup")}>
+              Create Account
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform"/>
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-12 py-6 border-glass-border/50 hover:bg-glass/30 backdrop-blur-sm text-xl">
+            <Button variant="outline" size="lg" className="text-lg px-12 py-6 border-glass-border/50 hover:bg-glass/30 backdrop-blur-sm text-xl" onClick={() => navigate("/counselling")}>
               Explore Counsellors
             </Button>
           </div>
@@ -82,13 +84,13 @@ const CallToAction = () => {
           </p>
           
           <div className="space-y-4">
-            <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-xl px-16 py-6 glow-primary pulse-glow group">
-              Start Free Trial
+            <Button size="lg" className="bg-gradient-primary hover:opacity-90 text-xl px-16 py-6 glow-primary pulse-glow group" onClick={() => navigate("/signup")}>
+              Start With MindSupport
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform"/>
             </Button>
             
             <p className="text-sm text-foreground/50">
-              No credit card required • 14-day free trial • Cancel anytime
+              Create a user account or submit a counsellor verification request.
             </p>
           </div>
         </div>
