@@ -11,17 +11,18 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getStoredUser } from "@/lib/api";
 import {
+  ArrowLeft,
   ArrowRight,
-  CalendarClock,
+  CalendarDays,
+  Check,
   Clock3,
-  HeartHandshake,
+  Mail,
   MapPin,
   Phone,
   ShieldCheck,
-  Star,
-  UserCheck,
+  Sparkles,
   Video,
 } from "lucide-react";
 
@@ -67,18 +68,17 @@ const modeOptions = [
 const timeSlots = ["08:00", "09:30", "11:00", "13:30", "15:00", "17:00", "19:30"];
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-function dateFromOffset(offset) {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  return date.toISOString().slice(0, 10);
+function buildDateChoices(count = 10) {
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() + index);
+    return {
+      value: date.toISOString().slice(0, 10),
+      weekday: date.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
+      day: date.toLocaleDateString("en-US", { day: "2-digit" }),
+    };
+  });
 }
-
-const quickDates = [
-  { label: "Tomorrow", value: dateFromOffset(1) },
-  { label: "In 2 days", value: dateFromOffset(2) },
-  { label: "This week", value: dateFromOffset(4) },
-  { label: "Next week", value: dateFromOffset(7) },
-];
 
 function formatRupees(value = 0) {
   return new Intl.NumberFormat("en-IN", {
@@ -128,6 +128,14 @@ function modeLabel(value = "") {
   return modeOptions.find((mode) => mode.id === value)?.label || value || "Google Meet";
 }
 
+function formatScheduleDate(value) {
+  if (!value) return "Choose date";
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
+
 const SessionSchedule = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -144,6 +152,9 @@ const SessionSchedule = () => {
     time: "",
     concern: "",
   });
+  const storedUser = useMemo(() => getStoredUser(), []);
+  const [confirmationEmail, setConfirmationEmail] = useState(storedUser?.email || "");
+  const dateChoices = useMemo(() => buildDateChoices(10), []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -179,6 +190,7 @@ const SessionSchedule = () => {
   const acceptingBookings = selectedCounsellor?.bookingEnabled !== false;
   const dateUnavailable = Boolean(booking.date && (selectedCounsellor?.unavailableDates || []).includes(booking.date));
   const selectedDateAvailability = availabilityForDate(selectedCounsellor, booking.date);
+  const canSubmit = Boolean(selectedCounsellor && selectedPlan && booking.date && booking.time && acceptingBookings && !activeBooking && !dateUnavailable);
 
   useEffect(() => {
     if (!selectedCounsellor) return;
@@ -249,46 +261,198 @@ const SessionSchedule = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b15] text-foreground">
+    <div className="min-h-screen bg-[#050914] text-foreground">
       <Navigation />
       <main className="pt-16">
-        <section className="dashboard-motion relative overflow-hidden py-7 md:py-9">
-          <div className="absolute inset-x-0 top-20 h-56 bg-violet-700/10 blur-3xl" />
-          <div className="relative mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
-            <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <section className="dashboard-motion relative overflow-hidden py-8 md:py-10">
+          <div className="absolute -left-24 top-24 h-72 w-72 rounded-full bg-violet-700/15 blur-3xl" />
+          <div className="absolute right-0 top-40 h-64 w-64 rounded-full bg-sky-500/10 blur-3xl" />
+          <div className="relative mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={() => navigate(selectedCounsellor ? `/counselling/${selectedCounsellor.id}` : "/counselling")}
+              className="mb-5 flex items-center gap-2 text-sm text-slate-300 transition hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {selectedCounsellor ? "Back to profile" : "Back to counsellors"}
+            </button>
+
+            <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <Badge className="h-7 rounded-full border border-primary/25 bg-primary/15 px-3 text-xs text-primary">Session Schedule</Badge>
-                <h1 className="mt-3 text-2xl font-bold md:text-4xl">Schedule your counselling session</h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300/75 md:text-base">
-                  Choose your counsellor, support package, date, time, and counselling mode in one focused place.
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Book a session</p>
+                <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">Pick your mode, day and time</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300/75 md:text-base">
+                  Schedule the selected one-time counselling package. The counsellor can confirm, reschedule, or share the final joining details.
                 </p>
               </div>
-              <Button variant="outline" className="h-10 rounded-xl text-sm" onClick={() => navigate("/counselling")}>
+              <Button variant="outline" className="h-10 rounded-2xl border-white/10 bg-[#0d1220] text-sm" onClick={() => navigate("/counselling")}>
                 Browse counsellors
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-              <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220]">
-                <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <CalendarClock className="h-5 w-5 text-primary" />
-                    Appointment details
-                  </CardTitle>
-                  <CardDescription>Only the details needed to schedule your counselling appointment.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-5 p-5 pt-2 md:p-6 md:pt-3">
-                  {loading ? (
-                    <PanelText>Loading schedule data...</PanelText>
-                  ) : !selectedCounsellor ? (
-                    <PanelText>No approved counsellors available yet.</PanelText>
-                  ) : (
-                    <>
+            {loading ? (
+              <PanelText>Loading schedule data...</PanelText>
+            ) : !selectedCounsellor ? (
+              <PanelText>No approved counsellors available yet.</PanelText>
+            ) : (
+              <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
+                <div className="space-y-5">
+                  <SchedulePanel icon={Video} title="Counselling mode" description="Choose how you want to attend this appointment.">
+                    <div className="grid gap-3 md:grid-cols-3">
+                      {modeOptions.map((mode) => {
+                        const Icon = mode.icon;
+                        const active = booking.mode === mode.id;
+                        const disabled = !supportedModes.includes(mode.id);
+                        return (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => setBooking((current) => ({ ...current, mode: mode.id }))}
+                            className={`relative min-h-[124px] rounded-[22px] border p-5 text-left transition ${
+                              active
+                                ? "border-violet-300 bg-violet-500 text-white shadow-[0_18px_40px_rgba(139,92,246,0.24)]"
+                                : "border-white/10 bg-[#070b15] hover:border-violet-400/50"
+                            } ${disabled ? "cursor-not-allowed opacity-45" : ""}`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <Icon className={`h-5 w-5 ${active ? "text-white" : "text-slate-200"}`} />
+                              {active && <Check className="h-4 w-4" />}
+                            </div>
+                            <div className="mt-5 font-bold">{mode.label}</div>
+                            <p className={`mt-1 text-xs leading-5 ${active ? "text-white/80" : "text-slate-300/65"}`}>
+                              {disabled ? "Not offered by this counsellor" : mode.text}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </SchedulePanel>
+
+                  <SchedulePanel icon={CalendarDays} title="Preferred date" description="Select one of the next available days or use the calendar input.">
+                    <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 xl:grid-cols-10">
+                      {dateChoices.map((date) => (
+                        <button
+                          key={date.value}
+                          type="button"
+                          onClick={() => setBooking((current) => ({ ...current, date: date.value }))}
+                          className={`rounded-[22px] border px-3 py-3 text-center transition ${
+                            booking.date === date.value
+                              ? "border-violet-300 bg-violet-500 text-white shadow-[0_16px_34px_rgba(139,92,246,0.22)]"
+                              : "border-white/10 bg-[#070b15] text-slate-200 hover:border-violet-400/50"
+                          }`}
+                        >
+                          <div className="text-[11px] font-bold tracking-[0.14em] opacity-75">{date.weekday}</div>
+                          <div className="mt-1 text-2xl font-bold">{date.day}</div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-4 grid gap-3 md:grid-cols-[220px_1fr] md:items-start">
+                      <Input
+                        type="date"
+                        value={booking.date}
+                        onChange={(event) => setBooking((current) => ({ ...current, date: event.target.value }))}
+                        className="h-11 rounded-2xl border-white/10 bg-[#070b15] text-sm"
+                      />
+                      {booking.date && (
+                        <div className={`rounded-2xl border p-3 text-xs leading-5 ${
+                          dateUnavailable
+                            ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                            : selectedDateAvailability.length
+                              ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+                              : "border-amber-400/20 bg-amber-400/10 text-amber-100"
+                        }`}>
+                          {dateUnavailable
+                            ? "This date is marked unavailable by the counsellor."
+                            : selectedDateAvailability.length
+                              ? `Counsellor availability: ${selectedDateAvailability.join(", ")}`
+                              : "No day-specific hours are set for this date. You can still send a request."}
+                        </div>
+                      )}
+                    </div>
+                  </SchedulePanel>
+
+                  <SchedulePanel icon={Clock3} title="Available time slots">
+                    <div className="flex flex-wrap gap-3">
+                      {timeSlots.map((slot) => (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setBooking((current) => ({ ...current, time: slot }))}
+                          className={`rounded-full border px-5 py-2 text-sm font-bold transition ${
+                            booking.time === slot
+                              ? "border-violet-300 bg-violet-500 text-white"
+                              : "border-white/10 bg-[#070b15] text-slate-100 hover:border-violet-400/50"
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  </SchedulePanel>
+
+                  <SchedulePanel icon={Mail} title="Confirmation details">
+                    <div className="grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
                       <div className="space-y-2">
-                        <Label>Counsellor / Therapist</Label>
+                        <Label>Email for reminders</Label>
+                        <Input
+                          type="email"
+                          value={confirmationEmail}
+                          onChange={(event) => setConfirmationEmail(event.target.value)}
+                          placeholder="you@example.com"
+                          className="h-11 rounded-2xl border-white/10 bg-[#070b15] text-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Session note (optional)</Label>
+                        <Textarea
+                          value={booking.concern}
+                          onChange={(event) => setBooking((current) => ({ ...current, concern: event.target.value }))}
+                          placeholder="Share your concern, goal, or what you want to work on."
+                          rows={3}
+                          className="rounded-2xl border-white/10 bg-[#070b15] text-sm"
+                        />
+                      </div>
+                    </div>
+                  </SchedulePanel>
+
+                  {activeBooking && (
+                    <StatusPanel tone="success" title="This counsellor is already booked once.">
+                      {activeBooking.supportPlanName || "Counselling session"} on {activeBooking.date} at {activeBooking.time}. Manage it from your dashboard.
+                    </StatusPanel>
+                  )}
+                  {!activeBooking && !acceptingBookings && (
+                    <StatusPanel tone="danger" title="Bookings are paused">
+                      This counsellor has disabled new bookings for now.
+                    </StatusPanel>
+                  )}
+                  {!activeBooking && dateUnavailable && (
+                    <StatusPanel tone="danger" title="Choose another date">
+                      The selected counsellor marked this date unavailable.
+                    </StatusPanel>
+                  )}
+                </div>
+
+                <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+                  <Card className="dashboard-card-motion overflow-hidden rounded-[28px] border-white/10 bg-[#0d1220] shadow-[0_24px_70px_rgba(4,7,18,0.38)]">
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-14 w-14 rounded-[18px] bg-gradient-to-br from-orange-200 to-amber-300">
+                          <AvatarImage src={selectedCounsellor.profilePhotoUrl} alt={selectedCounsellor.name} />
+                          <AvatarFallback className="rounded-[18px] bg-gradient-to-br from-orange-200 to-amber-300 text-lg font-bold text-violet-500">
+                            {initials(selectedCounsellor.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h2 className="font-bold leading-tight">{selectedCounsellor.name}</h2>
+                          <p className="mt-1 text-sm text-slate-300/70">{selectedCounsellor.specialization}</p>
+                        </div>
+                      </div>
+                      <div className="mt-5 space-y-2">
+                        <Label className="text-xs uppercase tracking-[0.16em] text-slate-400">Change counsellor</Label>
                         <Select value={selectedCounsellor.id} onValueChange={selectCounsellor}>
-                          <SelectTrigger className="h-10 rounded-xl border-white/10 bg-[#070b15] text-sm">
+                          <SelectTrigger className="h-10 rounded-2xl border-white/10 bg-[#070b15] text-sm">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -301,231 +465,80 @@ const SessionSchedule = () => {
                         </Select>
                       </div>
 
-                      <div className="rounded-[18px] border border-white/8 bg-[#070b15] p-4">
-                        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                          <Avatar className="h-16 w-16 rounded-[18px] bg-gradient-to-br from-orange-200 to-amber-300">
-                            <AvatarImage src={selectedCounsellor.profilePhotoUrl} alt={selectedCounsellor.name} />
-                            <AvatarFallback className="rounded-[18px] bg-gradient-to-br from-orange-200 to-amber-300 text-xl font-bold text-violet-500">
-                              {initials(selectedCounsellor.name)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h2 className="text-xl font-bold">{selectedCounsellor.name}</h2>
-                              <Badge className="bg-emerald-400/15 text-emerald-300">
-                                <UserCheck className="mr-1 h-3 w-3" />
-                                {selectedCounsellor.badge || "Verified"}
-                              </Badge>
-                            </div>
-                            <p className="mt-1 text-slate-300/75">{selectedCounsellor.specialization}</p>
-                            <div className="mt-3 flex flex-wrap gap-3 text-sm text-slate-300/75">
-                              <span className="flex items-center gap-1">
-                                <Star className="h-4 w-4 fill-red-400 text-red-400" />
-                                {Number(selectedCounsellor.rating || 4.8).toFixed(1)}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
-                                {selectedCounsellor.location || "Online"}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock3 className="h-4 w-4" />
-                                {selectedCounsellor.experience || "Verified experience"}
-                              </span>
-                            </div>
-                          </div>
+                      <div className="mt-6 space-y-4 text-sm">
+                        <SummaryLine label="Plan" value={selectedPlan?.name || "Select plan"} />
+                        <SummaryLine label="Mode" value={modeLabel(booking.mode)} />
+                        <SummaryLine label="Date" value={formatScheduleDate(booking.date)} />
+                        <SummaryLine label="Time" value={booking.time || "-"} />
+                      </div>
+
+                      <div className="my-6 h-px bg-white/10" />
+                      <div className="flex items-end justify-between gap-4">
+                        <span className="text-sm text-slate-300/70">Total</span>
+                        <div className="text-right">
+                          <div className="text-3xl font-bold">{formatRupees(planPrice(selectedPlan))}</div>
+                          <div className="text-xs text-slate-400">one-time package</div>
                         </div>
                       </div>
 
-                      <SectionLabel title="Session mode" text="Choose how you want to attend this appointment." />
-                      <div className="grid gap-3 md:grid-cols-3">
-                        {modeOptions.map((mode) => {
-                          const Icon = mode.icon;
-                          const active = booking.mode === mode.id;
-                          const disabled = !supportedModes.includes(mode.id);
-                          return (
-                            <button
-                              key={mode.id}
-                              type="button"
-                              disabled={disabled}
-                              onClick={() => setBooking((current) => ({ ...current, mode: mode.id }))}
-                              className={`rounded-[18px] border p-4 text-left transition ${
-                                active ? "border-primary bg-primary/15" : "border-white/8 bg-[#070b15]"
-                              } ${disabled ? "cursor-not-allowed opacity-45" : "hover:border-primary/50"}`}
-                            >
-                              <Icon className="h-5 w-5 text-primary" />
-                              <div className="mt-2 font-bold">{mode.label}</div>
-                              <p className="mt-1 text-xs text-slate-300/65">{disabled ? "Not offered by this counsellor" : mode.text}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <Button
+                        onClick={submitBooking}
+                        disabled={submitting || !canSubmit}
+                        className="mt-6 h-12 w-full rounded-2xl bg-violet-500 text-sm font-bold text-white hover:bg-violet-400 disabled:bg-violet-500/45"
+                      >
+                        {submitting ? "Confirming booking..." : activeBooking ? "Already booked" : "Confirm booking"}
+                      </Button>
+                      <p className="mt-4 text-center text-xs leading-5 text-slate-300/70">
+                        You will receive session details, reminders, and counsellor updates after confirmation.
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                      <SectionLabel title="Date and time" text="Pick a preferred slot. The counsellor can confirm or reschedule if needed." />
-                      <div className="grid gap-4 md:grid-cols-[210px_1fr]">
-                        <div className="space-y-2">
-                          <Label>Date</Label>
-                          <Input
-                            type="date"
-                            value={booking.date}
-                            onChange={(event) => setBooking((current) => ({ ...current, date: event.target.value }))}
-                            className="h-10 rounded-xl border-white/10 bg-[#070b15] text-sm"
-                          />
-                          <div className="flex flex-wrap gap-2">
-                            {quickDates.map((date) => (
-                              <button
-                                key={date.value}
-                                type="button"
-                                onClick={() => setBooking((current) => ({ ...current, date: date.value }))}
-                                className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
-                                  booking.date === date.value ? "bg-primary text-primary-foreground" : "bg-[#151b30] text-slate-300 hover:bg-[#1b2440]"
-                                }`}
-                              >
-                                {date.label}
-                              </button>
-                            ))}
-                          </div>
-                          {booking.date && (
-                            <div className={`rounded-2xl border p-3 text-xs ${
-                              dateUnavailable
-                                ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-                                : selectedDateAvailability.length
-                                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
-                                  : "border-amber-400/20 bg-amber-400/10 text-amber-100"
-                            }`}>
-                              {dateUnavailable
-                                ? "This date is marked unavailable by the counsellor."
-                                : selectedDateAvailability.length
-                                  ? `Counsellor availability: ${selectedDateAvailability.join(", ")}`
-                                  : "No day-specific hours are set for this date. You can still send a request."}
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Available time slots</Label>
-                          <div className="flex flex-wrap gap-2">
-                            {timeSlots.map((slot) => (
-                              <button
-                                key={slot}
-                                type="button"
-                                onClick={() => setBooking((current) => ({ ...current, time: slot }))}
-                                className={`rounded-full px-3 py-1.5 text-sm font-bold transition ${
-                                  booking.time === slot ? "bg-violet-500 text-white" : "bg-[#151b30] text-slate-200 hover:bg-[#1b2440]"
-                                }`}
-                              >
-                                {slot}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Session note (optional)</Label>
-                        <Textarea
-                          value={booking.concern}
-                          onChange={(event) => setBooking((current) => ({ ...current, concern: event.target.value }))}
-                          placeholder="Share your concern, goal, or what you want to work on in the first session."
-                          rows={3}
-                          className="rounded-xl border-white/10 bg-[#070b15] text-sm"
-                        />
-                      </div>
-
-                      {activeBooking ? (
-                        <div className="rounded-[18px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
-                          <div className="font-bold">This counsellor is already booked once.</div>
-                          <p className="mt-1 text-sm opacity-85">
-                            {activeBooking.supportPlanName || "Counselling session"} on {activeBooking.date} at {activeBooking.time}. You can manage this booking from your dashboard.
-                          </p>
-                        </div>
-                      ) : !acceptingBookings ? (
-                        <div className="rounded-[18px] border border-rose-400/20 bg-rose-400/10 p-4 text-rose-100">
-                          <div className="font-bold">Bookings are paused</div>
-                          <p className="mt-1 text-sm opacity-85">This counsellor has disabled new bookings for now.</p>
-                        </div>
-                      ) : dateUnavailable ? (
-                        <div className="rounded-[18px] border border-rose-400/20 bg-rose-400/10 p-4 text-rose-100">
-                          <div className="font-bold">Choose another date</div>
-                          <p className="mt-1 text-sm opacity-85">The selected counsellor marked this date unavailable.</p>
-                        </div>
+                  <Card className="dashboard-card-motion rounded-[24px] border-white/10 bg-[#0d1220]">
+                    <CardHeader className="p-5 pb-2">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Upcoming sessions
+                      </CardTitle>
+                      <CardDescription>Your pending and confirmed appointments.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 p-5 pt-2">
+                      {upcomingSessions.length === 0 ? (
+                        <PanelText>No active session yet.</PanelText>
                       ) : (
-                        <Button
-                          onClick={submitBooking}
-                          disabled={submitting}
-                          className="h-11 w-full rounded-xl bg-violet-500 text-sm font-bold text-white hover:bg-violet-400"
-                        >
-                          {submitting ? "Sending schedule request..." : "Confirm schedule request"}
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-
-              <aside className="space-y-4">
-                <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220]">
-                  <CardHeader className="p-5 pb-2">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <HeartHandshake className="h-5 w-5 text-primary" />
-                      Session summary
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 p-5 pt-2 text-sm">
-                    <SummaryLine label="Counsellor" value={selectedCounsellor?.name || "Select counsellor"} />
-                    <SummaryLine label="Package" value={selectedPlan?.name || "Select plan"} />
-                    <SummaryLine label="Package total" value={formatRupees(planPrice(selectedPlan))} />
-                    <SummaryLine label="Mode" value={modeLabel(booking.mode)} />
-                    <SummaryLine label="Date" value={booking.date || "Choose date"} />
-                    <SummaryLine label="Time" value={booking.time || "Choose slot"} />
-                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-xs leading-5 text-emerald-100">
-                      After confirmation, your session appears in dashboard with Meet, call, or in-person details.
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220]">
-                  <CardHeader className="p-5 pb-2">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Clock3 className="h-5 w-5 text-primary" />
-                      Upcoming sessions
-                    </CardTitle>
-                    <CardDescription>Your pending and confirmed appointments.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3 p-5 pt-2">
-                    {upcomingSessions.length === 0 ? (
-                      <PanelText>No active session yet.</PanelText>
-                    ) : (
-                      upcomingSessions.map((session) => (
-                        <div key={session.id} className="rounded-2xl border border-white/8 bg-[#070b15] p-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="font-bold">{session.counsellorName}</div>
-                            <Badge variant="secondary" className="capitalize">{session.status}</Badge>
-                          </div>
-                          <div className="mt-2 text-sm text-slate-300/70">
-                            {session.date} at {session.time} - {modeLabel(session.mode)}
-                          </div>
-                          <div className="mt-1 text-sm text-slate-300/60">{session.supportPlanName || "Counselling session"}</div>
-                          {session.meetingLink && (
-                            <div className="mt-3">
-                              <Button asChild size="sm" className="rounded-full">
-                                <a href={session.meetingLink} target="_blank" rel="noreferrer">
-                                  <Video className="mr-2 h-4 w-4" />
-                                  Join Meet
-                                </a>
-                              </Button>
+                        upcomingSessions.slice(0, 3).map((session) => (
+                          <div key={session.id} className="rounded-2xl border border-white/10 bg-[#070b15] p-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="font-bold">{session.counsellorName}</div>
+                              <Badge variant="secondary" className="capitalize">{session.status}</Badge>
                             </div>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </CardContent>
-                </Card>
+                            <div className="mt-2 text-sm text-slate-300/70">
+                              {formatScheduleDate(session.date)} at {session.time} - {modeLabel(session.mode)}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-300/55">{session.supportPlanName || "Counselling session"}</div>
+                            {session.meetingLink && (
+                              <div className="mt-3">
+                                <Button asChild size="sm" className="rounded-full">
+                                  <a href={session.meetingLink} target="_blank" rel="noreferrer">
+                                    <Video className="mr-2 h-4 w-4" />
+                                    Join Meet
+                                  </a>
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
 
-                <div className="rounded-[18px] border border-white/8 bg-[#0d1220]/75 p-4 text-xs leading-6 text-slate-300/75">
-                  <ShieldCheck className="mb-3 h-5 w-5 text-emerald-300" />
-                  MindSupport is for emotional support. In immediate danger or medical emergency, contact local emergency services.
-                </div>
-              </aside>
-            </div>
+                  <div className="rounded-[22px] border border-white/10 bg-[#0d1220]/75 p-4 text-xs leading-6 text-slate-300/75">
+                    <ShieldCheck className="mb-3 h-5 w-5 text-emerald-300" />
+                    MindSupport is for emotional support. In immediate danger or medical emergency, contact local emergency services.
+                  </div>
+                </aside>
+              </div>
+            )}
           </div>
         </section>
       </main>
@@ -533,6 +546,38 @@ const SessionSchedule = () => {
     </div>
   );
 };
+
+function SchedulePanel({ icon: Icon, title, description, children }) {
+  return (
+    <Card className="dashboard-card-motion rounded-[28px] border-white/10 bg-[#0d1220] shadow-[0_18px_48px_rgba(4,7,18,0.28)]">
+      <CardContent className="p-5 md:p-6">
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold">
+              <Icon className="h-5 w-5 text-primary" />
+              {title}
+            </h2>
+            {description && <p className="mt-1 text-sm leading-6 text-slate-300/65">{description}</p>}
+          </div>
+        </div>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatusPanel({ tone, title, children }) {
+  const styles =
+    tone === "danger"
+      ? "border-rose-400/20 bg-rose-400/10 text-rose-100"
+      : "border-emerald-400/20 bg-emerald-400/10 text-emerald-100";
+  return (
+    <div className={`rounded-[22px] border p-4 ${styles}`}>
+      <div className="font-bold">{title}</div>
+      <p className="mt-1 text-sm opacity-85">{children}</p>
+    </div>
+  );
+}
 
 function SummaryLine({ label, value }) {
   return (
@@ -543,17 +588,8 @@ function SummaryLine({ label, value }) {
   );
 }
 
-function SectionLabel({ title, text }) {
-  return (
-    <div className="space-y-1">
-      <h3 className="text-sm font-bold">{title}</h3>
-      <p className="text-xs text-slate-300/65">{text}</p>
-    </div>
-  );
-}
-
 function PanelText({ children }) {
-  return <div className="rounded-2xl border border-white/8 bg-[#070b15] p-3 text-sm text-slate-300/75">{children}</div>;
+  return <div className="rounded-2xl border border-white/10 bg-[#070b15] p-3 text-sm text-slate-300/75">{children}</div>;
 }
 
 export default SessionSchedule;

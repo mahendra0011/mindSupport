@@ -7,22 +7,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { apiFetch } from "@/lib/api";
 import {
   ArrowLeft,
   BriefcaseBusiness,
   Check,
-  CreditCard,
   GraduationCap,
   Languages,
   MapPin,
   Search,
   ShieldCheck,
-  Sparkles,
   Star,
-  Users,
+  Video,
 } from "lucide-react";
 
 const fallbackPlans = [
@@ -88,14 +85,6 @@ function initials(name = "") {
   );
 }
 
-function planLabel(planId = "") {
-  return planId
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join("-");
-}
-
 function plansFor(counsellor) {
   return counsellor?.supportPlans?.length ? counsellor.supportPlans : fallbackPlans;
 }
@@ -121,6 +110,16 @@ function modeLabel(value = "") {
     online: "Online",
   };
   return labels[value] || value || "Google Meet";
+}
+
+function compactModeLabel(value = "") {
+  const labels = {
+    "google-meet": "Meet",
+    "in-person": "In-person",
+    "voice-call": "Voice",
+    online: "Online",
+  };
+  return labels[value] || value || "Meet";
 }
 
 const Counselling = () => {
@@ -213,48 +212,52 @@ const Counselling = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#070b15] text-foreground">
+    <div className="min-h-screen bg-[#050914] text-foreground">
       <Navigation />
       <main className="pt-16">
-        <section className="dashboard-motion relative overflow-hidden py-5 md:py-7">
-          <div className="absolute inset-x-0 top-16 h-48 bg-purple-700/10 blur-3xl" />
-          <div className="relative mx-auto max-w-[1220px] px-4 sm:px-6 lg:px-8">
-            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
-                <Badge className="h-7 rounded-full border border-primary/25 bg-primary/15 px-3 text-xs text-primary">Professional counselling marketplace</Badge>
-                <h1 className="mt-3 max-w-2xl text-2xl font-bold tracking-tight md:text-3xl">Book trusted support with one clear package payment</h1>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">
-                  Compare verified counsellors, review therapy plans, and book the right expert once with transparent rupee pricing.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <HeroStat icon={Users} value={`${counsellors.length || "12"}+`} label="Approved experts" />
-                  <HeroStat icon={CreditCard} value="One-time" label="Package payment" />
-                  <HeroStat icon={ShieldCheck} value="Verified" label="Professional profiles" />
-                </div>
+        <section className="dashboard-motion relative overflow-hidden py-7 md:py-10">
+          <div className="absolute -left-24 top-20 h-72 w-72 rounded-full bg-violet-700/15 blur-3xl" />
+          <div className="absolute right-8 top-44 h-64 w-64 rounded-full bg-sky-500/10 blur-3xl" />
+          <div className="relative mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 grid gap-5 lg:grid-cols-[1fr_0.8fr] lg:items-end">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Our counsellors</p>
+                <h1 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight md:text-5xl">Find someone you click with</h1>
               </div>
-              <div className="grid gap-3 sm:grid-cols-[minmax(220px,300px)_170px]">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    className="h-10 rounded-xl border-white/10 bg-[#0d1220] pl-9 text-sm"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search anxiety, trauma, city..."
-                  />
-                </div>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="h-10 rounded-xl border-white/10 bg-[#0d1220] text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <p className="max-w-xl text-sm leading-7 text-slate-300/75 md:justify-self-end md:text-lg">
+                Verified, multilingual professionals and community mentors across stress, relationships, trauma, student pressure, and more.
+              </p>
+            </div>
+
+            <div className="mb-8 rounded-[28px] border border-white/10 bg-[#0b1020] p-5 shadow-[0_24px_70px_rgba(4,7,18,0.3)]">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-5 top-4 h-5 w-5 text-slate-400" />
+                <Input
+                  className="h-14 rounded-[24px] border-white/10 bg-[#050914] pl-14 text-base"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search by name or specialty (e.g. anxiety, relationships)..."
+                />
               </div>
+              <div className="mt-5 flex flex-wrap gap-2.5">
+                {categories.slice(0, 10).map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setCategory(item)}
+                    className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                      category === item
+                        ? "border-transparent bg-blue-500 text-white shadow-[0_10px_24px_rgba(59,130,246,0.24)]"
+                        : "border-white/8 bg-[#151b30] text-slate-300 hover:border-violet-400/45 hover:text-white"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-4 text-sm text-slate-400">
+                Showing {filteredCounsellors.length} of {counsellors.length} counsellors
+              </p>
             </div>
 
             {loading ? (
@@ -262,7 +265,7 @@ const Counselling = () => {
             ) : filteredCounsellors.length === 0 ? (
               <EmptyPanel text="No counsellors match this filter. Try another concern or location." />
             ) : (
-              <div className="dashboard-stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="dashboard-stagger grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {filteredCounsellors.map((counsellor, index) => (
                   <CounsellorCard
                     key={counsellor.id}
@@ -283,64 +286,83 @@ const Counselling = () => {
 };
 
 function CounsellorCard({ counsellor, tone, booking, onView }) {
-  const plans = plansFor(counsellor);
   const accepting = counsellor.bookingEnabled !== false;
+  const languages = counsellor.languages?.length ? counsellor.languages : ["English"];
+  const modes = counsellor.consultationModes?.length ? counsellor.consultationModes : ["google-meet", "voice-call", "in-person"];
   return (
-    <article className="dashboard-card-motion relative flex min-h-[286px] flex-col overflow-hidden rounded-[18px] border border-white/8 bg-[#0d1220]/95 p-4 shadow-[0_12px_30px_rgba(4,7,18,0.3)]">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-violet-400 via-sky-400 to-emerald-300" />
-      <div className="flex gap-3">
-        <Avatar className={`h-14 w-14 rounded-2xl border-0 bg-gradient-to-br ${tone}`}>
-          <AvatarImage src={counsellor.profilePhotoUrl} alt={counsellor.name} />
-          <AvatarFallback className={`rounded-2xl bg-gradient-to-br text-lg font-bold ${tone}`}>{initials(counsellor.name)}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0">
-          <h2 className="text-lg font-bold leading-tight">{counsellor.name}</h2>
-          <p className="mt-0.5 text-sm text-slate-300/75">{counsellor.specialization || "Mental wellness counsellor"}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
+    <article className="dashboard-card-motion group relative flex min-h-[420px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#0b1020]/95 p-6 shadow-[0_20px_55px_rgba(4,7,18,0.32)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-300/80 to-transparent" />
+      <div className="pointer-events-none absolute -bottom-16 right-0 h-32 w-32 rounded-full bg-violet-500/15 blur-3xl transition group-hover:bg-violet-500/25" />
+      <div className="relative flex gap-4">
+        <div className="relative shrink-0">
+          <Avatar className={`h-20 w-20 rounded-[24px] border-0 bg-gradient-to-br ${tone}`}>
+            <AvatarImage src={counsellor.profilePhotoUrl} alt={counsellor.name} />
+            <AvatarFallback className={`rounded-[24px] bg-gradient-to-br text-2xl font-bold ${tone}`}>{initials(counsellor.name)}</AvatarFallback>
+          </Avatar>
+          <span className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-4 border-[#0b1020] ${accepting ? "bg-emerald-400" : "bg-rose-400"}`} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold leading-tight">{counsellor.name}</h2>
+          <p className="mt-1 text-base text-slate-300/70">{counsellor.specialization || "Mental wellness counsellor"}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold">
             <Star className="h-3.5 w-3.5 fill-red-400 text-red-400" />
             <span>{Number(counsellor.rating || 4.8).toFixed(1)}</span>
             <span className="text-slate-400">({counsellor.reviews || 0})</span>
-            <span className={`rounded-full px-2.5 py-1 text-xs ${accepting ? "bg-emerald-400/10 text-emerald-300" : "bg-rose-400/10 text-rose-300"}`}>
-              {accepting ? "Accepting bookings" : "Currently unavailable"}
+            <span className={`ml-1 inline-flex items-center gap-1.5 text-sm ${accepting ? "text-emerald-300" : "text-rose-300"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${accepting ? "bg-emerald-400" : "bg-rose-400"}`} />
+              {accepting ? "Available" : "Paused"}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <p className="relative mt-6 line-clamp-2 min-h-[52px] text-base leading-7 text-slate-300/70">
+        {counsellor.bio || "Warm, practical support focused on emotional clarity, coping skills, and steady progress."}
+      </p>
+
+      <div className="relative mt-4 flex min-h-[34px] flex-wrap gap-2">
         {(counsellor.categories || []).slice(0, 3).map((item) => (
-          <span key={item} className="rounded-full bg-[#151b30] px-2.5 py-1 text-xs font-semibold text-slate-100">
+          <span key={item} className="rounded-full bg-[#151b30] px-3 py-1 text-xs font-semibold text-slate-100">
             {item}
           </span>
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 text-slate-300/80">
-        <IconLine icon={BriefcaseBusiness} text={counsellor.experience || "Experience verified"} />
+      <div className="relative mt-6 grid grid-cols-2 gap-4 text-slate-300/80">
+        <IconLine icon={BriefcaseBusiness} text={`${counsellor.experience || "Verified"} exp`} />
         <IconLine icon={MapPin} text={counsellor.location || "Online"} />
       </div>
+      <div className="relative mt-4">
+        <IconLine icon={Languages} text={languages.join(" · ")} />
+      </div>
 
-      <div className="my-4 h-px bg-white/8" />
+      <div className="relative my-5 h-px bg-white/8" />
 
-      <div className="mt-auto">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Package plans</p>
-          <p className="text-sm font-semibold text-emerald-300">from {formatRupees(lowestPrice(counsellor))} once</p>
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {plans.map((plan) => (
-            <span key={plan.id} className="rounded-full bg-violet-500/25 px-2.5 py-1 text-xs font-bold text-violet-300">
-              {planLabel(plan.id)}
-            </span>
-          ))}
+      <div className="relative mt-auto">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Starts at</p>
+            <p className="mt-1 whitespace-nowrap text-2xl font-bold text-slate-100">
+              {formatRupees(lowestPrice(counsellor))}
+              <span className="text-xs font-semibold text-slate-400"> / package</span>
+            </p>
+          </div>
+          <span className="inline-flex max-w-[190px] items-center gap-1.5 rounded-full bg-violet-500/25 px-3 py-1.5 text-[11px] font-semibold leading-tight text-violet-300">
+            <Video className="h-3.5 w-3.5" />
+            {modes.map(compactModeLabel).join(" · ")}
+          </span>
         </div>
         {booking && (
-          <div className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
+          <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
             Already booked: {booking.date} at {booking.time}
           </div>
         )}
-        <Button onClick={onView} className="mt-4 h-10 w-full rounded-xl bg-violet-500 text-sm font-bold text-white hover:bg-violet-400">
-          View Profile & Book
+        <Button
+          onClick={onView}
+          variant="outline"
+          className="mt-5 h-12 w-full rounded-2xl border-white/10 bg-transparent text-base font-bold text-slate-100 hover:border-violet-400/50 hover:bg-violet-500/15 hover:text-white"
+        >
+          View Profile
         </Button>
       </div>
     </article>
@@ -351,11 +373,13 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
   const selectedPlan = planFromList(counsellor, selectedPlanId);
 
   return (
-    <div className="min-h-screen bg-[#070b15] text-foreground">
+    <div className="min-h-screen bg-[#050914] text-foreground">
       <Navigation />
       <main className="pt-16">
-        <section className="dashboard-motion py-7 md:py-9">
-          <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
+        <section className="dashboard-motion relative overflow-hidden py-8 md:py-10">
+          <div className="absolute -left-24 top-24 h-72 w-72 rounded-full bg-violet-700/15 blur-3xl" />
+          <div className="absolute right-8 top-44 h-64 w-64 rounded-full bg-sky-500/10 blur-3xl" />
+          <div className="relative mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
             <button type="button" onClick={onBack} className="mb-5 flex items-center gap-2 text-sm text-slate-300 transition hover:text-white">
               <ArrowLeft className="h-4 w-4" />
               Back to counsellors
@@ -366,19 +390,23 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
             ) : !counsellor ? (
               <EmptyPanel text="Counsellor profile not found." />
             ) : (
-              <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+              <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_380px]">
                 <div className="space-y-6">
-                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220] shadow-[0_14px_36px_rgba(4,7,18,0.32)]">
-                    <CardContent className="p-5 md:p-6">
-                      <div className="flex flex-col gap-5 md:flex-row">
-                        <Avatar className="h-24 w-24 rounded-[24px] border-0 bg-gradient-to-br from-orange-200 to-amber-300 text-violet-500">
+                  <Card className="dashboard-card-motion overflow-hidden rounded-[30px] border-white/10 bg-[#0b1020] shadow-[0_24px_70px_rgba(4,7,18,0.36)]">
+                    <CardContent className="relative p-6 md:p-7">
+                      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-500/15 blur-3xl" />
+                      <div className="relative flex flex-col gap-6 md:flex-row">
+                        <Avatar className="h-28 w-28 rounded-[30px] border-0 bg-gradient-to-br from-orange-200 to-amber-300 text-violet-500">
                           <AvatarImage src={counsellor.profilePhotoUrl} alt={counsellor.name} />
-                          <AvatarFallback className="rounded-[24px] bg-gradient-to-br from-orange-200 to-amber-300 text-3xl font-bold text-violet-500">
+                          <AvatarFallback className="rounded-[30px] bg-gradient-to-br from-orange-200 to-amber-300 text-4xl font-bold text-violet-500">
                             {initials(counsellor.name)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <h1 className="text-2xl font-bold md:text-3xl">{counsellor.name}</h1>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{counsellor.name}</h1>
+                            <Badge className="rounded-full bg-emerald-400/15 text-emerald-300">{counsellor.badge || "Verified"}</Badge>
+                          </div>
                           <p className="mt-1 text-base text-slate-300/80">{counsellor.specialization || "Mental wellness counsellor"}</p>
                           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-slate-300">
                             <span className="flex items-center gap-2 font-semibold">
@@ -400,7 +428,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                         </div>
                       </div>
 
-                      <div className="mt-6 grid gap-3 md:grid-cols-3">
+                      <div className="relative mt-7 grid gap-3 md:grid-cols-3">
                         <InfoTile icon={BriefcaseBusiness} label="Experience" value={counsellor.experience || "Verified"} />
                         <InfoTile icon={GraduationCap} label="Qualifications" value={counsellor.education || "Verified qualification"} />
                         <InfoTile icon={Languages} label="Languages" value={(counsellor.languages || ["English"]).join(", ")} />
@@ -408,7 +436,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                     </CardContent>
                   </Card>
 
-                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220]">
+                  <Card className="dashboard-card-motion rounded-[28px] border-white/10 bg-[#0b1020]">
                     <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
                       <CardTitle className="text-lg">About</CardTitle>
                     </CardHeader>
@@ -419,7 +447,7 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                     </CardContent>
                   </Card>
 
-                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220]">
+                  <Card className="dashboard-card-motion rounded-[28px] border-white/10 bg-[#0b1020]">
                     <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
                       <CardTitle className="text-lg">Therapy plans</CardTitle>
                       <CardDescription>Select a plan, then continue to the separate schedule page.</CardDescription>
@@ -430,9 +458,9 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                           key={plan.id}
                           type="button"
                           onClick={() => setSelectedPlanId(plan.id)}
-                          className={`min-h-[136px] rounded-[18px] border p-4 text-left transition ${
+                          className={`min-h-[190px] rounded-[24px] border p-5 text-left transition ${
                             selectedPlan?.id === plan.id
-                              ? "border-violet-400 bg-violet-500 text-white shadow-[0_14px_34px_rgba(139,92,246,0.24)]"
+                              ? "border-violet-300 bg-violet-500 text-white shadow-[0_20px_44px_rgba(139,92,246,0.28)]"
                               : "border-white/10 bg-[#070b15] hover:border-violet-400/50"
                           }`}
                         >
@@ -440,11 +468,19 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                             <h3 className="text-lg font-bold">{plan.name}</h3>
                             {selectedPlan?.id === plan.id && <Check className="h-5 w-5" />}
                           </div>
-                          <p className="mt-2 text-sm opacity-80">{plan.duration}</p>
+                          <p className="mt-2 text-sm opacity-80">{plan.summary}</p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {(plan.bestFor || []).slice(0, 3).map((item) => (
+                              <span key={item} className={`rounded-full px-2.5 py-1 text-xs font-semibold ${selectedPlan?.id === plan.id ? "bg-white/15 text-white" : "bg-violet-500/20 text-violet-300"}`}>
+                                {item}
+                              </span>
+                            ))}
+                          </div>
                           <div className="mt-4 text-2xl font-bold">
                             {formatRupees(planPrice(plan))}
-                            <span className="text-sm font-semibold opacity-75"> once</span>
+                            <span className="text-sm font-semibold opacity-75"> one-time</span>
                           </div>
+                          <p className="mt-1 text-xs opacity-70">{plan.duration} - {plan.cadence}</p>
                         </button>
                       ))}
                     </CardContent>
@@ -452,24 +488,26 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
                 </div>
 
                 <aside className="lg:sticky lg:top-24 lg:self-start">
-                  <Card className="dashboard-card-motion rounded-[20px] border-white/8 bg-[#0d1220] shadow-[0_14px_36px_rgba(4,7,18,0.32)]">
-                    <CardContent className="p-5 md:p-6">
+                  <Card className="dashboard-card-motion overflow-hidden rounded-[30px] border-white/10 bg-[#0b1020] shadow-[0_24px_70px_rgba(4,7,18,0.38)]">
+                    <CardContent className="relative p-6">
+                      <div className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-violet-500/15 blur-3xl" />
+                      <div className="relative">
                       <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Selected plan</p>
                       <h2 className="mt-2 text-2xl font-bold">{selectedPlan?.name}</h2>
                       <p className="mt-1 text-sm leading-6 text-slate-300/80">{selectedPlan?.summary || "Personalized support plan"}</p>
+                      <div className="mt-4 rounded-[22px] border border-violet-400/20 bg-violet-500/15 p-3">
+                        <div className="text-xs uppercase tracking-[0.16em] text-violet-200/80">Package total</div>
+                        <div className="mt-1 text-3xl font-bold text-white">{formatRupees(planPrice(selectedPlan))}</div>
+                        <div className="mt-1 text-xs text-violet-100/75">one-time counsellor booking</div>
+                      </div>
 
-                      <div className="mt-5 space-y-3 text-sm">
+                      <div className="mt-4 space-y-2.5 text-sm">
                         <SummaryLine label="Duration" value={selectedPlan?.duration} />
                         <SummaryLine label="Cadence" value={selectedPlan?.cadence} />
-                        <SummaryLine label="One-time payment" value={formatRupees(planPrice(selectedPlan))} />
                         <SummaryLine label="Mode" value={(counsellor.consultationModes || ["google-meet"]).map(modeLabel).join(", ")} />
                       </div>
-                      <div className="mt-5 rounded-2xl border border-violet-400/20 bg-violet-400/10 p-3 text-xs leading-5 text-violet-100">
-                        <Sparkles className="mb-2 h-4 w-4" />
-                        One booking unlocks the selected support package with this counsellor. No per-session charge is shown to the user.
-                      </div>
 
-                      <div className="mt-5">
+                      <div className="mt-4">
                         <p className="mb-2 text-xs uppercase tracking-[0.16em] text-slate-400">Today's available slots</p>
                         <div className="flex flex-wrap gap-2">
                           {slots.map((slot) => (
@@ -491,14 +529,18 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
 
                       <Button
                         onClick={() => onSchedule(selectedPlan?.id)}
-                        className="mt-5 h-11 w-full rounded-xl bg-violet-500 text-sm font-bold text-white hover:bg-violet-400"
+                        className="mt-5 h-12 w-full rounded-2xl bg-violet-500 text-sm font-bold text-white shadow-[0_16px_32px_rgba(139,92,246,0.22)] hover:bg-violet-400"
                       >
                         {booking ? "Open session schedule" : "Book counsellor"}
                       </Button>
+                      <p className="mt-3 text-center text-xs text-slate-300/65">
+                        One booking unlocks this full support package. No per-session charge is shown.
+                      </p>
+                      </div>
                     </CardContent>
                   </Card>
 
-                  <div className="mt-4 rounded-[18px] border border-white/8 bg-[#0d1220]/70 p-4 text-xs leading-6 text-slate-300/75">
+                  <div className="mt-4 rounded-[22px] border border-white/10 bg-[#0d1220]/70 p-4 text-xs leading-6 text-slate-300/75">
                     <ShieldCheck className="mb-3 h-5 w-5 text-emerald-300" />
                     This platform provides emotional support and does not replace medical or psychiatric treatment. For emergencies, contact professional services immediately.
                   </div>
@@ -509,16 +551,6 @@ function CounsellorProfile({ counsellor, loading, selectedPlanId, setSelectedPla
         </section>
       </main>
       <Footer />
-    </div>
-  );
-}
-
-function HeroStat({ icon: Icon, value, label }) {
-  return (
-    <div className="flex items-center gap-2 rounded-full border border-white/8 bg-[#0d1220]/80 px-3 py-1.5 text-xs text-slate-300/75">
-      <Icon className="h-3.5 w-3.5 text-primary" />
-      <span className="font-bold text-slate-100">{value}</span>
-      <span>{label}</span>
     </div>
   );
 }
