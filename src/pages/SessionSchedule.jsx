@@ -19,7 +19,6 @@ import {
   Clock3,
   HeartHandshake,
   MapPin,
-  MessageCircle,
   Phone,
   ShieldCheck,
   Star,
@@ -261,9 +260,9 @@ const SessionSchedule = () => {
             <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
                 <Badge className="h-7 rounded-full border border-primary/25 bg-primary/15 px-3 text-xs text-primary">Session Schedule</Badge>
-                <h1 className="mt-3 text-2xl font-bold md:text-4xl">Book your counselling package</h1>
+                <h1 className="mt-3 text-2xl font-bold md:text-4xl">Schedule your counselling session</h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300/75 md:text-base">
-                  Pay once for the selected support package, then manage your appointment date, time, and mode from here.
+                  Choose your counsellor, support package, date, time, and counselling mode in one focused place.
                 </p>
               </div>
               <Button variant="outline" className="h-10 rounded-xl text-sm" onClick={() => navigate("/counselling")}>
@@ -277,9 +276,9 @@ const SessionSchedule = () => {
                 <CardHeader className="p-5 pb-2 md:p-6 md:pb-2">
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <CalendarClock className="h-5 w-5 text-primary" />
-                    Booking Details
+                    Appointment details
                   </CardTitle>
-                  <CardDescription>Pick your counsellor, support package, mode, date, and slot.</CardDescription>
+                  <CardDescription>Only the details needed to schedule your counselling appointment.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5 p-5 pt-2 md:p-6 md:pt-3">
                   {loading ? (
@@ -288,37 +287,20 @@ const SessionSchedule = () => {
                     <PanelText>No approved counsellors available yet.</PanelText>
                   ) : (
                     <>
-                      <div className="grid gap-4 md:grid-cols-[1fr_210px]">
-                        <div className="space-y-2">
-                          <Label>Counsellor / Therapist</Label>
-                          <Select value={selectedCounsellor.id} onValueChange={selectCounsellor}>
-                            <SelectTrigger className="h-10 rounded-xl border-white/10 bg-[#070b15] text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {counsellors.map((counsellor) => (
-                                <SelectItem key={counsellor.id} value={counsellor.id}>
-                                  {counsellor.name} - {counsellor.specialization}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Plan</Label>
-                          <Select value={selectedPlan?.id} onValueChange={selectPlan}>
-                            <SelectTrigger className="h-10 rounded-xl border-white/10 bg-[#070b15] text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {plansFor(selectedCounsellor).map((plan) => (
-                                <SelectItem key={plan.id} value={plan.id}>
-                                  {plan.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                      <div className="space-y-2">
+                        <Label>Counsellor / Therapist</Label>
+                        <Select value={selectedCounsellor.id} onValueChange={selectCounsellor}>
+                          <SelectTrigger className="h-10 rounded-xl border-white/10 bg-[#070b15] text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {counsellors.map((counsellor) => (
+                              <SelectItem key={counsellor.id} value={counsellor.id}>
+                                {counsellor.name} - {counsellor.specialization}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="rounded-[18px] border border-white/8 bg-[#070b15] p-4">
@@ -356,6 +338,7 @@ const SessionSchedule = () => {
                         </div>
                       </div>
 
+                      <SectionLabel title="Choose support package" text="All plans use one-time package pricing." />
                       <div className="grid gap-3 md:grid-cols-3">
                         {plansFor(selectedCounsellor).map((plan) => (
                           <button
@@ -379,6 +362,7 @@ const SessionSchedule = () => {
                         ))}
                       </div>
 
+                      <SectionLabel title="Session mode" text="Choose how you want to attend this appointment." />
                       <div className="grid gap-3 md:grid-cols-3">
                         {modeOptions.map((mode) => {
                           const Icon = mode.icon;
@@ -402,6 +386,7 @@ const SessionSchedule = () => {
                         })}
                       </div>
 
+                      <SectionLabel title="Date and time" text="Pick a preferred slot. The counsellor can confirm or reschedule if needed." />
                       <div className="grid gap-4 md:grid-cols-[210px_1fr]">
                         <div className="space-y-2">
                           <Label>Date</Label>
@@ -461,12 +446,12 @@ const SessionSchedule = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Support focus</Label>
+                        <Label>Session note (optional)</Label>
                         <Textarea
                           value={booking.concern}
                           onChange={(event) => setBooking((current) => ({ ...current, concern: event.target.value }))}
                           placeholder="Share your concern, goal, or what you want to work on in the first session."
-                          rows={4}
+                          rows={3}
                           className="rounded-xl border-white/10 bg-[#070b15] text-sm"
                         />
                       </div>
@@ -475,7 +460,7 @@ const SessionSchedule = () => {
                         <div className="rounded-[18px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-emerald-100">
                           <div className="font-bold">This counsellor is already booked once.</div>
                           <p className="mt-1 text-sm opacity-85">
-                            {activeBooking.supportPlanName || "Counselling session"} on {activeBooking.date} at {activeBooking.time}. You can join, chat, or wait for counsellor confirmation from your dashboard.
+                            {activeBooking.supportPlanName || "Counselling session"} on {activeBooking.date} at {activeBooking.time}. You can manage this booking from your dashboard.
                           </p>
                         </div>
                       ) : !acceptingBookings ? (
@@ -494,7 +479,7 @@ const SessionSchedule = () => {
                           disabled={submitting}
                           className="h-11 w-full rounded-xl bg-violet-500 text-sm font-bold text-white hover:bg-violet-400"
                         >
-                          {submitting ? "Booking counsellor..." : "Book counsellor and create one-time invoice"}
+                          {submitting ? "Sending schedule request..." : "Confirm schedule request"}
                         </Button>
                       )}
                     </>
@@ -507,18 +492,18 @@ const SessionSchedule = () => {
                   <CardHeader className="p-5 pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <HeartHandshake className="h-5 w-5 text-primary" />
-                      Booking Summary
+                      Session summary
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 p-5 pt-2 text-sm">
                     <SummaryLine label="Counsellor" value={selectedCounsellor?.name || "Select counsellor"} />
                     <SummaryLine label="Package" value={selectedPlan?.name || "Select plan"} />
-                    <SummaryLine label="One-time payment" value={formatRupees(planPrice(selectedPlan))} />
+                    <SummaryLine label="Package total" value={formatRupees(planPrice(selectedPlan))} />
                     <SummaryLine label="Mode" value={modeLabel(booking.mode)} />
                     <SummaryLine label="Date" value={booking.date || "Choose date"} />
                     <SummaryLine label="Time" value={booking.time || "Choose slot"} />
-                    <div className="rounded-2xl border border-white/8 bg-[#070b15] p-3 text-xs leading-5 text-slate-300/75">
-                      A pending one-time invoice is created when you book. 20% platform fee is recorded for admin revenue tracking after payment.
+                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-3 text-xs leading-5 text-emerald-100">
+                      After confirmation, your session appears in dashboard with Meet, call, or in-person details.
                     </div>
                   </CardContent>
                 </Card>
@@ -527,9 +512,9 @@ const SessionSchedule = () => {
                   <CardHeader className="p-5 pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <Clock3 className="h-5 w-5 text-primary" />
-                      Active Schedule
+                      Upcoming sessions
                     </CardTitle>
-                    <CardDescription>Your pending and confirmed sessions.</CardDescription>
+                    <CardDescription>Your pending and confirmed appointments.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-3 p-5 pt-2">
                     {upcomingSessions.length === 0 ? (
@@ -545,20 +530,16 @@ const SessionSchedule = () => {
                             {session.date} at {session.time} - {modeLabel(session.mode)}
                           </div>
                           <div className="mt-1 text-sm text-slate-300/60">{session.supportPlanName || "Counselling session"}</div>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {session.meetingLink && (
+                          {session.meetingLink && (
+                            <div className="mt-3">
                               <Button asChild size="sm" className="rounded-full">
                                 <a href={session.meetingLink} target="_blank" rel="noreferrer">
                                   <Video className="mr-2 h-4 w-4" />
                                   Join Meet
                                 </a>
                               </Button>
-                            )}
-                            <Button size="sm" variant="outline" className="rounded-full" onClick={() => navigate("/user?tab=chat")}>
-                              <MessageCircle className="mr-2 h-4 w-4" />
-                              Chat
-                            </Button>
-                          </div>
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -584,6 +565,15 @@ function SummaryLine({ label, value }) {
     <div className="flex items-center justify-between gap-4">
       <span className="text-slate-300/70">{label}</span>
       <span className="text-right font-bold">{value}</span>
+    </div>
+  );
+}
+
+function SectionLabel({ title, text }) {
+  return (
+    <div className="space-y-1">
+      <h3 className="text-sm font-bold">{title}</h3>
+      <p className="text-xs text-slate-300/65">{text}</p>
     </div>
   );
 }
