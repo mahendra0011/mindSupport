@@ -1,4 +1,17 @@
-export const API_BASE = (import.meta?.env?.VITE_API_BASE_URL?.trim?.() || "").replace(/\/+$/, "");
+const DEPLOYED_API_BASE = "https://mindsupport-uqms.onrender.com";
+
+function defaultApiBase() {
+    if (typeof window === "undefined")
+        return "";
+    const { hostname, port } = window.location;
+    if (hostname === "localhost" || hostname === "127.0.0.1" || port === "8080")
+        return "";
+    if (hostname === "mindsupport-uqms.onrender.com")
+        return "";
+    return DEPLOYED_API_BASE;
+}
+
+export const API_BASE = (import.meta?.env?.VITE_API_BASE_URL?.trim?.() || defaultApiBase()).replace(/\/+$/, "");
 export const AUTH_TOKEN_KEY = "mindsupport_token";
 export const AUTH_USER_KEY = "mindsupport_user";
 export function getStoredToken() {
@@ -21,6 +34,10 @@ export function clearSession() {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
 }
+export function apiUrl(path) {
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return `${API_BASE}${normalizedPath}`;
+}
 async function readApiResponse(response) {
     const text = await response.text();
     if (!text.trim())
@@ -40,7 +57,7 @@ export async function apiFetch(path, init = {}) {
         headers.set("Content-Type", "application/json");
     if (token)
         headers.set("Authorization", `Bearer ${token}`);
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(apiUrl(path), {
         ...init,
         headers,
     });

@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
+import { apiUrl } from "@/lib/api";
 import { BookOpen, Filter, Languages, Search, Video, FileText, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-const API_BASE = import.meta?.env?.VITE_API_BASE_URL || "";
 function buildQuery(params) {
     const q = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -39,7 +39,7 @@ async function fetchResources(filters) {
         minDur: filters.minDur,
         maxDur: filters.maxDur,
     });
-    const res = await fetch(`${API_BASE}/api/resources${query}`);
+    const res = await fetch(apiUrl(`/api/resources${query}`));
     if (!res.ok) {
         throw new Error(`Failed to load resources ${res.status}`);
     }
@@ -58,7 +58,7 @@ async function fetchYouTube(q, opts) {
             maxDur: opts.maxDur,
             maxResults: max,
         });
-        const res = await fetch(`${API_BASE}/api/resources/youtube${query}`);
+        const res = await fetch(apiUrl(`/api/resources/youtube${query}`));
         if (!res.ok)
             return [];
         const items = await res.json();
