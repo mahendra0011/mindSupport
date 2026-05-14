@@ -473,7 +473,7 @@ const UserDashboard = () => {
   };
 
   const addEmojiToMessage = (emoji) => {
-    setMessageText((current) => `${current}${emoji}`);
+    setMessageText((current) => (current ? `${current} ${emoji}` : emoji));
     setShowEmojiPanel(false);
   };
 
@@ -969,17 +969,17 @@ const UserDashboard = () => {
               </TabsContent>
 
               <TabsContent value="chat" className="dashboard-tab-motion space-y-6">
-                <Card className="dashboard-card-motion glass-card overflow-hidden border-emerald-500/15">
+                <Card className="dashboard-card-motion overflow-hidden border border-primary/20 bg-gradient-to-br from-card/95 via-card/90 to-primary/5 shadow-2xl">
                   <CardContent className="p-0">
-                    <div className="grid min-h-[720px] lg:grid-cols-[360px_1fr]">
-                      <aside className="border-b border-glass-border/40 bg-background/95 lg:border-b-0 lg:border-r">
-                        <div className="border-b border-glass-border/40 p-4">
+                    <div className="grid min-h-[680px] overflow-hidden lg:grid-cols-[320px_minmax(0,1fr)]">
+                      <aside className="flex min-h-[240px] flex-col border-b border-glass-border/40 bg-background/95 lg:min-h-[680px] lg:border-b-0 lg:border-r">
+                        <div className="border-b border-glass-border/40 bg-gradient-to-br from-background/95 to-primary/5 p-4">
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
                               <AvatarBadge name={user?.name || "You"} online />
                               <div>
-                                <div className="font-semibold">Chats</div>
-                                <div className="text-xs text-foreground/55">Secure counsellor messaging</div>
+                                <div className="font-semibold leading-tight">Secure Chat</div>
+                                <div className="text-xs text-foreground/55">{allChatConversations.length} booked counsellor{allChatConversations.length === 1 ? "" : "s"}</div>
                               </div>
                             </div>
                             <div className="flex items-center gap-1">
@@ -994,10 +994,10 @@ const UserDashboard = () => {
                           <div className="relative mt-4">
                             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
                             <Input
-                              className="h-10 rounded-full bg-foreground/5 pl-9"
+                              className="h-10 rounded-full border-glass-border/50 bg-background/70 pl-9 shadow-inner"
                               value={chatSearch}
                               onChange={(event) => setChatSearch(event.target.value)}
-                              placeholder="Search or start new chat"
+                              placeholder="Search counsellor or message"
                             />
                           </div>
                           <div className="mt-3 flex flex-wrap gap-2">
@@ -1007,7 +1007,7 @@ const UserDashboard = () => {
                                 type="button"
                                 onClick={() => setChatFilter(filter)}
                                 className={`rounded-full px-3 py-1 text-xs font-medium capitalize transition ${
-                                  chatFilter === filter ? "bg-emerald-500 text-white" : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10"
+                                  chatFilter === filter ? "bg-primary text-primary-foreground shadow-glow" : "bg-foreground/5 text-foreground/70 hover:bg-foreground/10"
                                 }`}
                               >
                                 {filter}
@@ -1016,7 +1016,7 @@ const UserDashboard = () => {
                           </div>
                         </div>
 
-                        <div className="max-h-[590px] overflow-y-auto">
+                        <div className="chat-scrollbar flex-1 space-y-2 overflow-y-auto p-2">
                           {filteredChatConversations.length === 0 ? (
                             <div className="p-4">
                               <PanelText>No chats match this filter.</PanelText>
@@ -1034,16 +1034,19 @@ const UserDashboard = () => {
                         </div>
                       </aside>
 
-                      <section className="flex min-h-[720px] flex-col bg-[#0b141a] text-slate-50">
+                      <section className="flex min-h-[680px] flex-col bg-[#08111a] text-slate-50">
                         {activeConversation ? (
                           <>
-                            <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#202c33] p-4">
+                            <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-gradient-to-r from-[#202c33] via-[#1c2932] to-[#17232c] p-4">
                               <div className="flex min-w-0 items-center gap-3">
                                 <AvatarBadge name={activeConversation.name} online={activeConversation.online} />
                                 <div className="min-w-0">
-                                  <div className="truncate font-semibold">{activeConversation.name}</div>
-                                  <div className="truncate text-xs text-slate-300">
-                                    {activeConversation.online ? "online" : `last seen ${activeConversation.responseTime || "recently"}`}
+                                  <div className="flex min-w-0 items-center gap-2">
+                                    <span className="truncate font-semibold">{activeConversation.name}</span>
+                                    <Badge className="border-emerald-400/20 bg-emerald-400/10 text-[10px] text-emerald-100">Booked</Badge>
+                                  </div>
+                                  <div className="mt-0.5 truncate text-xs text-slate-300">
+                                    {activeConversation.specialization || "Counsellor"} - {activeConversation.responseTime || "Usually replies soon"}
                                   </div>
                               </div>
                             </div>
@@ -1057,12 +1060,12 @@ const UserDashboard = () => {
                               </div>
                             </div>
 
-                            <div className="border-b border-white/10 bg-[#111b21] px-4 py-2 text-center text-xs text-slate-300">
+                            <div className="border-b border-white/10 bg-[#101a22] px-4 py-2 text-center text-xs text-slate-300">
                               <Lock className="mr-1 inline h-3.5 w-3.5 text-emerald-300" />
-                              Messages are protected in your MindSupport account. This platform is not emergency medical care.
+                              Private follow-up only. For emergency support, use SOS or local emergency services.
                             </div>
 
-                            <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_28%),linear-gradient(135deg,#0b141a,#111b21)] p-4 md:p-6">
+                            <div className="chat-scrollbar flex-1 overflow-y-auto bg-[linear-gradient(135deg,#08111a,#101a22)] p-3 md:p-5">
                               {activeMessages.length === 0 ? (
                                 <EmptyChatState conversation={activeConversation} onQuickReply={addQuickReply} />
                               ) : (
@@ -1101,7 +1104,7 @@ const UserDashboard = () => {
                               )}
                             </div>
 
-                            <div className="border-t border-white/10 bg-[#202c33] p-3">
+                            <div className="border-t border-white/10 bg-[#17242d]/95 p-3 shadow-[0_-18px_45px_rgba(0,0,0,0.22)] backdrop-blur">
                               {replyToMessage && (
                                 <div className="mb-3 rounded-xl border-l-4 border-emerald-400 bg-[#111b21] p-3 text-xs text-slate-300">
                                   <div className="flex items-center justify-between gap-3">
@@ -1125,7 +1128,7 @@ const UserDashboard = () => {
                               </div>
 
                               {(showAttachmentPanel || showEmojiPanel) && (
-                                <div className="chat-panel-pop mb-3 rounded-2xl border border-white/10 bg-[#111b21] p-3">
+                                <div className="chat-panel-pop mb-3 rounded-2xl border border-white/10 bg-[#0f1921] p-3 shadow-xl">
                                   {showAttachmentPanel && (
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                       <AttachmentAction icon={File} label="Document" onClick={() => selectAttachmentType("Document")} />
@@ -1136,8 +1139,8 @@ const UserDashboard = () => {
                                   )}
                                   {showEmojiPanel && (
                                     <div className="flex flex-wrap gap-2">
-                                      {["🙂", "🙏", "💙", "🌱", "😔", "😌", "👍", "✨"].map((emoji) => (
-                                        <button key={emoji} type="button" onClick={() => addEmojiToMessage(emoji)} className="rounded-lg bg-white/5 px-3 py-2 text-lg hover:bg-white/10">
+                                      {["Thanks", "Calm", "Noted", "Hopeful", "Grounded", "Support"].map((emoji) => (
+                                        <button key={emoji} type="button" onClick={() => addEmojiToMessage(emoji)} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-100 hover:bg-white/10">
                                           {emoji}
                                         </button>
                                       ))}
@@ -1146,9 +1149,9 @@ const UserDashboard = () => {
                                 </div>
                               )}
 
-                              <div className="grid gap-2 md:grid-cols-[220px_1fr]">
+                              <div className="grid gap-2 md:grid-cols-[210px_1fr]">
                                 <Select value={messageRecipient || activeConversation.id} onValueChange={setMessageRecipient}>
-                                  <SelectTrigger className="border-white/10 bg-[#111b21] text-slate-100">
+                                  <SelectTrigger className="h-10 rounded-xl border-white/10 bg-[#0f1921] text-slate-100">
                                     <SelectValue placeholder="Choose counsellor" />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -1162,15 +1165,15 @@ const UserDashboard = () => {
                                 <div className="relative">
                                   <Paperclip className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                   <Input
-                                    className="border-white/10 bg-[#111b21] pl-9 text-slate-100 placeholder:text-slate-400"
+                                    className="h-10 rounded-xl border-white/10 bg-[#0f1921] pl-9 text-slate-100 placeholder:text-slate-400"
                                     value={messageFileUrl}
                                     onChange={(event) => setMessageFileUrl(event.target.value)}
-                                    placeholder="Optional file, image, resource, or report URL"
+                                    placeholder="Optional file or resource URL"
                                   />
                                 </div>
                               </div>
 
-                              <div className="mt-2 flex items-end gap-2">
+                              <div className="mt-2 flex items-end gap-2 rounded-2xl border border-white/10 bg-[#0f1921] p-2">
                                 <IconButton title="Emoji" dark onClick={() => { setShowEmojiPanel((value) => !value); setShowAttachmentPanel(false); }}>
                                   <Smile className="h-5 w-5" />
                                 </IconButton>
@@ -1188,7 +1191,7 @@ const UserDashboard = () => {
                                     }
                                   }}
                                   placeholder="Type a message"
-                                  className="min-h-[46px] resize-none rounded-2xl border-white/10 bg-[#111b21] text-slate-100 placeholder:text-slate-400"
+                                  className="min-h-[44px] resize-none border-0 bg-transparent text-slate-100 shadow-none placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                                 />
                                 <Button
                                   type="button"
@@ -1566,7 +1569,7 @@ function IconButton({ children, title, onClick, dark = false }) {
       title={title}
       aria-label={title}
       onClick={onClick}
-      className={`flex h-10 w-10 items-center justify-center rounded-full transition hover:scale-105 active:scale-95 ${
+      className={`flex h-9 w-9 items-center justify-center rounded-full transition hover:scale-105 active:scale-95 ${
         dark ? "text-slate-200 hover:bg-white/10" : "text-foreground/70 hover:bg-foreground/10"
       }`}
     >
@@ -1577,7 +1580,7 @@ function IconButton({ children, title, onClick, dark = false }) {
 
 function AvatarBadge({ name, online = false }) {
   return (
-    <span className="animated-ring relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white shadow-sm">
+    <span className="animated-ring relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-accent text-sm font-bold text-primary-foreground shadow-sm">
       {getInitials(name)}
       {online && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#202c33] bg-emerald-300" />}
     </span>
@@ -1589,14 +1592,14 @@ function ConversationRow({ conversation, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`chat-row-motion flex w-full items-center gap-3 border-b border-glass-border/30 p-4 text-left transition ${
-        active ? "bg-emerald-500/10" : "hover:bg-foreground/5"
+      className={`chat-row-motion group flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${
+        active ? "border-primary/35 bg-primary/10 shadow-[0_12px_30px_rgba(0,0,0,0.18)]" : "border-transparent bg-foreground/[0.035] hover:border-glass-border/60 hover:bg-foreground/[0.06]"
       }`}
     >
       <AvatarBadge name={conversation.name} online={conversation.online} />
       <span className="min-w-0 flex-1">
         <span className="flex items-center justify-between gap-2">
-          <span className="truncate font-semibold">{conversation.name}</span>
+          <span className="truncate text-sm font-semibold">{conversation.name}</span>
           <span className="shrink-0 text-[11px] text-foreground/50">{conversation.lastTime}</span>
         </span>
         <span className="mt-1 flex items-center gap-1 text-xs text-foreground/55">
@@ -1604,6 +1607,7 @@ function ConversationRow({ conversation, active, onClick }) {
           {conversation.archived && <Archive className="h-3 w-3 text-foreground/45" />}
           <span className="truncate">{conversation.lastText}</span>
         </span>
+        <span className="mt-1 block truncate text-[11px] text-foreground/45">{conversation.specialization || "Secure support"}</span>
       </span>
       {conversation.unreadCount > 0 && (
         <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-emerald-500 px-2 text-xs font-semibold text-white">
@@ -1616,10 +1620,10 @@ function ConversationRow({ conversation, active, onClick }) {
 
 function EmptyChatState({ conversation, onQuickReply }) {
   return (
-    <div className="chat-panel-pop mx-auto flex min-h-[360px] max-w-md flex-col items-center justify-center text-center">
+    <div className="chat-panel-pop mx-auto flex min-h-[340px] max-w-md flex-col items-center justify-center rounded-3xl border border-white/10 bg-white/[0.035] p-6 text-center shadow-2xl">
       <AvatarBadge name={conversation.name} online={conversation.online} />
-      <h3 className="mt-4 text-lg font-semibold">Start chat with {conversation.name}</h3>
-      <p className="mt-2 text-sm text-slate-300">
+      <h3 className="mt-4 text-lg font-semibold">Start a private follow-up</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-300">
         Send a follow-up, share a journal note, ask for a wellness task, or attach a resource link.
       </p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -1642,7 +1646,7 @@ function DatePill({ message }) {
   const label = message?.createdAt ? new Date(message.createdAt).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "Today";
   return (
     <div className="my-4 flex justify-center">
-      <span className="chat-panel-pop rounded-full bg-[#182229] px-3 py-1 text-[11px] font-medium text-slate-300 shadow-sm">{label}</span>
+      <span className="chat-panel-pop rounded-full border border-white/10 bg-[#17242d]/90 px-3 py-1 text-[11px] font-medium text-slate-300 shadow-sm backdrop-blur">{label}</span>
     </div>
   );
 }
@@ -1652,7 +1656,7 @@ function AttachmentAction({ icon: Icon, label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="chat-panel-pop flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-200 transition hover:-translate-y-0.5 hover:bg-white/10"
+      className="chat-panel-pop flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-white/[0.045] p-3 text-xs text-slate-200 transition hover:-translate-y-0.5 hover:bg-white/10"
     >
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-200">
         <Icon className="h-5 w-5" />
@@ -1679,10 +1683,13 @@ function ChatBubble({
     ? new Date(message.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
     : message.time || "";
   const reactions = Object.entries(message.reactionSummary || {});
+  const subject = message.subject && !/^chat with/i.test(message.subject) ? message.subject : "";
 
   return (
     <div className={`group flex ${sent ? "chat-bubble-sent justify-end" : "chat-bubble-received justify-start"}`}>
-      <div className={`max-w-[82%] rounded-2xl px-4 py-3 shadow-sm ${sent ? "bg-[#005c4b] text-white rounded-br-sm" : "bg-[#202c33] text-slate-100 rounded-bl-sm"}`}>
+      <div className={`relative max-w-[min(82%,680px)] rounded-2xl px-4 py-3 shadow-lg ${
+        sent ? "rounded-br-md bg-gradient-to-br from-emerald-600 to-teal-700 text-white" : "rounded-bl-md border border-white/10 bg-[#1a2731] text-slate-100"
+      }`}>
         {message.replyTo && (
           <div className={`mb-2 rounded-lg border-l-4 p-2 text-xs ${sent ? "border-emerald-200 bg-white/10" : "border-emerald-300 bg-black/15"}`}>
             <div className="font-semibold">{message.replyTo.from}</div>
@@ -1703,11 +1710,11 @@ function ChatBubble({
           </div>
         ) : (
           <>
-            {message.subject && <div className="text-sm font-semibold">{message.subject}</div>}
+            {subject && <div className="mb-1 text-sm font-semibold">{subject}</div>}
             <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>
-            {message.task && <div className="mt-2 rounded-lg bg-white/10 p-2 text-xs">Task: {message.task}</div>}
+            {message.task && <div className="mt-2 rounded-xl border border-white/10 bg-white/10 p-2 text-xs">Task: {message.task}</div>}
             {message.fileUrl && (
-              <a className={`mt-2 inline-flex items-center gap-1 text-xs underline ${sent ? "text-emerald-100" : "text-emerald-300"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
+              <a className={`mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs no-underline transition hover:bg-white/15 ${sent ? "text-emerald-50" : "text-emerald-200"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
                 <Paperclip className="h-3 w-3" />
                 {message.fileName || "Open shared file"}
               </a>
@@ -1717,7 +1724,7 @@ function ChatBubble({
         {reactions.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {reactions.map(([emoji, count]) => (
-              <button key={emoji} type="button" onClick={() => onReact(emoji)} className="rounded-full bg-white/10 px-2 py-0.5 text-xs hover:bg-white/15">
+              <button key={emoji} type="button" onClick={() => onReact(emoji)} className="rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs hover:bg-white/15">
                 {emoji} {count}
               </button>
             ))}
@@ -1730,22 +1737,22 @@ function ChatBubble({
         </div>
         {!message.deleted && (
           <div className="mt-2 flex flex-wrap justify-end gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
-            <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onReply}>
+            <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={onReply}>
               <Reply className="h-3.5 w-3.5" />
             </Button>
-            {["+1", "heart", "thanks", "calm"].map((emoji) => (
-              <Button key={emoji} size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
+            {["Like", "Care", "Thanks"].map((emoji) => (
+              <Button key={emoji} size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
                 <SmilePlus className="mr-1 h-3.5 w-3.5" />
                 {emoji}
               </Button>
             ))}
             {message.canEdit && (
-              <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onStartEdit}>
+              <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-slate-100 hover:bg-white/10" onClick={onStartEdit}>
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
             )}
             {message.canDelete && (
-              <Button size="sm" variant="ghost" className="h-8 px-2 text-rose-200 hover:bg-rose-500/10 hover:text-rose-100" onClick={onDelete}>
+              <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-rose-200 hover:bg-rose-500/10 hover:text-rose-100" onClick={onDelete}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             )}

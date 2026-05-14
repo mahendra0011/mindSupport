@@ -210,6 +210,7 @@ const CounsellorDashboard = () => {
   const [sessionFilter, setSessionFilter] = useState("all");
   const [sessionSearch, setSessionSearch] = useState("");
   const [sessionDrafts, setSessionDrafts] = useState({});
+  const [patientChatSearch, setPatientChatSearch] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messageFileUrl, setMessageFileUrl] = useState("");
   const [replyToMessage, setReplyToMessage] = useState(null);
@@ -261,7 +262,7 @@ const CounsellorDashboard = () => {
 
   const appointments = useMemo(() => data.appointments || [], [data.appointments]);
   const patients = useMemo(() => data.patients || [], [data.patients]);
-  const messages = useMemo(() => data.messages || [], [data.messages]);
+  const messages = useMemo(() => [...(data.messages || [])].reverse(), [data.messages]);
   const today = todayYMD();
 
   const pending = appointments.filter((item) => item.status === "pending");
@@ -307,6 +308,38 @@ const CounsellorDashboard = () => {
         message.to === activePatient.name
     );
   }, [activePatient, messages]);
+
+  const chatPatients = useMemo(() => {
+    const query = patientChatSearch.trim().toLowerCase();
+    return patients
+      .map((patient) => {
+        const thread = messages.filter(
+          (message) =>
+            message.fromId === patient.id ||
+            message.toId === patient.id ||
+            message.from === patient.name ||
+            message.to === patient.name
+        );
+        const lastMessage = thread[thread.length - 1];
+        return {
+          patient,
+          thread,
+          lastMessage,
+          unreadCount: thread.filter((message) => message.unread).length,
+        };
+      })
+      .filter(({ patient, lastMessage }) => {
+        if (!query) return true;
+        const text = `${patient.name} ${patient.email} ${patient.moodReport} ${patient.risk} ${lastMessage?.text || ""}`.toLowerCase();
+        return text.includes(query);
+      })
+      .sort((a, b) => {
+        if (a.unreadCount !== b.unreadCount) return b.unreadCount - a.unreadCount;
+        const aTime = new Date(a.lastMessage?.createdAt || 0).getTime();
+        const bTime = new Date(b.lastMessage?.createdAt || 0).getTime();
+        return bTime - aTime;
+      });
+  }, [messages, patientChatSearch, patients]);
 
   const unreadCount = messages.filter((message) => message.unread).length;
   const averageAttendance = appointments.length ? Math.round((completedSessions.length / appointments.length) * 100) : 0;
@@ -999,58 +1032,52 @@ const CounsellorDashboard = () => {
               </TabsContent>
 
               <TabsContent value="chat" className="dashboard-tab-motion space-y-6">
-                <Card className="glass-card overflow-hidden border-emerald-500/15">
-                  <div className="grid min-h-[720px] lg:grid-cols-[360px_1fr]">
-                    <aside className="border-b border-glass-border/40 bg-background/95 lg:border-b-0 lg:border-r">
-                      <div className="border-b border-glass-border/40 p-4">
+                <Card className="overflow-hidden border border-primary/20 bg-gradient-to-br from-card/95 via-card/90 to-primary/5 shadow-2xl">
+                  <div className="grid min-h-[680px] overflow-hidden lg:grid-cols-[320px_minmax(0,1fr)]">
+                    <aside className="flex min-h-[240px] flex-col border-b border-glass-border/40 bg-background/95 lg:min-h-[680px] lg:border-b-0 lg:border-r">
+                      <div className="border-b border-glass-border/40 bg-gradient-to-br from-background/95 to-primary/5 p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h2 className="font-semibold">Chats</h2>
-                            <p className="text-xs text-foreground/60">{unreadCount} unread secure messages</p>
+                            <h2 className="font-semibold leading-tight">Patient Chat</h2>
+                            <p className="text-xs text-foreground/60">{unreadCount} unread secure message{unreadCount === 1 ? "" : "s"}</p>
                           </div>
                           <MessageCircle className="h-5 w-5 text-primary" />
                         </div>
+                        <div className="relative mt-4">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/45" />
+                          <Input
+                            className="h-10 rounded-full border-glass-border/50 bg-background/70 pl-9 shadow-inner"
+                            value={patientChatSearch}
+                            onChange={(event) => setPatientChatSearch(event.target.value)}
+                            placeholder="Search patient or message"
+                          />
+                        </div>
                       </div>
-                      <div className="max-h-[650px] overflow-y-auto">
-                        {patients.length ? (
-                          patients.map((patient) => {
-                            const lastMessage = messages.find((message) => message.fromId === patient.id || message.toId === patient.id);
-                            return (
-                              <button
-                                type="button"
-                                key={patient.id}
-                                onClick={() => setActiveConversationId(patient.id)}
-                                className={`chat-row-motion flex w-full items-center gap-3 border-b border-glass-border/30 p-4 text-left transition ${
-                                  activePatient?.id === patient.id ? "bg-emerald-500/10" : "hover:bg-foreground/5"
-                                }`}
-                              >
-                                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold text-white">
-                                  {initials(patient.name)}
-                                  {privacySettings.showOnlineStatus && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-emerald-300" />}
-                                </span>
-                                <span className="min-w-0 flex-1">
-                                  <span className="flex items-center justify-between gap-2">
-                                    <span className="truncate font-semibold">{patient.name}</span>
-                                    <span className="shrink-0 text-[11px] text-foreground/50">{lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : ""}</span>
-                                  </span>
-                                  <span className="mt-1 block truncate text-xs text-foreground/55">{lastMessage?.text || patient.moodReport || "No messages yet"}</span>
-                                </span>
-                                <ChevronRight className="h-4 w-4 text-foreground/40" />
-                              </button>
-                            );
-                          })
+                      <div className="chat-scrollbar flex-1 space-y-2 overflow-y-auto p-2">
+                        {chatPatients.length ? (
+                          chatPatients.map(({ patient, lastMessage, unreadCount: patientUnreadCount }) => (
+                            <PatientConversationRow
+                              key={patient.id}
+                              patient={patient}
+                              active={activePatient?.id === patient.id}
+                              lastMessage={lastMessage}
+                              unreadCount={patientUnreadCount}
+                              showOnlineStatus={privacySettings.showOnlineStatus}
+                              onClick={() => setActiveConversationId(patient.id)}
+                            />
+                          ))
                         ) : (
                           <div className="p-4">
-                            <PanelText>Patients appear here after users book sessions.</PanelText>
+                            <PanelText>{patients.length ? "No patients match this chat search." : "Patients appear here after users book sessions."}</PanelText>
                           </div>
                         )}
                       </div>
                     </aside>
 
-                    <section className="flex min-h-[720px] flex-col bg-[#0b141a] text-slate-50">
-                      <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-[#202c33] p-4">
+                    <section className="flex min-h-[680px] flex-col bg-[#08111a] text-slate-50">
+                      <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-gradient-to-r from-[#202c33] via-[#1c2932] to-[#17232c] p-4">
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500 font-semibold text-white">
+                          <span className="animated-ring relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-accent text-sm font-bold text-primary-foreground shadow-sm">
                             {initials(activePatient?.name || "User")}
                           </span>
                           <div className="min-w-0">
@@ -1061,12 +1088,12 @@ const CounsellorDashboard = () => {
                         <Badge className={riskTone[activePatient?.risk] || "bg-slate-700 text-slate-100"}>{activePatient?.risk || "safe"}</Badge>
                       </div>
 
-                      <div className="border-b border-white/10 bg-[#111b21] px-4 py-2 text-center text-xs text-slate-300">
+                      <div className="border-b border-white/10 bg-[#101a22] px-4 py-2 text-center text-xs text-slate-300">
                         <Lock className="mr-1 inline h-3.5 w-3.5 text-emerald-300" />
                         Edit, delete, reply, and reactions are available for secure follow-up messages.
                       </div>
 
-                      <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_28%),linear-gradient(135deg,#0b141a,#111b21)] p-4 md:p-6">
+                      <div className="chat-scrollbar flex-1 overflow-y-auto bg-[linear-gradient(135deg,#08111a,#101a22)] p-3 md:p-5">
                         {conversationMessages.length ? (
                           <div className="space-y-3">
                             {conversationMessages.map((message) => (
@@ -1093,7 +1120,7 @@ const CounsellorDashboard = () => {
                         )}
                       </div>
 
-                      <div className="border-t border-white/10 bg-[#202c33] p-3">
+                      <div className="border-t border-white/10 bg-[#17242d]/95 p-3 shadow-[0_-18px_45px_rgba(0,0,0,0.22)] backdrop-blur">
                         {replyToMessage && (
                           <div className="mb-3 rounded-xl border-l-4 border-emerald-400 bg-[#111b21] p-3 text-xs text-slate-300">
                             <div className="flex items-center justify-between gap-3">
@@ -1115,19 +1142,19 @@ const CounsellorDashboard = () => {
                             </button>
                           ))}
                         </div>
-                        <div className="mb-2 grid gap-2 md:grid-cols-[1fr_220px]">
-                          <Input className="border-white/10 bg-[#111b21] text-slate-100 placeholder:text-slate-400" value={messageFileUrl} onChange={(event) => setMessageFileUrl(event.target.value)} placeholder="Optional resource or file URL" />
+                        <div className="mb-2 grid gap-2 md:grid-cols-[1fr_190px]">
+                          <Input className="h-10 rounded-xl border-white/10 bg-[#0f1921] text-slate-100 placeholder:text-slate-400" value={messageFileUrl} onChange={(event) => setMessageFileUrl(event.target.value)} placeholder="Optional resource or file URL" />
                           <Button type="button" variant="outline" onClick={() => setMessageText("Please complete today's breathing exercise and update your mood tracker before our next session.")}>
                             Wellness task
                           </Button>
                         </div>
-                        <div className="flex items-end gap-2">
+                        <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#0f1921] p-2">
                           <Textarea
                             rows={2}
                             value={messageText}
                             onChange={(event) => setMessageText(event.target.value)}
                             placeholder="Write a secure follow-up message..."
-                            className="min-h-[46px] resize-none rounded-2xl border-white/10 bg-[#111b21] text-slate-100 placeholder:text-slate-400"
+                            className="min-h-[44px] resize-none border-0 bg-transparent text-slate-100 shadow-none placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                           <Button className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600" onClick={sendCounsellorMessage} aria-label="Send message" disabled={!messageText.trim() || !activePatient}>
                             <Send className="h-5 w-5" />
@@ -1664,6 +1691,40 @@ function ProgressRow({ label, value }) {
   );
 }
 
+function PatientConversationRow({ patient, active, lastMessage, unreadCount, showOnlineStatus, onClick }) {
+  const time = lastMessage?.createdAt ? new Date(lastMessage.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`chat-row-motion group flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${
+        active ? "border-primary/35 bg-primary/10 shadow-[0_12px_30px_rgba(0,0,0,0.18)]" : "border-transparent bg-foreground/[0.035] hover:border-glass-border/60 hover:bg-foreground/[0.06]"
+      }`}
+    >
+      <span className="animated-ring relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-accent text-sm font-bold text-primary-foreground">
+        {initials(patient.name)}
+        {showOnlineStatus && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background bg-emerald-300" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate text-sm font-semibold">{patient.name}</span>
+          <span className="shrink-0 text-[11px] text-foreground/50">{time}</span>
+        </span>
+        <span className="mt-1 block truncate text-xs text-foreground/55">{lastMessage?.text || patient.moodReport || "No messages yet"}</span>
+        <span className="mt-1 flex items-center gap-2 text-[11px] text-foreground/45">
+          <span className="capitalize">{patient.risk || "safe"} risk</span>
+          {patient.sessionsCompleted !== undefined ? <span>{patient.sessionsCompleted} sessions</span> : null}
+        </span>
+      </span>
+      {unreadCount > 0 ? (
+        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-2 text-xs font-semibold text-primary-foreground">{unreadCount}</span>
+      ) : (
+        <ChevronRight className="h-4 w-4 text-foreground/35 transition group-hover:translate-x-0.5" />
+      )}
+    </button>
+  );
+}
+
 function CounsellorChatBubble({
   message,
   editing,
@@ -1681,10 +1742,13 @@ function CounsellorChatBubble({
     ? new Date(message.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
     : message.time || "";
   const reactions = Object.entries(message.reactionSummary || {});
+  const subject = message.subject && !/^chat with/i.test(message.subject) ? message.subject : "";
 
   return (
-    <div className={`group flex ${sent ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[86%] rounded-2xl px-4 py-3 shadow-sm ${sent ? "rounded-br-sm bg-[#005c4b] text-white" : "rounded-bl-sm bg-[#202c33] text-slate-100"}`}>
+    <div className={`group flex ${sent ? "chat-bubble-sent justify-end" : "chat-bubble-received justify-start"}`}>
+      <div className={`relative max-w-[min(82%,680px)] rounded-2xl px-4 py-3 shadow-lg ${
+        sent ? "rounded-br-md bg-gradient-to-br from-emerald-600 to-teal-700 text-white" : "rounded-bl-md border border-white/10 bg-[#1a2731] text-slate-100"
+      }`}>
         {message.replyTo && (
           <div className={`mb-2 rounded-lg border-l-4 p-2 text-xs ${sent ? "border-emerald-200 bg-white/10" : "border-emerald-300 bg-black/15"}`}>
             <div className="font-semibold">{message.replyTo.from}</div>
@@ -1710,10 +1774,11 @@ function CounsellorChatBubble({
           </div>
         ) : (
           <>
+            {subject && <div className="mb-1 text-sm font-semibold">{subject}</div>}
             <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>
-            {message.task && <div className="mt-2 rounded-lg bg-white/10 p-2 text-xs">Task: {message.task}</div>}
+            {message.task && <div className="mt-2 rounded-xl border border-white/10 bg-white/10 p-2 text-xs">Task: {message.task}</div>}
             {message.fileUrl && (
-              <a className={`mt-2 inline-flex items-center gap-1 text-xs underline ${sent ? "text-emerald-100" : "text-emerald-300"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
+              <a className={`mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs no-underline transition hover:bg-white/15 ${sent ? "text-emerald-50" : "text-emerald-200"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
                 <LinkIcon className="h-3 w-3" />
                 {message.fileName || "Open shared file"}
               </a>
@@ -1723,7 +1788,7 @@ function CounsellorChatBubble({
         {reactions.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {reactions.map(([emoji, count]) => (
-              <button key={emoji} type="button" onClick={() => onReact(emoji)} className="rounded-full bg-white/10 px-2 py-0.5 text-xs hover:bg-white/15">
+              <button key={emoji} type="button" onClick={() => onReact(emoji)} className="rounded-full border border-white/10 bg-white/10 px-2 py-0.5 text-xs hover:bg-white/15">
                 {emoji} {count}
               </button>
             ))}
@@ -1736,22 +1801,22 @@ function CounsellorChatBubble({
         </div>
         {!message.deleted && (
           <div className="mt-2 flex flex-wrap justify-end gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
-            <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onReply}>
+            <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={onReply}>
               <Reply className="h-3.5 w-3.5" />
             </Button>
-            {["+1", "heart", "thanks", "grow"].map((emoji) => (
-              <Button key={emoji} size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
+            {["Like", "Care", "Thanks"].map((emoji) => (
+              <Button key={emoji} size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
                 <SmilePlus className="mr-1 h-3.5 w-3.5" />
                 {emoji}
               </Button>
             ))}
             {message.canEdit && (
-              <Button size="sm" variant="ghost" className="h-8 px-2 text-slate-100 hover:bg-white/10" onClick={onStartEdit}>
+              <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-slate-100 hover:bg-white/10" onClick={onStartEdit}>
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
             )}
             {message.canDelete && (
-              <Button size="sm" variant="ghost" className="h-8 px-2 text-rose-200 hover:bg-rose-500/10 hover:text-rose-100" onClick={onDelete}>
+              <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-rose-200 hover:bg-rose-500/10 hover:text-rose-100" onClick={onDelete}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             )}

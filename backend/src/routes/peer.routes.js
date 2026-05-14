@@ -54,6 +54,12 @@ export function registerPeerRoutes(app, context) {
     todayYMD,
   } = context;
 
+function peerOwnerIds(req) {
+  return [req.user?._id, req.body?.author_uid, req.query?.author_uid]
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+}
+
 app.get(
   "/api/peer/posts",
   asyncRoute(async (req, res) => {
@@ -101,6 +107,53 @@ app.post(
     else post.up += 1;
     await post.save();
     res.json(post);
+  })
+);
+
+app.patch(
+  "/api/peer/posts/:post_id",
+  asyncRoute(authOptional),
+  asyncRoute(async (req, res) => {
+    const post = await PeerPost.findById(req.params.post_id);
+    if (!post) {
+      res.status(404).json({ error: "Post not found" });
+      return;
+    }
+    if (!peerOwnerIds(req).includes(String(post.author_uid || ""))) {
+      res.status(403).json({ error: "You can edit only your own post" });
+      return;
+    }
+    const content = String(req.body?.content || "").trim();
+    if (!content) {
+      res.status(400).json({ error: "Post content is required" });
+      return;
+    }
+    const crisis = crisisRegex.test(content);
+    post.content = content;
+    if (req.body?.category) post.category = String(req.body.category);
+    post.flagged = crisis;
+    post.crisis = crisis;
+    post.crisisMessage = crisis ? "If this is urgent, contact emergency services or a crisis helpline now." : "";
+    await post.save();
+    res.json(post);
+  })
+);
+
+app.delete(
+  "/api/peer/posts/:post_id",
+  asyncRoute(authOptional),
+  asyncRoute(async (req, res) => {
+    const post = await PeerPost.findById(req.params.post_id);
+    if (!post) {
+      res.status(404).json({ error: "Post not found" });
+      return;
+    }
+    if (!peerOwnerIds(req).includes(String(post.author_uid || ""))) {
+      res.status(403).json({ error: "You can delete only your own post" });
+      return;
+    }
+    await Promise.all([PeerComment.deleteMany({ post_id: post._id }), post.deleteOne()]);
+    res.json({ success: true, deletedPostId: String(post._id) });
   })
 );
 

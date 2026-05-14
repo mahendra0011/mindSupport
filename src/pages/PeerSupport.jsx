@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
-import { AlertTriangle, Flag, MessageCircle, Plus, ThumbsDown, ThumbsUp, User } from "lucide-react";
+import { AlertTriangle, Check, Flag, MessageCircle, Pencil, Plus, ThumbsDown, ThumbsUp, Trash2, User, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "@/lib/api";
+import { useAppSelector } from "@/store/hooks";
 const CATEGORIES = ["General Wellness", "Exam Stress", "Sleep Issues", "Burnout", "Coping Strategies"];
 const emergencyKeywords = ["suicide", "self-harm", "panic attack", "abuse"];
 const hasEmergencyLanguage = (text) => emergencyKeywords.some((keyword) => String(text || "").toLowerCase().includes(keyword));
@@ -24,6 +25,12 @@ async function listPosts(category) {
 }
 async function createPost(params) {
     return api(`/api/peer/posts`, { method: "POST", body: JSON.stringify(params) });
+}
+async function updatePost(id, params) {
+    return api(`/api/peer/posts/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(params) });
+}
+async function deletePost(id, params) {
+    return api(`/api/peer/posts/${encodeURIComponent(id)}`, { method: "DELETE", body: JSON.stringify(params) });
 }
 async function votePost(id, direction) {
     return api(`/api/peer/posts/${encodeURIComponent(id)}/vote`, {
@@ -63,6 +70,7 @@ function aliasFromUID(uid) {
 const PeerSupport = () => {
     const { toast } = useToast();
     const navigate = useNavigate();
+    const user = useAppSelector((state) => state.auth.user);
     const [activeCategory, setActiveCategory] = useState("All");
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -72,10 +80,13 @@ const PeerSupport = () => {
     // New post state
     const [postContent, setPostContent] = useState("");
     const postContentRef = useRef(null);
+    const [editingPostId, setEditingPostId] = useState("");
+    const [editingPostContent, setEditingPostContent] = useState("");
     // Comments state per selected post
     const [selectedPost, setSelectedPost] = useState(null);
     const [comments, setComments] = useState([]);
     const [commentContent, setCommentContent] = useState("");
+    const ownerId = user?.id || uid;
     // Polling for realtime-like updates
     useEffect(() => {
         let cancelled = false;
@@ -141,6 +152,68 @@ const PeerSupport = () => {
         }
         catch (e) {
             toast({ title: "Post failed", description: e?.message || "", variant: "destructive" });
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+    function canManagePost(post) {
+        return String(post?.author_uid || "") === String(ownerId || "");
+    }
+    function startEditPost(post) {
+        if (!canManagePost(post))
+            return;
+        setEditingPostId(post.id);
+        setEditingPostContent(post.content || "");
+    }
+    function cancelEditPost() {
+        setEditingPostId("");
+        setEditingPostContent("");
+    }
+    async function saveEditedPost(post) {
+        const content = editingPostContent.trim();
+        if (!content) {
+            toast({ title: "Post content is required.", variant: "destructive" });
+            return;
+        }
+        setLoading(true);
+        try {
+            await updatePost(post.id, {
+                author_uid: uid,
+                category: post.category || (activeCategory === "All" ? "General Wellness" : activeCategory),
+                content,
+            });
+            cancelEditPost();
+            if (selectedPost?.id === post.id) {
+                setSelectedPost((current) => (current ? { ...current, content } : current));
+            }
+            await reloadPosts();
+            toast({ title: "Post updated" });
+        }
+        catch (e) {
+            toast({ title: "Edit failed", description: e?.message || "", variant: "destructive" });
+        }
+        finally {
+            setLoading(false);
+        }
+    }
+    async function removePost(post) {
+        if (!canManagePost(post))
+            return;
+        if (!window.confirm("Delete this post and its comments?"))
+            return;
+        setLoading(true);
+        try {
+            await deletePost(post.id, { author_uid: uid });
+            if (selectedPost?.id === post.id) {
+                setSelectedPost(null);
+                setComments([]);
+            }
+            await reloadPosts();
+            toast({ title: "Post deleted" });
+        }
+        catch (e) {
+            toast({ title: "Delete failed", description: e?.message || "", variant: "destructive" });
         }
         finally {
             setLoading(false);
@@ -260,7 +333,10 @@ const PeerSupport = () => {
                                     {new Date(p.created_at).toLocaleString()}
                                   </span>
                                 </div>
-                                <div className="text-xs text-foreground/60">by {p.alias}</div>
+                                <div className="flex items-center gap-2 text-xs text-foreground/60">
+                                  <span>by {p.alias}</span>
+                                  {canManagePost(p) && <Badge className="bg-primary/15 text-primary">Your post</Badge>}
+                                </div>
                               </div>
 
                               {p.crisis && (<div className="mt-2 px-3 py-2 rounded-lg bg-amber-100/60 dark:bg-amber-900/20 border border-amber-300/60 dark:border-amber-800/60 text-amber-800 dark:text-amber-200 flex items-center gap-2">
@@ -268,7 +344,34 @@ const PeerSupport = () => {
                                   <span>{p.crisisMessage || "If you’re in crisis, please reach out to a helpline. You are not alone."}</span>
                                 </div>)}
 
-                              <p className="mt-3 text-sm whitespace-pre-wrap">{p.content}</p>
+                              {editingPostId === p.id ? (
+                                <div className="mt-3 space-y-3 rounded-xl border border-primary/25 bg-primary/5 p-3">
+                                  <Textarea
+                                    rows={5}
+                                    value={editingPostContent}
+                                    onChange={(e) => setEditingPostContent(e.target.value)}
+                                    className="resize-none"
+                                    placeholder="Update your post..."
+                                  />
+                                  {hasEmergencyLanguage(editingPostContent) && (
+                                    <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-800">
+                                      Urgent support options: call local emergency services, 1800-599-0019 in India, or 988 where available.
+                                    </div>
+                                  )}
+                                  <div className="flex justify-end gap-2">
+                                    <Button size="sm" variant="outline" className="gap-1" onClick={cancelEditPost} disabled={loading}>
+                                      <X className="h-4 w-4" />
+                                      Cancel
+                                    </Button>
+                                    <Button size="sm" className="gap-1" onClick={() => saveEditedPost(p)} disabled={loading || !editingPostContent.trim()}>
+                                      <Check className="h-4 w-4" />
+                                      Save
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="mt-3 text-sm whitespace-pre-wrap">{p.content}</p>
+                              )}
 
                               <div className="mt-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -285,10 +388,26 @@ const PeerSupport = () => {
                                     <span className="text-xs">{p.commentCount ?? 0}</span>
                                   </Button>
                                 </div>
-                                <Button size="sm" variant="outline" className="gap-1" onClick={() => report(p, undefined)}>
-                                  <Flag className="h-4 w-4"/>
-                                  <span className="text-xs">Report</span>
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                  {canManagePost(p) && editingPostId !== p.id && (
+                                    <>
+                                      <Button size="sm" variant="outline" className="gap-1" onClick={() => startEditPost(p)} disabled={loading}>
+                                        <Pencil className="h-4 w-4" />
+                                        <span className="text-xs">Edit</span>
+                                      </Button>
+                                      <Button size="sm" variant="outline" className="gap-1 text-destructive hover:text-destructive" onClick={() => removePost(p)} disabled={loading}>
+                                        <Trash2 className="h-4 w-4" />
+                                        <span className="text-xs">Delete</span>
+                                      </Button>
+                                    </>
+                                  )}
+                                  {!canManagePost(p) && (
+                                    <Button size="sm" variant="outline" className="gap-1" onClick={() => report(p, undefined)}>
+                                      <Flag className="h-4 w-4"/>
+                                      <span className="text-xs">Report</span>
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Comments viewer (inline if this is the selected post) */}
