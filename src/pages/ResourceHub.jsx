@@ -99,6 +99,25 @@ function getYoutubeId(url) {
         return null;
     }
 }
+function getResourceThumbnail(resource) {
+    return resource?.thumbnail || resource?.imageUrl || resource?.coverImage || resource?.cover || "";
+}
+function articleTone(category = "") {
+    const key = category.toLowerCase();
+    if (key.includes("stress") || key.includes("burnout"))
+        return "from-amber-500/28 via-orange-500/18 to-rose-500/20";
+    if (key.includes("sleep"))
+        return "from-indigo-500/28 via-sky-500/16 to-cyan-500/20";
+    if (key.includes("motivation") || key.includes("confidence"))
+        return "from-violet-500/28 via-fuchsia-500/18 to-sky-500/20";
+    if (key.includes("relationship") || key.includes("loneliness"))
+        return "from-pink-500/26 via-violet-500/18 to-blue-500/20";
+    if (key.includes("trauma") || key.includes("addiction"))
+        return "from-emerald-500/24 via-teal-500/16 to-sky-500/20";
+    if (key.includes("anxiety") || key.includes("depression"))
+        return "from-blue-500/26 via-violet-500/18 to-emerald-500/18";
+    return "from-primary/25 via-secondary/18 to-accent/18";
+}
 // NOTE: Keep all hooks inside the component
 const defaultCategories = [
     "Anxiety",
@@ -421,12 +440,9 @@ function ResourceGrid({ items }) {
       {items.map((r) => (<Card key={r.id} className="overflow-hidden glass-card hover:shadow-xl transition-shadow">
           <div className="aspect-video bg-black/5 relative">
             {r.type === "video" ? (
-              <VideoEmbed url={r.url} thumbnail={r.thumbnail} title={r.title} />
+              <VideoEmbed url={r.url} thumbnail={getResourceThumbnail(r)} title={r.title} />
             ) : (
-              <div className="p-5 h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 text-center">
-                <FileText className="h-10 w-10 text-primary"/>
-                <div className="mt-3 text-sm font-semibold text-foreground/80">Wellness Article</div>
-              </div>
+              <ArticleThumbnail resource={r} />
             )}
           </div>
           <CardHeader className="pb-2">
@@ -463,6 +479,39 @@ function ResourceGrid({ items }) {
             </div>
           </CardContent>
         </Card>))}
+    </div>);
+}
+function ArticleThumbnail({ resource }) {
+    const thumbnail = getResourceThumbnail(resource);
+    const [imageFailed, setImageFailed] = useState(false);
+    if (thumbnail && !imageFailed) {
+        return (<div className="absolute inset-0 overflow-hidden">
+        <img src={thumbnail} alt={resource.title || "Article thumbnail"} loading="lazy" className="h-full w-full object-cover" onError={() => setImageFailed(true)}/>
+        <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/35 to-transparent"/>
+        <div className="absolute bottom-4 left-4 right-4">
+          <Badge className="mb-2 border-white/10 bg-background/70 text-foreground backdrop-blur-sm">
+            <FileText className="mr-1 h-3.5 w-3.5"/>
+            Article
+          </Badge>
+          <p className="line-clamp-2 text-sm font-bold leading-5 text-white drop-shadow">{resource.category || "Wellness"}</p>
+        </div>
+      </div>);
+    }
+    return (<div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${articleTone(resource.category)}`}>
+      <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15 blur-2xl"/>
+      <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-primary/20 blur-2xl"/>
+      <div className="relative flex h-full flex-col justify-between p-5">
+        <div className="flex items-center justify-between">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-background/45 text-primary backdrop-blur-sm">
+            <FileText className="h-5 w-5"/>
+          </span>
+          <Badge className="border-white/10 bg-background/55 text-foreground backdrop-blur-sm">Article</Badge>
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/65">{resource.category || "Wellness"}</p>
+          <h3 className="mt-2 line-clamp-2 text-lg font-bold leading-6 text-foreground">{resource.title}</h3>
+        </div>
+      </div>
     </div>);
 }
 function VideoEmbed({ url, thumbnail, title }) {

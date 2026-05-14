@@ -106,6 +106,7 @@ const resourceSchema = new mongoose.Schema(
     category: { type: String, default: "General" },
     language: { type: String, default: "English" },
     url: { type: String, required: true },
+    thumbnail: { type: String, default: "" },
     description: { type: String, default: "" },
     durationMin: { type: Number, default: 5 },
     tags: [{ type: String }],

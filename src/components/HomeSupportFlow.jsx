@@ -14,7 +14,7 @@ const featuredCounsellors = [
     exp: "9 yrs exp",
     location: "Bengaluru, IN",
     language: "English / Hindi / Telugu",
-    price: "₹1,499",
+    price: "Rs. 1,499",
     tone: "from-emerald-200 to-green-300",
   },
   {
@@ -28,7 +28,7 @@ const featuredCounsellors = [
     exp: "12 yrs exp",
     location: "Austin, US",
     language: "English / Spanish",
-    price: "₹2,499",
+    price: "Rs. 2,499",
     tone: "from-orange-200 to-amber-300",
   },
   {
@@ -42,7 +42,7 @@ const featuredCounsellors = [
     exp: "14 yrs exp",
     location: "Toronto, CA",
     language: "English / Arabic / French",
-    price: "₹3,999",
+    price: "Rs. 3,999",
     tone: "from-rose-200 to-orange-200",
   },
   {
@@ -56,7 +56,7 @@ const featuredCounsellors = [
     exp: "6 yrs exp",
     location: "Tokyo, JP",
     language: "English / Japanese",
-    price: "₹1,499",
+    price: "Rs. 1,499",
     tone: "from-cyan-200 to-sky-300",
   },
   {
@@ -70,7 +70,7 @@ const featuredCounsellors = [
     exp: "17 yrs exp",
     location: "Mumbai, IN",
     language: "English / Hindi / Malayalam",
-    price: "₹2,499",
+    price: "Rs. 2,499",
     tone: "from-fuchsia-200 to-purple-300",
   },
   {
@@ -84,7 +84,7 @@ const featuredCounsellors = [
     exp: "8 yrs exp",
     location: "Lagos, NG",
     language: "English / Yoruba",
-    price: "₹1,499",
+    price: "Rs. 1,499",
     tone: "from-lime-200 to-yellow-200",
   },
 ];
@@ -115,11 +115,11 @@ const faqs = [
   "What if I am in crisis right now?",
 ];
 
-const HomeSupportFlow = () => {
+export const HomeCounsellors = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative overflow-hidden bg-[#050914] py-14">
+    <section className="relative overflow-hidden bg-[#050914] pb-10 pt-14">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <div className="mb-8 grid gap-5 lg:grid-cols-[1fr_0.7fr] lg:items-end">
           <div>
@@ -208,8 +208,18 @@ const HomeSupportFlow = () => {
             </article>
           ))}
         </div>
+      </div>
+    </section>
+  );
+};
 
-        <div className="mt-16 rounded-[26px] bg-gradient-to-br from-violet-700 to-blue-600 p-7 md:p-10">
+const HomeSupportFlow = () => {
+  const navigate = useNavigate();
+
+  return (
+    <section className="relative overflow-hidden bg-[#050914] pb-14 pt-6">
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
+        <div className="rounded-[26px] bg-gradient-to-br from-violet-700 to-blue-600 p-7 md:p-10">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">How it works</p>
           <h2 className="mt-2 max-w-xl text-2xl font-bold leading-tight text-white md:text-3xl">
             From first message to first session in three simple steps.

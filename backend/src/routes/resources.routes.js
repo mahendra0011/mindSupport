@@ -127,6 +127,7 @@ export function registerResourceRoutes(app, context) {
         category: req.body?.category || "General",
         language: req.body?.language || "English",
         url: req.body?.url,
+        thumbnail: req.body?.thumbnail || req.body?.imageUrl || req.body?.coverImage || "",
         description: req.body?.description || "",
         durationMin: Number(req.body?.durationMin || 5),
         tags: Array.isArray(req.body?.tags) ? req.body.tags : [],

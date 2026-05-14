@@ -191,6 +191,60 @@ const curatedResources = [
   },
 ];
 
+const thumbnailPalettes = {
+  Anxiety: ["#1d4ed8", "#7c3aed", "#14b8a6"],
+  Stress: ["#f97316", "#db2777", "#7c3aed"],
+  Sleep: ["#312e81", "#0284c7", "#06b6d4"],
+  Burnout: ["#b45309", "#be123c", "#7c2d12"],
+  Motivation: ["#7c3aed", "#2563eb", "#06b6d4"],
+  "Self Confidence": ["#9333ea", "#db2777", "#2563eb"],
+  Relationships: ["#be185d", "#7c3aed", "#2563eb"],
+  Loneliness: ["#4338ca", "#0891b2", "#0f766e"],
+  Meditation: ["#0f766e", "#2563eb", "#7c3aed"],
+  Depression: ["#1e3a8a", "#581c87", "#0f766e"],
+  "Trauma Support": ["#047857", "#0f766e", "#1d4ed8"],
+  "Addiction Recovery": ["#15803d", "#0f766e", "#2563eb"],
+  "Student Pressure": ["#7c3aed", "#2563eb", "#f97316"],
+  General: ["#4f46e5", "#7c3aed", "#0891b2"],
+};
+
+function escapeSvgText(value = "") {
+  return String(value).replace(/[&<>"]/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+  })[char]);
+}
+
+function shortSvgTitle(value = "") {
+  const text = String(value).trim();
+  return text.length > 34 ? `${text.slice(0, 31)}...` : text;
+}
+
+function youtubeIdFromUrl(value = "") {
+  try {
+    const url = new URL(value);
+    if (url.hostname.includes("youtube.com")) return url.searchParams.get("v") || "";
+    if (url.hostname === "youtu.be") return url.pathname.replace("/", "");
+  } catch {
+    return "";
+  }
+  return "";
+}
+
+function seedResourceThumbnail(resource) {
+  if (resource.thumbnail) return resource.thumbnail;
+  const youtubeId = resource.type === "video" ? youtubeIdFromUrl(resource.url) : "";
+  if (youtubeId) return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+
+  const palette = thumbnailPalettes[resource.category] || thumbnailPalettes.General;
+  const title = escapeSvgText(shortSvgTitle(resource.title));
+  const category = escapeSvgText(resource.category || "Wellness");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="${palette[0]}" offset="0"/><stop stop-color="${palette[1]}" offset="0.55"/><stop stop-color="${palette[2]}" offset="1"/></linearGradient><filter id="blur"><feGaussianBlur stdDeviation="45"/></filter></defs><rect width="1200" height="675" fill="#050914"/><rect width="1200" height="675" fill="url(#g)" opacity="0.92"/><circle cx="1030" cy="110" r="190" fill="#ffffff" opacity="0.12" filter="url(#blur)"/><circle cx="130" cy="620" r="210" fill="#050914" opacity="0.30" filter="url(#blur)"/><rect x="78" y="82" width="1044" height="511" rx="42" fill="#050914" opacity="0.42" stroke="#ffffff" stroke-opacity="0.16"/><text x="120" y="172" fill="#ffffff" opacity="0.76" font-family="Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="7">${category}</text><text x="120" y="315" fill="#ffffff" font-family="Arial, sans-serif" font-size="62" font-weight="800">${title}</text><text x="120" y="420" fill="#dbeafe" opacity="0.88" font-family="Arial, sans-serif" font-size="30">MindSupport wellness article</text><circle cx="1000" cy="470" r="72" fill="#ffffff" opacity="0.14"/><path d="M962 470h76M1000 432v76" stroke="#ffffff" stroke-width="18" stroke-linecap="round" opacity="0.72"/></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 const seededCounsellors = [
   {
     name: "Dr. Aisha Mehra",
@@ -1100,10 +1154,14 @@ async function seedDatabase() {
   await Resource.deleteMany({ type: "audio" });
 
   for (const resource of curatedResources) {
+    const seededResource = {
+      ...resource,
+      thumbnail: seedResourceThumbnail(resource),
+    };
     await Resource.updateOne(
-      { title: resource.title },
+      { title: seededResource.title },
       {
-        $set: resource,
+        $set: seededResource,
         $setOnInsert: { createdAt: new Date() },
       },
       { upsert: true }
