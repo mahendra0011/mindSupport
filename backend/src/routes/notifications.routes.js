@@ -84,7 +84,7 @@ app.post(
         .sort({ date: 1, time: 1 })
         .populate("counsellor");
     }
-    const amount = Number(req.body?.amount || appointment?.counsellor?.sessionPricing || 700);
+    const amount = Number(req.body?.amount || appointment?.supportPlanPrice || appointment?.counsellor?.sessionPricing || 700);
     const commissionRate = 20;
     const platformFee = Math.round(amount * (commissionRate / 100));
     const counsellorPayout = Math.max(0, amount - platformFee);

@@ -732,7 +732,12 @@ const UserDashboard = () => {
                         <PanelText>No sessions yet. Choose a counsellor and book your first appointment.</PanelText>
                       ) : (
                         data.appointments.map((appointment) => (
-                          <SessionCard key={appointment.id} appointment={appointment} onBook={() => navigate("/counselling")} onChat={() => setActiveTab("chat")} />
+                          <SessionCard
+                            key={appointment.id}
+                            appointment={appointment}
+                            onBook={() => navigate(`/session-schedule?counsellorId=${appointment.counsellorId}&plan=${appointment.supportPlanId || "short-term"}`)}
+                            onChat={() => setActiveTab("chat")}
+                          />
                         ))
                       )}
                     </CardContent>
@@ -748,8 +753,8 @@ const UserDashboard = () => {
                         <CardDescription>Fast controls for the session flow.</CardDescription>
                       </CardHeader>
                       <CardContent className="grid gap-3">
-                        <ActionCard title="Book new session" text="Choose counsellor, plan, date, time, and session mode." action="Book" onClick={() => navigate("/counselling")} />
-                        <ActionCard title="Manage appointments" text="Review your care plan, progress, and upcoming appointments." action="Open counselling" onClick={() => navigate("/counselling")} />
+                        <ActionCard title="Book new counsellor" text="Choose counsellor profile and affordable care plan." action="Browse" onClick={() => navigate("/counselling")} />
+                        <ActionCard title="Session schedule" text="Review your plan, active bookings, date, time, and Google Meet details." action="Open schedule" onClick={() => navigate("/session-schedule")} />
                         <ActionCard title="Follow-up chat" text="Ask a question after a session or share a resource." action="Open chat" onClick={() => setActiveTab("chat")} />
                       </CardContent>
                     </Card>

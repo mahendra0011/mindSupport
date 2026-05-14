@@ -254,6 +254,7 @@ function normalizeAppointment(appointment, viewer) {
     supportPlanDuration: raw.supportPlanDuration || "",
     supportPlanCadence: raw.supportPlanCadence || "",
     supportPlanBestFor: raw.supportPlanBestFor || [],
+    supportPlanPrice: Number(raw.supportPlanPrice || 0),
     notes: raw.notes || "",
     isAnonymous: Boolean(raw.isAnonymous),
     anonymousAlias: raw.anonymousAlias || "Anonymous user",

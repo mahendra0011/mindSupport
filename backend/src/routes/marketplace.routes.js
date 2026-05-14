@@ -63,6 +63,7 @@ const supportPlans = [
     duration: "4-8 sessions",
     cadence: "One session every two days",
     bestFor: ["Stress", "Anxiety", "Exam pressure", "Loneliness"],
+    summary: "Quick emotional support and guidance",
     multiplier: 1,
   },
   {
@@ -71,7 +72,8 @@ const supportPlans = [
     duration: "8-15 sessions",
     cadence: "Weekly or bi-weekly",
     bestFor: ["Mild depression", "Relationship issues", "Emotional healing"],
-    multiplier: 0.9,
+    summary: "Emotional recovery and personal growth",
+    multiplier: 0.86,
   },
   {
     id: "long-term",
@@ -79,12 +81,25 @@ const supportPlans = [
     duration: "3-6+ months",
     cadence: "Weekly or bi-weekly sessions",
     bestFor: ["Trauma", "Severe anxiety", "Chronic depression"],
-    multiplier: 0.82,
+    summary: "Ongoing therapy and steady progress",
+    multiplier: 0.76,
   },
 ];
 
+function affordableBasePrice(user) {
+  const fallback = user.counsellorType === "mentor" ? 299 : 599;
+  const raw = Number(user.sessionPricing) || fallback;
+  const lower = user.counsellorType === "mentor" ? 199 : 399;
+  const upper = user.counsellorType === "mentor" ? 349 : 599;
+  return Math.min(upper, Math.max(lower, raw));
+}
+
+function planPriceFor(user, plan) {
+  return Math.max(199, Math.round((affordableBasePrice(user) * plan.multiplier) / 10) * 10);
+}
+
 function publicCounsellorProfile(user) {
-  const basePrice = Number(user.sessionPricing) || 700;
+  const basePrice = affordableBasePrice(user);
   return {
     id: String(user._id),
     name: user.name,
@@ -107,7 +122,7 @@ function publicCounsellorProfile(user) {
     consultationModes: user.consultationModes?.length ? user.consultationModes : ["google-meet", "in-person", "voice-call"],
     supportPlans: supportPlans.map((plan) => ({
       ...plan,
-      perSessionPrice: Math.max(300, Math.round(basePrice * plan.multiplier)),
+      perSessionPrice: planPriceFor(user, plan),
     })),
   };
 }
@@ -202,6 +217,15 @@ app.post(
       res.status(400).json({ error: "Date and time are required" });
       return;
     }
+    const existingBooking = await Appointment.findOne({
+      student: student._id,
+      counsellor: counsellor._id,
+      status: { $in: activeStatuses },
+    });
+    if (existingBooking) {
+      res.status(409).json({ error: "You already have an active booking with this counsellor. Use Session Schedule to manage it." });
+      return;
+    }
     if (await hasAppointmentConflict(counsellor._id, date, time)) {
       res.status(409).json({ error: "This counsellor already has a session at that time" });
       return;
@@ -209,6 +233,7 @@ app.post(
     const requestedMode = String(req.body?.mode || "google-meet");
     const mode = ["in-person", "online", "google-meet", "voice-call"].includes(requestedMode) ? requestedMode : "google-meet";
     const plan = supportPlans.find((item) => item.id === req.body?.supportPlanId) || supportPlans[0];
+    const supportPlanPrice = planPriceFor(counsellor, plan);
     const sharedMeetingLink = mode === "in-person" || mode === "voice-call" ? "" : resolveSharedMeetLink(counsellor.meetLink, buildMeetLink());
     const appointment = await Appointment.create({
       student: student._id,
@@ -225,6 +250,7 @@ app.post(
       supportPlanDuration: plan.duration,
       supportPlanCadence: plan.cadence,
       supportPlanBestFor: plan.bestFor,
+      supportPlanPrice,
       isAnonymous: Boolean(req.body?.isAnonymous),
       anonymousAlias: String(req.body?.anonymousAlias || "Anonymous user").trim().slice(0, 60) || "Anonymous user",
       meetingProvider: mode === "in-person" || mode === "voice-call" ? "" : "google-meet",
@@ -293,6 +319,8 @@ app.put(
         appointment.supportPlanDuration = plan.duration;
         appointment.supportPlanCadence = plan.cadence;
         appointment.supportPlanBestFor = plan.bestFor;
+        const pricingCounsellor = await findCounsellor(appointment.counsellor);
+        appointment.supportPlanPrice = pricingCounsellor ? planPriceFor(pricingCounsellor, plan) : appointment.supportPlanPrice;
       }
     }
     if ("meetingLink" in payload && req.user.role !== "user") {

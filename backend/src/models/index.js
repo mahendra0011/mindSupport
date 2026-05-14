@@ -133,6 +133,7 @@ const appointmentSchema = new mongoose.Schema(
     supportPlanDuration: { type: String, default: "" },
     supportPlanCadence: { type: String, default: "" },
     supportPlanBestFor: [{ type: String }],
+    supportPlanPrice: { type: Number, default: 0 },
     notes: { type: String, default: "" },
     isAnonymous: { type: Boolean, default: false },
     anonymousAlias: { type: String, default: "Anonymous user" },

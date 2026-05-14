@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Brain, Menu, X, BookOpen, Calendar, Users, BarChart3, Home, Heart, LogIn, LogOut } from "lucide-react";
+import { Brain, Menu, X, BookOpen, Calendar, CalendarClock, Users, BarChart3, Home, Heart, LogIn, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -14,6 +14,7 @@ const Navigation = () => {
         ...(user?.role === "user" ? [{ name: "My Wellness", icon: Heart, route: "/wellness" }] : []),
         { name: "Resources", icon: BookOpen, route: "/resources" },
         ...(user?.role === "user" ? [{ name: "Counselling", icon: Calendar, route: "/counselling" }] : []),
+        ...(user?.role === "user" ? [{ name: "Session Schedule", icon: CalendarClock, route: "/session-schedule" }] : []),
         ...(user?.role === "user" || user?.role === "admin" ? [{ name: "Peer Support", icon: Users, route: "/peer" }] : []),
         ...(user ? [{ name: "Dashboard", icon: BarChart3, route: "/dashboard" }] : []),
     ];

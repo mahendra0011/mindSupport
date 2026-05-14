@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Counselling from "./pages/Counselling";
+import SessionSchedule from "./pages/SessionSchedule";
 import ResourceHub from "./pages/ResourceHub";
 import PeerSupport from "./pages/PeerSupport";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -32,6 +33,9 @@ const App = () => (<QueryClientProvider client={queryClient}>
               </ProtectedRoute>}/>
           <Route path="/counselling/:counsellorId" element={<ProtectedRoute roles={["user"]}>
                 <Counselling />
+              </ProtectedRoute>}/>
+          <Route path="/session-schedule" element={<ProtectedRoute roles={["user"]}>
+                <SessionSchedule />
               </ProtectedRoute>}/>
           <Route path="/resources" element={<ResourceHub />}/>
           <Route path="/peer" element={<ProtectedRoute roles={["user", "admin"]}>
