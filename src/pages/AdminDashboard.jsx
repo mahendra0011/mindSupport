@@ -70,6 +70,8 @@ const emptyData = {
   insights: [],
 };
 
+const NOTIFICATION_HTTP_POLL_MS = 30000;
+
 const AdminDashboard = () => {
   const { toast } = useToast();
   const [data, setData] = useState(emptyData);
@@ -106,6 +108,25 @@ const AdminDashboard = () => {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    const pollNotifications = async () => {
+      try {
+        const list = await apiFetch("/api/notifications/my");
+        if (active && Array.isArray(list)) {
+          setData((current) => ({ ...current, notifications: list }));
+        }
+      } catch {
+        // Keep the latest admin notifications if a background poll fails.
+      }
+    };
+    const timer = window.setInterval(pollNotifications, NOTIFICATION_HTTP_POLL_MS);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const totals = useMemo(() => {
     const userCount = data.stats.totalUsers || Object.values(data.stats.usersByRole).reduce((sum, value) => sum + value, 0);

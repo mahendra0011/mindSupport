@@ -60,6 +60,8 @@ function shortTime(value) {
     return `${days}d`;
 }
 
+const NOTIFICATION_HTTP_POLL_MS = 30000;
+
 const Navigation = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -104,7 +106,7 @@ const Navigation = () => {
         void loadNotifications();
         const timer = window.setInterval(() => {
             void loadNotifications({ silent: true });
-        }, 45000);
+        }, NOTIFICATION_HTTP_POLL_MS);
         return () => window.clearInterval(timer);
     }, [loadNotifications, user]);
 

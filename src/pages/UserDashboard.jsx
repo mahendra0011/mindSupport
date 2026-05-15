@@ -140,6 +140,8 @@ const emptyData = {
   emergency: { sosReady: true, helpline: "1800-599-0019", contact: "Not added" },
 };
 
+const NOTIFICATION_HTTP_POLL_MS = 30000;
+
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -209,6 +211,26 @@ const UserDashboard = () => {
   }, [messageRecipient]);
 
   useEffect(() => loadDashboard(), [loadDashboard]);
+
+  useEffect(() => {
+    if (!user) return undefined;
+    let active = true;
+    const pollNotifications = async () => {
+      try {
+        const list = await apiFetch("/api/notifications/my");
+        if (active && Array.isArray(list)) {
+          setData((current) => ({ ...current, notifications: list }));
+        }
+      } catch {
+        // Keep the last dashboard notifications if a background poll fails.
+      }
+    };
+    const timer = window.setInterval(pollNotifications, NOTIFICATION_HTTP_POLL_MS);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [user]);
 
   useEffect(() => {
     const tab = searchParams.get("tab");

@@ -84,6 +84,8 @@ const fallback = {
   actions: [],
 };
 
+const NOTIFICATION_HTTP_POLL_MS = 30000;
+
 const noteTemplates = [
   "Client appeared stable. Continued grounding practice and daily mood tracking recommended.",
   "Discussed stress triggers, sleep routine, and one small action before next session.",
@@ -308,6 +310,25 @@ const CounsellorDashboard = () => {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    const pollNotifications = async () => {
+      try {
+        const list = await apiFetch("/api/notifications/my");
+        if (active && Array.isArray(list)) {
+          setData((current) => ({ ...current, notifications: list }));
+        }
+      } catch {
+        // Keep the latest dashboard notifications if a background poll fails.
+      }
+    };
+    const timer = window.setInterval(pollNotifications, NOTIFICATION_HTTP_POLL_MS);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     const socket = getRealtimeSocket();
