@@ -51,6 +51,11 @@ const userSchema = new mongoose.Schema(
     experience: { type: String, default: "" },
     languages: [{ type: String }],
     sessionPricing: { type: Number, default: 0 },
+    supportPlanPrices: {
+      shortTerm: { type: Number, default: 1499 },
+      mediumTerm: { type: Number, default: 2499 },
+      longTerm: { type: Number, default: 3999 },
+    },
     profilePhotoUrl: { type: String, default: "" },
     certificateLinks: [{ type: String }],
     linkedin: { type: String, default: "" },

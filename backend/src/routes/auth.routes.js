@@ -284,10 +284,40 @@ app.put(
       "meetLink",
       "location",
       "education",
+      "responseTime",
+      "profilePhotoUrl",
+      "linkedin",
     ];
     for (const key of allowed) {
       if (key in req.body) req.user[key] = req.body[key];
     }
+    if ("sessionPricing" in req.body) {
+      const sessionPricing = Number(req.body.sessionPricing);
+      if (!Number.isFinite(sessionPricing) || sessionPricing < 1) {
+        res.status(400).json({ error: "Enter a valid base session price" });
+        return;
+      }
+      req.user.sessionPricing = Math.round(sessionPricing);
+    }
+    if ("supportPlanPrices" in req.body) {
+      const currentPrices = req.user.supportPlanPrices?.toObject?.() || req.user.supportPlanPrices || {};
+      const source = req.body.supportPlanPrices || {};
+      const nextPrices = { ...currentPrices };
+      for (const key of ["shortTerm", "mediumTerm", "longTerm"]) {
+        if (key in source) {
+          const price = Number(source[key]);
+          if (!Number.isFinite(price) || price < 1) {
+            res.status(400).json({ error: "Enter valid one-time package prices" });
+            return;
+          }
+          nextPrices[key] = Math.round(price);
+        }
+      }
+      req.user.supportPlanPrices = nextPrices;
+    }
+    if ("consultationModes" in req.body) req.user.consultationModes = listFromInput(req.body.consultationModes);
+    if ("categories" in req.body) req.user.categories = listFromInput(req.body.categories);
+    if ("languages" in req.body) req.user.languages = listFromInput(req.body.languages);
     if ("username" in req.body) {
       const username = String(req.body.username || "").trim().toLowerCase();
       if (!/^[a-z0-9_]{3,24}$/.test(username)) {

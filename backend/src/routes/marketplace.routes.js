@@ -94,7 +94,17 @@ function affordableBasePrice(user) {
   return Math.min(upper, Math.max(lower, raw));
 }
 
+function supportPlanPriceKey(planId = "") {
+  return {
+    "short-term": "shortTerm",
+    "medium-term": "mediumTerm",
+    "long-term": "longTerm",
+  }[planId];
+}
+
 function planPriceFor(user, plan) {
+  const savedPrice = Number(user.supportPlanPrices?.[supportPlanPriceKey(plan.id)]);
+  if (Number.isFinite(savedPrice) && savedPrice > 0) return Math.round(savedPrice);
   return Math.max(599, Math.round((affordableBasePrice(user) * plan.multiplier) / 50) * 50 - 1);
 }
 

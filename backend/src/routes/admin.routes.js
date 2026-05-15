@@ -289,6 +289,7 @@ app.patch(
       "verificationBadge",
       "counsellorType",
       "sessionPricing",
+      "supportPlanPrices",
       "platformCommission",
       "otpVerified",
     ];

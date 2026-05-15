@@ -123,6 +123,32 @@ const defaultNotificationSettings = {
 
 const dayOptions = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+const packagePricePlans = [
+  {
+    key: "shortTerm",
+    title: "Short-Term Support",
+    detail: "4-8 sessions, every two days",
+    hint: "Stress, anxiety, exams, loneliness",
+    fallback: 1499,
+  },
+  {
+    key: "mediumTerm",
+    title: "Medium-Term Support",
+    detail: "8-15 sessions, weekly or bi-weekly",
+    hint: "Mild depression, relationships, healing",
+    fallback: 2499,
+  },
+  {
+    key: "longTerm",
+    title: "Long-Term Therapy",
+    detail: "3-6+ months, weekly or bi-weekly",
+    hint: "Trauma, severe anxiety, chronic depression",
+    fallback: 3999,
+  },
+];
+
+const defaultPackagePrices = packagePricePlans.reduce((acc, plan) => ({ ...acc, [plan.key]: String(plan.fallback) }), {});
+
 function newAvailabilityRow(day = "Monday", start = "10:00", end = "16:00") {
   return { id: `${day}-${Date.now()}-${Math.random().toString(16).slice(2)}`, day, start, end };
 }
@@ -162,6 +188,25 @@ function todayYMD() {
 
 function formatMoney(value) {
   return `Rs. ${Number(value || 0).toLocaleString("en-IN")}`;
+}
+
+function normalizePackagePrices(profile = {}) {
+  const source = profile.supportPlanPrices || {};
+  const basePrice = Number(profile.sessionPricing) || 0;
+  return packagePricePlans.reduce((acc, plan) => {
+    const saved = Number(source[plan.key]);
+    const fallback = saved || (basePrice ? Math.round((basePrice * (plan.key === "shortTerm" ? 3 : plan.key === "mediumTerm" ? 5 : 8)) / 50) * 50 - 1 : plan.fallback);
+    acc[plan.key] = String(saved > 0 ? saved : fallback || plan.fallback);
+    return acc;
+  }, {});
+}
+
+function fallbackBaseSessionPrice(profile = {}) {
+  return Number(profile.sessionPricing) || (profile.counsellorType === "mentor" ? 299 : 599);
+}
+
+function counsellorPayout(value, commissionRate = 20) {
+  return Math.max(0, Math.round(Number(value || 0) * ((100 - Number(commissionRate || 20)) / 100)));
 }
 
 function sessionStatusLabel(status = "") {
@@ -217,6 +262,15 @@ const CounsellorDashboard = () => {
   const [editingMessageId, setEditingMessageId] = useState("");
   const [editingMessageText, setEditingMessageText] = useState("");
   const [usernameDraft, setUsernameDraft] = useState("");
+  const [profileDraft, setProfileDraft] = useState({
+    specialization: "",
+    location: "",
+    education: "",
+    responseTime: "",
+    bio: "",
+  });
+  const [packagePrices, setPackagePrices] = useState(defaultPackagePrices);
+  const [baseSessionPrice, setBaseSessionPrice] = useState("");
   const [privacySettings, setPrivacySettings] = useState(defaultPrivacySettings);
   const [notificationSettings, setNotificationSettings] = useState(defaultNotificationSettings);
 
@@ -231,6 +285,15 @@ const CounsellorDashboard = () => {
       setBookingEnabled(next.profile?.bookingEnabled !== false);
       setMeetLink(next.profile?.meetLink || "");
       setUsernameDraft(next.profile?.username || "");
+      setProfileDraft({
+        specialization: next.profile?.specialization || "",
+        location: next.profile?.location || "",
+        education: next.profile?.education || "",
+        responseTime: next.profile?.responseTime || "",
+        bio: next.profile?.bio || "",
+      });
+      setBaseSessionPrice(String(fallbackBaseSessionPrice(next.profile)));
+      setPackagePrices(normalizePackagePrices(next.profile));
       setPrivacySettings({ ...defaultPrivacySettings, ...(next.profile?.privacySettings || {}) });
       setNotificationSettings({ ...defaultNotificationSettings, ...(next.profile?.notificationSettings || {}) });
       setSelectedPatientId((current) => current || next.patients?.[0]?.id || "");
@@ -372,12 +435,29 @@ const CounsellorDashboard = () => {
   };
 
   const saveProfileTools = async () => {
+    const cleanedBasePrice = Number(baseSessionPrice);
+    const cleanedPackagePrices = packagePricePlans.reduce((acc, plan) => {
+      acc[plan.key] = Number(packagePrices[plan.key]);
+      return acc;
+    }, {});
+    if (!Number.isFinite(cleanedBasePrice) || cleanedBasePrice < 1) {
+      toast({ variant: "destructive", title: "Add a valid base price", description: "Base session price must be at least Rs. 1." });
+      return;
+    }
+    const invalidPlan = packagePricePlans.find((plan) => !Number.isFinite(cleanedPackagePrices[plan.key]) || cleanedPackagePrices[plan.key] < 1);
+    if (invalidPlan) {
+      toast({ variant: "destructive", title: "Package price missing", description: `Enter a valid price for ${invalidPlan.title}.` });
+      return;
+    }
     try {
       await Promise.all([
         apiFetch("/api/users/me", {
           method: "PUT",
           body: JSON.stringify({
             username: usernameDraft.trim(),
+            ...profileDraft,
+            sessionPricing: cleanedBasePrice,
+            supportPlanPrices: cleanedPackagePrices,
             privacySettings,
             notificationSettings,
           }),
@@ -1241,6 +1321,128 @@ const CounsellorDashboard = () => {
               </TabsContent>
 
               <TabsContent value="settings" className="dashboard-tab-motion space-y-6">
+                <div className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BadgeCheck className="h-5 w-5 text-primary" />
+                        Marketplace Profile
+                      </CardTitle>
+                      <CardDescription>Keep your public counsellor card accurate for users before they book.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label className="text-sm font-medium">Specialization</label>
+                          <Input
+                            className="mt-2"
+                            value={profileDraft.specialization}
+                            onChange={(event) => setProfileDraft((current) => ({ ...current, specialization: event.target.value }))}
+                            placeholder="Relationship Therapist"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Location</label>
+                          <Input
+                            className="mt-2"
+                            value={profileDraft.location}
+                            onChange={(event) => setProfileDraft((current) => ({ ...current, location: event.target.value }))}
+                            placeholder="Mumbai, IN"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Education / qualification</label>
+                          <Input
+                            className="mt-2"
+                            value={profileDraft.education}
+                            onChange={(event) => setProfileDraft((current) => ({ ...current, education: event.target.value }))}
+                            placeholder="MA Clinical Psychology"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Response time</label>
+                          <Input
+                            className="mt-2"
+                            value={profileDraft.responseTime}
+                            onChange={(event) => setProfileDraft((current) => ({ ...current, responseTime: event.target.value }))}
+                            placeholder="Within 24 hours"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">About / bio</label>
+                        <Textarea
+                          className="mt-2 min-h-28"
+                          value={profileDraft.bio}
+                          onChange={(event) => setProfileDraft((current) => ({ ...current, bio: event.target.value }))}
+                          placeholder="Describe your care style, approach, and the users you support."
+                        />
+                      </div>
+                      <Button onClick={saveProfileTools}>Save counsellor profile</Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="glass-card overflow-hidden">
+                    <CardHeader className="border-b border-glass-border/40 bg-gradient-to-br from-primary/15 via-secondary/10 to-sky-500/10">
+                      <CardTitle className="flex items-center gap-2">
+                        <IndianRupee className="h-5 w-5 text-secondary" />
+                        Package Pricing
+                      </CardTitle>
+                      <CardDescription>Set one-time prices users pay when booking each support package. Platform keeps 20% automatically.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4 pt-5">
+                      <div>
+                        <label className="text-sm font-medium">Base session price</label>
+                        <Input
+                          className="mt-2"
+                          type="number"
+                          min="1"
+                          value={baseSessionPrice}
+                          onChange={(event) => setBaseSessionPrice(event.target.value)}
+                          placeholder="599"
+                        />
+                        <p className="mt-2 text-xs text-foreground/60">Used as fallback pricing and admin reference. Packages below are shown to users.</p>
+                      </div>
+                      <div className="space-y-3">
+                        {packagePricePlans.map((plan) => {
+                          const value = Number(packagePrices[plan.key] || 0);
+                          const commissionRate = data.earnings.platformCommissionRate || data.profile?.platformCommission || 20;
+                          return (
+                            <div key={plan.key} className="rounded-2xl border border-glass-border/40 bg-background/65 p-4">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                  <div className="font-semibold">{plan.title}</div>
+                                  <p className="text-sm text-foreground/60">{plan.detail}</p>
+                                  <p className="mt-1 text-xs text-foreground/50">{plan.hint}</p>
+                                </div>
+                                <Badge className="border-primary/20 bg-primary/15 text-primary">One-time</Badge>
+                              </div>
+                              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr]">
+                                <div>
+                                  <label className="text-xs font-medium uppercase tracking-wide text-foreground/55">User pays</label>
+                                  <Input
+                                    className="mt-2"
+                                    type="number"
+                                    min="1"
+                                    value={packagePrices[plan.key] || ""}
+                                    onChange={(event) => setPackagePrices((current) => ({ ...current, [plan.key]: event.target.value }))}
+                                  />
+                                </div>
+                                <div className="rounded-xl bg-foreground/5 p-3">
+                                  <div className="text-xs text-foreground/55">Your payout after platform fee</div>
+                                  <div className="mt-1 text-lg font-bold text-emerald-500">{formatMoney(counsellorPayout(value, commissionRate))}</div>
+                                  <div className="text-xs text-foreground/55">Admin fee: {formatMoney(Math.max(0, value - counsellorPayout(value, commissionRate)))}</div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <Button className="w-full" onClick={saveProfileTools}>Save package prices</Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
                   <Card className="glass-card">
                     <CardHeader>
@@ -1353,7 +1555,10 @@ const CounsellorDashboard = () => {
                       <ProfileLine label="Username" value={usernameDraft ? `@${usernameDraft}` : "Not set"} />
                       <ProfileLine label="Badge" value={data.profile?.verificationBadge || "Verified Professional"} />
                       <ProfileLine label="Type" value={data.profile?.counsellorType || "professional"} />
-                      <ProfileLine label="Pricing" value={formatMoney(data.profile?.sessionPricing)} />
+                      <ProfileLine label="Base price" value={formatMoney(baseSessionPrice)} />
+                      <ProfileLine label="Short package" value={formatMoney(packagePrices.shortTerm)} />
+                      <ProfileLine label="Medium package" value={formatMoney(packagePrices.mediumTerm)} />
+                      <ProfileLine label="Long package" value={formatMoney(packagePrices.longTerm)} />
                       <ProfileLine label="Platform fee" value={`${data.earnings.platformCommissionRate || data.profile?.platformCommission || 20}% to admin`} />
                       <ProfileLine label="Categories" value={(data.profile?.categories || []).join(", ") || "General counselling"} />
                       <ProfileLine label="Meet readiness" value={data.stats.googleMeetReady ? "Ready" : "Needs link"} />
