@@ -571,6 +571,15 @@ const supportPlanSeeds = {
   },
 };
 
+function packagePricesFromSession(sessionPricing = 0, type = "professional") {
+  const base = Number(sessionPricing) || (type === "mentor" ? 299 : 599);
+  return {
+    shortTerm: Math.max(599, Math.round((base * 3) / 50) * 50 - 1),
+    mediumTerm: Math.max(999, Math.round((base * 5) / 50) * 50 - 1),
+    longTerm: Math.max(1599, Math.round((base * 8) / 50) * 50 - 1),
+  };
+}
+
 async function ensureMongoCollections() {
   for (const model of collectionModels) {
     try {
@@ -653,6 +662,8 @@ async function seedApprovedCounsellors() {
       otpVerified: true,
       otpVerifiedAt: new Date(),
       platformCommission: 20,
+      supportPlanPrices: counsellor.supportPlanPrices || packagePricesFromSession(counsellor.sessionPricing, counsellor.counsellorType),
+      hasCustomSupportPlanPrices: true,
       bookingEnabled: true,
       unavailableDates: [],
       meetLink: seedMeetLink(),

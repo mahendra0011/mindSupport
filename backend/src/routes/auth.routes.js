@@ -319,6 +319,7 @@ app.put(
         }
       }
       req.user.supportPlanPrices = nextPrices;
+      req.user.hasCustomSupportPlanPrices = true;
     }
     if ("consultationModes" in req.body) req.user.consultationModes = listFromInput(req.body.consultationModes);
     if ("categories" in req.body) req.user.categories = listFromInput(req.body.categories);

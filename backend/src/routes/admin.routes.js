@@ -290,6 +290,7 @@ app.patch(
       "counsellorType",
       "sessionPricing",
       "supportPlanPrices",
+      "hasCustomSupportPlanPrices",
       "platformCommission",
       "otpVerified",
     ];
