@@ -1273,12 +1273,12 @@ const CounsellorDashboard = () => {
                             formatter={(value) => formatMoney(value)}
                           />
                           <Bar dataKey="payout" name="Counsellor payout" radius={[8, 8, 0, 0]} fill="hsl(var(--primary))" />
-                          <Bar dataKey="platformFee" name="Admin platform fee" radius={[8, 8, 0, 0]} fill="hsl(var(--secondary))" />
+                          <Bar dataKey="platformFee" name="Platform fee" radius={[8, 8, 0, 0]} fill="hsl(var(--secondary))" />
                         </RechartsBarChart>
                       </ResponsiveContainer>
                     </div>
                     <div className="mt-5 grid gap-3 md:grid-cols-3">
-                      <PanelText>Platform admin commission: {data.earnings.platformCommissionRate || data.profile?.platformCommission || 20}%</PanelText>
+                      <PanelText>Platform fee is applied automatically on completed bookings.</PanelText>
                       <PanelText>Counsellor payout: {formatMoney(data.earnings.total)} after platform fee.</PanelText>
                       <PanelText>Pending payout queue: {formatMoney(data.earnings.pendingPayouts)}</PanelText>
                     </div>
@@ -1388,7 +1388,7 @@ const CounsellorDashboard = () => {
                         <IndianRupee className="h-5 w-5 text-secondary" />
                         Package Pricing
                       </CardTitle>
-                      <CardDescription>Set one-time prices users pay when booking each support package. Platform keeps 20% automatically.</CardDescription>
+                      <CardDescription>Set one-time prices users pay when booking each support package. Platform fee is handled automatically.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4 pt-5">
                       <div>
@@ -1401,7 +1401,7 @@ const CounsellorDashboard = () => {
                           onChange={(event) => setBaseSessionPrice(event.target.value)}
                           placeholder="599"
                         />
-                        <p className="mt-2 text-xs text-foreground/60">Used as fallback pricing and admin reference. Packages below are shown to users.</p>
+                        <p className="mt-2 text-xs text-foreground/60">Used as fallback pricing reference. Packages below are shown to users.</p>
                       </div>
                       <div className="space-y-3">
                         {packagePricePlans.map((plan) => {
@@ -1431,7 +1431,7 @@ const CounsellorDashboard = () => {
                                 <div className="rounded-xl bg-foreground/5 p-3">
                                   <div className="text-xs text-foreground/55">Your payout after platform fee</div>
                                   <div className="mt-1 text-lg font-bold text-emerald-500">{formatMoney(counsellorPayout(value, commissionRate))}</div>
-                                  <div className="text-xs text-foreground/55">Admin fee: {formatMoney(Math.max(0, value - counsellorPayout(value, commissionRate)))}</div>
+                                  <div className="text-xs text-foreground/55">Platform fee: {formatMoney(Math.max(0, value - counsellorPayout(value, commissionRate)))}</div>
                                 </div>
                               </div>
                             </div>
@@ -1538,7 +1538,7 @@ const CounsellorDashboard = () => {
                     <CardContent className="space-y-3">
                       <SettingToggle title="Session reminders" text="Bookings, reschedules, cancellations, and Google Meet alerts." checked={notificationSettings.session} onToggle={() => setNotificationSettings((current) => ({ ...current, session: !current.session }))} />
                       <SettingToggle title="Chat messages" text="New patient messages, replies, reactions, and shared resources." checked={notificationSettings.messages} onToggle={() => setNotificationSettings((current) => ({ ...current, messages: !current.messages }))} />
-                      <SettingToggle title="Payment updates" text="Counsellor payout and 20% platform fee notices." checked={notificationSettings.payments} onToggle={() => setNotificationSettings((current) => ({ ...current, payments: !current.payments }))} />
+                      <SettingToggle title="Payment updates" text="Counsellor payout and platform fee notices." checked={notificationSettings.payments} onToggle={() => setNotificationSettings((current) => ({ ...current, payments: !current.payments }))} />
                       <SettingToggle title="Emergency SOS alerts" text="Urgent alerts from booked users and safety escalation notices." checked={notificationSettings.emergency} onToggle={() => setNotificationSettings((current) => ({ ...current, emergency: !current.emergency }))} />
                       <SettingToggle title="Platform announcements" text="Admin wellness campaigns, moderation alerts, and maintenance notices." checked={notificationSettings.platform} onToggle={() => setNotificationSettings((current) => ({ ...current, platform: !current.platform }))} />
                     </CardContent>
@@ -1559,7 +1559,7 @@ const CounsellorDashboard = () => {
                       <ProfileLine label="Short package" value={formatMoney(packagePrices.shortTerm)} />
                       <ProfileLine label="Medium package" value={formatMoney(packagePrices.mediumTerm)} />
                       <ProfileLine label="Long package" value={formatMoney(packagePrices.longTerm)} />
-                      <ProfileLine label="Platform fee" value={`${data.earnings.platformCommissionRate || data.profile?.platformCommission || 20}% to admin`} />
+                      <ProfileLine label="Platform fee" value="Applied automatically" />
                       <ProfileLine label="Categories" value={(data.profile?.categories || []).join(", ") || "General counselling"} />
                       <ProfileLine label="Meet readiness" value={data.stats.googleMeetReady ? "Ready" : "Needs link"} />
                       <ProfileLine label="Reviews" value={`${data.profile?.reviews || data.reviews.length || 0} reviews`} />

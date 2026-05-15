@@ -127,7 +127,7 @@ app.post(
         user: appointment.counsellor._id,
         type: "payment",
         title: "Session payout updated",
-        message: `Rs. ${counsellorPayout} is marked for counsellor payout after 20% platform fee.`,
+        message: `Rs. ${counsellorPayout} is marked for counsellor payout after platform fee.`,
         metadata: { paymentId: String(payment._id), appointmentId: String(appointment._id) },
       });
     }
@@ -135,7 +135,7 @@ app.post(
       audienceRole: "admin",
       type: "payment",
       title: "Platform commission received",
-      message: `20% platform fee recorded: Rs. ${platformFee} from invoice ${payment.invoiceNumber}.`,
+      message: `Platform fee recorded: Rs. ${platformFee} from invoice ${payment.invoiceNumber}.`,
       metadata: { paymentId: String(payment._id) },
     });
     res.status(201).json(normalizePayment(payment));

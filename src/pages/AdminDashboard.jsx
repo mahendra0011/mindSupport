@@ -531,7 +531,7 @@ const AdminDashboard = () => {
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle>Revenue Trend</CardTitle>
-                    <CardDescription>Gross revenue with 20% platform fee and 80% counsellor payout planning.</CardDescription>
+                    <CardDescription>Gross revenue with platform fee and counsellor payout planning.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="h-80 rounded-2xl border border-glass-border/40 bg-background/60 p-4">
