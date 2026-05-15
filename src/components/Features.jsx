@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, BookOpen, Calendar, Users, BarChart3, Shield, Zap, Heart, Clock, UserCheck, ArrowRight } from "lucide-react";
+import ElectricBorder from "@/components/reactbits/ElectricBorder";
 const Features = () => {
     const mainFeatures = [
         {
@@ -59,6 +60,8 @@ const Features = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <ElectricBorder color="#22d3ee" speed={0.72} chaos={0.075} borderRadius={28} className="block" style={{ borderRadius: 28 }}>
+          <div className="rounded-[28px] border border-cyan-300/10 bg-background/70 p-5 backdrop-blur md:p-8">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-glass/30 border border-glass-border/30 backdrop-blur-sm mb-6">
@@ -137,6 +140,8 @@ const Features = () => {
               </div>))}
           </div>
         </div>
+          </div>
+        </ElectricBorder>
       </div>
     </section>);
 };
