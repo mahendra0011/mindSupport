@@ -291,6 +291,11 @@ app.put(
     for (const key of allowed) {
       if (key in req.body) req.user[key] = req.body[key];
     }
+    const hasPricingUpdate = "sessionPricing" in req.body || "supportPlanPrices" in req.body;
+    if (hasPricingUpdate && req.user.role !== "counsellor") {
+      res.status(403).json({ error: "Only approved counsellors can update counselling package prices" });
+      return;
+    }
     if ("sessionPricing" in req.body) {
       const sessionPricing = Number(req.body.sessionPricing);
       if (!Number.isFinite(sessionPricing) || sessionPricing < 1) {
