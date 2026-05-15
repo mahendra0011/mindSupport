@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { HeartHandshake, LockKeyhole, MapPin, MessageCircle, Phone, Search, Star, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ElectricBorder from "@/components/reactbits/ElectricBorder";
 
 const featuredCounsellors = [
   {
@@ -221,24 +222,26 @@ const HomeSupportFlow = () => {
   return (
     <section className="animated-hero-bg relative overflow-hidden bg-[#050914] pb-14 pt-6">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-8">
-        <div className="premium-hover-card motion-gradient-aura rounded-[26px] bg-gradient-to-br from-violet-700 to-blue-600 p-7 md:p-10" data-motion>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">How it works</p>
-          <h2 className="mt-2 max-w-xl text-2xl font-bold leading-tight text-white md:text-3xl">
-            From first message to first session in three simple steps.
-          </h2>
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
-            {steps.map((step, index) => (
-              <div key={step.title} className="premium-hover-card rounded-[18px] bg-[#0b1020]/88 p-5">
-                <div className="flex items-center justify-between text-violet-300">
-                  <step.icon className="h-5 w-5" />
-                  <span className="text-xl font-bold opacity-60">0{index + 1}</span>
+        <ElectricBorder color="#7df9ff" speed={0.8} chaos={0.09} borderRadius={26} className="premium-hover-card motion-gradient-aura" style={{ borderRadius: 26 }} data-motion>
+          <div className="rounded-[26px] bg-gradient-to-br from-violet-700 to-blue-600 p-7 md:p-10">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">How it works</p>
+            <h2 className="mt-2 max-w-xl text-2xl font-bold leading-tight text-white md:text-3xl">
+              From first message to first session in three simple steps.
+            </h2>
+            <div className="mt-7 grid gap-4 md:grid-cols-3">
+              {steps.map((step, index) => (
+                <div key={step.title} className="premium-hover-card rounded-[18px] bg-[#0b1020]/88 p-5">
+                  <div className="flex items-center justify-between text-violet-300">
+                    <step.icon className="h-5 w-5" />
+                    <span className="text-xl font-bold opacity-60">0{index + 1}</span>
+                  </div>
+                  <h3 className="mt-4 text-sm font-bold text-white">{step.title}</h3>
+                  <p className="mt-2 text-xs leading-5 text-slate-300/75">{step.text}</p>
                 </div>
-                <h3 className="mt-4 text-sm font-bold text-white">{step.title}</h3>
-                <p className="mt-2 text-xs leading-5 text-slate-300/75">{step.text}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </ElectricBorder>
 
         <div className="mt-16 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Session modes</p>
