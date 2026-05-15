@@ -220,10 +220,8 @@ const UserDashboard = () => {
     if (!socket) return undefined;
     const refresh = () => loadDashboard();
     socket.on("message:new", refresh);
-    socket.on("notification:new", refresh);
     return () => {
       socket.off("message:new", refresh);
-      socket.off("notification:new", refresh);
     };
   }, [loadDashboard]);
 

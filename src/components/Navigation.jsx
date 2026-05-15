@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api";
-import { closeRealtimeSocket, getRealtimeSocket } from "@/lib/socket";
+import { closeRealtimeSocket } from "@/lib/socket";
 import { useToast } from "@/components/ui/use-toast";
 import {
     AlertTriangle,
@@ -80,45 +80,33 @@ const Navigation = () => {
         ...(user ? [{ name: "Dashboard", icon: BarChart3, route: "/dashboard" }] : []),
     ];
 
-    const loadNotifications = useCallback(async () => {
+    const loadNotifications = useCallback(async ({ silent = false } = {}) => {
         if (!user) {
             setNotifications([]);
             return;
         }
-        setNotificationsLoading(true);
+        if (!silent) setNotificationsLoading(true);
         try {
             const list = await apiFetch("/api/notifications/my");
             setNotifications(Array.isArray(list) ? list : []);
         } catch {
             setNotifications([]);
         } finally {
-            setNotificationsLoading(false);
+            if (!silent) setNotificationsLoading(false);
         }
     }, [user]);
 
     useEffect(() => {
-        loadNotifications();
-    }, [loadNotifications]);
-
-    useEffect(() => {
-        if (!user) return undefined;
-        const socket = getRealtimeSocket();
-        if (!socket) return undefined;
-        const onNotification = (notification) => {
-            setNotifications((current) => {
-                const exists = current.some((item) => item.id === notification.id);
-                return exists ? current.map((item) => (item.id === notification.id ? notification : item)) : [notification, ...current].slice(0, 50);
-            });
-            toast({
-                title: notification.title || "New notification",
-                description: notification.message || "You have a new MindSupport update.",
-            });
-        };
-        socket.on("notification:new", onNotification);
-        return () => {
-            socket.off("notification:new", onNotification);
-        };
-    }, [toast, user]);
+        if (!user) {
+            setNotifications([]);
+            return undefined;
+        }
+        void loadNotifications();
+        const timer = window.setInterval(() => {
+            void loadNotifications({ silent: true });
+        }, 45000);
+        return () => window.clearInterval(timer);
+    }, [loadNotifications, user]);
 
     const markNotificationRead = async (notification, shouldNavigate = false) => {
         if (!notification?.id) return;

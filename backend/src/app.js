@@ -455,10 +455,6 @@ async function createNotification({ user, audienceRole = "", type = "system", ti
     message,
     metadata,
   });
-  const payload = normalizeNotification(notification);
-  if (user) io.to(`user:${user}`).emit("notification:new", payload);
-  if (audienceRole) io.to(`role:${audienceRole}`).emit("notification:new", payload);
-  if (audienceRole === "all") io.emit("notification:new", payload);
   return notification;
 }
 

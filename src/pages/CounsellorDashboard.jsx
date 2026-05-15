@@ -316,10 +316,8 @@ const CounsellorDashboard = () => {
       void load();
     };
     socket.on("message:new", refresh);
-    socket.on("notification:new", refresh);
     return () => {
       socket.off("message:new", refresh);
-      socket.off("notification:new", refresh);
     };
   }, [load]);
 
