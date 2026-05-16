@@ -72,21 +72,21 @@ const Hero = () => {
           </div>
 
           {/* Hero Image */}
-          <div className="relative" data-motion>
+          <div className="relative px-3 sm:px-6 lg:px-0" data-motion>
             <div className="premium-hover-card glass-card p-8 animate-float">
               <img src={heroImage} alt="Digital Mental Health Platform Visualization" className="w-full h-auto rounded-lg shadow-2xl"/>
               <div className="absolute inset-0 bg-gradient-primary/10 rounded-lg"></div>
             </div>
             
             {/* Floating Elements */}
-            <div className="premium-hover-card absolute -top-4 -right-4 glass-card p-4 animate-float-delayed">
+            <div className="premium-hover-card absolute right-0 top-4 glass-card p-4 animate-float-delayed sm:right-2 lg:-right-4 lg:-top-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
                 <span className="text-sm text-foreground/80">Online Support</span>
               </div>
             </div>
             
-            <div className="premium-hover-card absolute -bottom-4 -left-4 glass-card p-4 animate-float">
+            <div className="premium-hover-card absolute bottom-4 left-0 glass-card p-4 animate-float sm:left-2 lg:-bottom-4 lg:-left-4">
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-primary"/>
                 <span className="text-sm text-foreground/80">100% Confidential</span>
