@@ -64,7 +64,7 @@ app.get(
     const [appointments, approvedReviews, messages, notifications] = await Promise.all([
       Appointment.find({ counsellor: req.user._id }).sort({ date: 1, time: 1 }).populate("student", "name email phone"),
       Review.find({ counsellor: req.user._id, status: "approved" }).sort({ createdAt: -1 }).limit(10).populate("student counsellor appointment"),
-      Message.find({ $or: [{ from: req.user._id }, { to: req.user._id }] })
+      Message.find({ deletedAt: null, $or: [{ from: req.user._id }, { to: req.user._id }] })
         .sort({ createdAt: -1 })
         .limit(80)
         .populate("from to appointment")

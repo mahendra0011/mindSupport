@@ -66,7 +66,7 @@ app.get(
       Resource.find().sort({ createdAt: -1 }).limit(6),
       User.find({ role: "counsellor", status: { $in: approvedCounsellorStatuses } }).sort({ name: 1 }).limit(8),
       Journal.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(8),
-      Message.find({ $or: [{ from: req.user._id }, { to: req.user._id }] })
+      Message.find({ deletedAt: null, $or: [{ from: req.user._id }, { to: req.user._id }] })
         .sort({ createdAt: -1 })
         .limit(80)
         .populate("from to appointment")

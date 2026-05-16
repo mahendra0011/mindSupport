@@ -261,7 +261,7 @@ const UserDashboard = () => {
   }, [privacyPrefs]);
 
   const upcoming = data.appointments.filter((item) => !["cancelled", "completed", "declined"].includes(item.status)).slice(0, 4);
-  const chatMessages = useMemo(() => [...(data.messages || [])].reverse(), [data.messages]);
+  const chatMessages = useMemo(() => (data.messages || []).filter((message) => !message.deleted).reverse(), [data.messages]);
   const bookedCounsellorIds = useMemo(
     () =>
       new Set(
@@ -464,6 +464,11 @@ const UserDashboard = () => {
     try {
       await apiFetch(`/api/messages/${message.id}`, { method: "DELETE" });
       toast({ title: "Message deleted" });
+      if (replyToMessage?.id === message.id) setReplyToMessage(null);
+      if (editingMessageId === message.id) {
+        setEditingMessageId("");
+        setEditingMessageText("");
+      }
       loadDashboard();
     } catch (error) {
       toast({ variant: "destructive", title: "Delete failed", description: error?.message || "" });

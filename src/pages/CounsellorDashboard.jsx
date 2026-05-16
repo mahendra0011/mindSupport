@@ -344,7 +344,7 @@ const CounsellorDashboard = () => {
 
   const appointments = useMemo(() => data.appointments || [], [data.appointments]);
   const patients = useMemo(() => data.patients || [], [data.patients]);
-  const messages = useMemo(() => [...(data.messages || [])].reverse(), [data.messages]);
+  const messages = useMemo(() => (data.messages || []).filter((message) => !message.deleted).reverse(), [data.messages]);
   const today = todayYMD();
 
   const pending = appointments.filter((item) => item.status === "pending");
@@ -553,6 +553,11 @@ const CounsellorDashboard = () => {
     try {
       await apiFetch(`/api/messages/${message.id}`, { method: "DELETE" });
       toast({ title: "Message deleted" });
+      if (replyToMessage?.id === message.id) setReplyToMessage(null);
+      if (editingMessageId === message.id) {
+        setEditingMessageId("");
+        setEditingMessageText("");
+      }
       await load();
     } catch (error) {
       toast({ variant: "destructive", title: "Delete failed", description: error?.message || "" });

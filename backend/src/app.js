@@ -349,7 +349,6 @@ function normalizeMessage(message, viewer) {
   const replyTo = raw.replyTo && typeof raw.replyTo === "object" ? raw.replyTo : null;
   const viewerId = viewer?._id ? String(viewer._id) : "";
   const readBy = (raw.readBy || []).map((item) => String(item?._id || item));
-  const deleted = Boolean(raw.deletedAt);
   const reactions = (raw.reactions || []).map((reaction) => ({
     userId: String(reaction.user?._id || reaction.user || ""),
     emoji: reaction.emoji || "",
@@ -365,15 +364,15 @@ function normalizeMessage(message, viewer) {
     to: to?.name || "User",
     toUsername: to?.username || "",
     subject: raw.subject || "Message",
-    text: deleted ? "This message was deleted" : raw.text || "",
+    text: raw.text || "",
     task: raw.task || "",
     fileName: raw.fileName || "",
     fileUrl: raw.fileUrl || "",
-    replyTo: replyTo
+    replyTo: replyTo && !replyTo.deletedAt
       ? {
           id: String(replyTo._id || replyTo.id),
           from: replyTo.from?.name || "User",
-          text: replyTo.deletedAt ? "Deleted message" : String(replyTo.text || "").slice(0, 180),
+          text: String(replyTo.text || "").slice(0, 180),
         }
       : null,
     reactions,
@@ -384,10 +383,10 @@ function normalizeMessage(message, viewer) {
     }, {}),
     edited: Boolean(raw.editedAt),
     editedAt: raw.editedAt,
-    deleted,
+    deleted: Boolean(raw.deletedAt),
     deletedAt: raw.deletedAt,
-    canEdit: viewerId ? String(raw.from?._id || raw.from) === viewerId && !deleted : false,
-    canDelete: viewerId ? [String(raw.from?._id || raw.from), String(raw.to?._id || raw.to)].includes(viewerId) && !deleted : false,
+    canEdit: viewerId ? String(raw.from?._id || raw.from) === viewerId && !raw.deletedAt : false,
+    canDelete: viewerId ? [String(raw.from?._id || raw.from), String(raw.to?._id || raw.to)].includes(viewerId) && !raw.deletedAt : false,
     unread: viewerId ? !readBy.includes(viewerId) && String(raw.to?._id || raw.to) === viewerId : false,
     direction: viewerId && String(raw.from?._id || raw.from) === viewerId ? "sent" : "received",
     createdAt: raw.createdAt,

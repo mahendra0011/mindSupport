@@ -58,7 +58,7 @@ app.get(
   "/api/messages",
   asyncRoute(authRequired),
   asyncRoute(async (req, res) => {
-    let query = { $or: [{ from: req.user._id }, { to: req.user._id }] };
+    let query = { deletedAt: null, $or: [{ from: req.user._id }, { to: req.user._id }] };
     if (req.query.peer) {
       const peer = await findUserByIdentifier(req.query.peer);
       if (peer) {
@@ -82,6 +82,7 @@ app.get(
         return;
       }
       query = {
+        deletedAt: null,
         $or: [
           { from: req.user._id, to: { $in: counsellorIds } },
           { from: { $in: counsellorIds }, to: req.user._id },
@@ -98,6 +99,7 @@ app.get(
         return;
       }
       query = {
+        deletedAt: null,
         $or: [
           { from: req.user._id, to: { $in: studentIds } },
           { from: { $in: studentIds }, to: req.user._id },
@@ -155,6 +157,7 @@ app.post(
     if (req.body?.replyTo && mongoose.isValidObjectId(req.body.replyTo)) {
       replyTo = await Message.findOne({
         _id: req.body.replyTo,
+        deletedAt: null,
         $or: [
           { from: req.user._id, to: recipient._id },
           { from: recipient._id, to: req.user._id },
@@ -191,7 +194,7 @@ app.patch(
   "/api/messages/:id/read",
   asyncRoute(authRequired),
   asyncRoute(async (req, res) => {
-    const message = await Message.findOne({ _id: req.params.id, $or: [{ from: req.user._id }, { to: req.user._id }] });
+    const message = await Message.findOne({ _id: req.params.id, deletedAt: null, $or: [{ from: req.user._id }, { to: req.user._id }] });
     if (!message) {
       res.status(404).json({ error: "Message not found" });
       return;
@@ -208,7 +211,7 @@ app.patch(
   "/api/messages/:id",
   asyncRoute(authRequired),
   asyncRoute(async (req, res) => {
-    const message = await Message.findOne({ _id: req.params.id, from: req.user._id });
+    const message = await Message.findOne({ _id: req.params.id, from: req.user._id, deletedAt: null });
     if (!message || message.deletedAt) {
       res.status(404).json({ error: "Message not found" });
       return;
@@ -235,7 +238,7 @@ app.delete(
   "/api/messages/:id",
   asyncRoute(authRequired),
   asyncRoute(async (req, res) => {
-    const message = await Message.findOne({ _id: req.params.id, $or: [{ from: req.user._id }, { to: req.user._id }] });
+    const message = await Message.findOne({ _id: req.params.id, deletedAt: null, $or: [{ from: req.user._id }, { to: req.user._id }] });
     if (!message || message.deletedAt) {
       res.status(404).json({ error: "Message not found" });
       return;
@@ -245,10 +248,10 @@ app.delete(
     await message.save();
     const fromId = String(message.from);
     const toId = String(message.to);
-    const populated = await message.populate("from to appointment replyTo");
-    io.to(`user:${toId}`).emit("message:new", normalizeMessage(populated, { _id: toId }));
-    io.to(`user:${fromId}`).emit("message:new", normalizeMessage(populated, { _id: fromId }));
-    res.json(normalizeMessage(populated, req.user));
+    const deletedPayload = { id: String(message._id), deleted: true };
+    io.to(`user:${toId}`).emit("message:new", deletedPayload);
+    io.to(`user:${fromId}`).emit("message:new", deletedPayload);
+    res.json({ success: true, deletedMessageId: String(message._id) });
   })
 );
 
@@ -261,7 +264,7 @@ app.post(
       res.status(400).json({ error: "Reaction emoji is required" });
       return;
     }
-    const message = await Message.findOne({ _id: req.params.id, $or: [{ from: req.user._id }, { to: req.user._id }] });
+    const message = await Message.findOne({ _id: req.params.id, deletedAt: null, $or: [{ from: req.user._id }, { to: req.user._id }] });
     if (!message || message.deletedAt) {
       res.status(404).json({ error: "Message not found" });
       return;
