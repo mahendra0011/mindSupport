@@ -283,7 +283,7 @@ const HomeSupportFlow = () => {
           ))}
         </div>
 
-        <div className="mt-16 text-center">
+        <div id="faq" className="mt-16 scroll-mt-28 text-center">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-violet-300">Questions</p>
           <h2 className="mt-2 text-2xl font-bold text-white md:text-3xl">Things people often ask</h2>
         </div>
@@ -311,7 +311,7 @@ const HomeSupportFlow = () => {
                 </p>
               </div>
             </div>
-            <Button className="motion-button rounded-full bg-red-400 px-6 text-xs font-bold text-white hover:bg-red-300" onClick={() => navigate("/wellness")}>
+            <Button className="motion-button rounded-full bg-red-400 px-6 text-xs font-bold text-white hover:bg-red-300" onClick={() => navigate("/resources")}>
               Get crisis help
               <MessageCircle className="ml-2 h-4 w-4" />
             </Button>
