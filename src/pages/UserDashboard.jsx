@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Activity,
@@ -38,7 +38,6 @@ import {
   ShieldCheck,
   Siren,
   Smile,
-  SmilePlus,
   Sparkles,
   Trash2,
   Users,
@@ -58,6 +57,7 @@ import {
 } from "recharts";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
+import { ComposerAttachmentPreview, MessageAttachment } from "@/components/chat/MessageAttachment";
 import GlowPanel from "@/components/reactbits/GlowPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { CHAT_ATTACHMENT_ACCEPT, readChatAttachment } from "@/lib/chatAttachments";
 import { apiFetch } from "@/lib/api";
 import { getRealtimeSocket } from "@/lib/socket";
 import { useAppSelector } from "@/store/hooks";
@@ -142,6 +143,12 @@ const emptyData = {
 
 const NOTIFICATION_HTTP_POLL_MS = 30000;
 
+const chatReactionOptions = [
+  { emoji: "👍", label: "Like" },
+  { emoji: "💙", label: "Care" },
+  { emoji: "🙏", label: "Thanks" },
+];
+
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -162,6 +169,7 @@ const UserDashboard = () => {
   const [messageRecipient, setMessageRecipient] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messageFileUrl, setMessageFileUrl] = useState("");
+  const [messageAttachment, setMessageAttachment] = useState(null);
   const [replyToMessage, setReplyToMessage] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState("");
   const [editingMessageText, setEditingMessageText] = useState("");
@@ -182,6 +190,7 @@ const UserDashboard = () => {
   const [privacyPrefs, setPrivacyPrefs] = useState(() => readStoredPrefs("mindsupport_privacy_prefs", defaultPrivacyPrefs));
   const [otpCode, setOtpCode] = useState("");
   const [otpHint, setOtpHint] = useState("");
+  const attachmentInputRef = useRef(null);
 
   const loadDashboard = useCallback(() => {
     let active = true;
@@ -411,7 +420,8 @@ const UserDashboard = () => {
 
   const sendUserMessage = async () => {
     const targetRecipient = activeConversation?.id;
-    if (!targetRecipient || !messageText.trim()) {
+    const attachmentUrl = messageAttachment?.fileUrl || messageFileUrl.trim();
+    if (!targetRecipient || (!messageText.trim() && !attachmentUrl)) {
       toast({ variant: "destructive", title: "Message is locked", description: "Book a counsellor first, then you can use secure chat." });
       return;
     }
@@ -422,14 +432,16 @@ const UserDashboard = () => {
           to: targetRecipient,
           subject: activeConversation ? `Chat with ${activeConversation.name}` : "Session follow-up",
           text: messageText,
-          fileUrl: messageFileUrl,
-          fileName: messageFileUrl ? "Shared file" : "",
+          fileUrl: attachmentUrl,
+          fileName: messageAttachment?.fileName || (messageFileUrl.trim() ? "Shared file" : ""),
+          fileType: messageAttachment?.fileType || "",
           replyTo: replyToMessage?.id,
         }),
       });
       toast({ title: "Message sent", description: "Your counsellor can reply from their dashboard." });
       setMessageText("");
       setMessageFileUrl("");
+      setMessageAttachment(null);
       setReplyToMessage(null);
       loadDashboard();
     } catch (error) {
@@ -506,12 +518,23 @@ const UserDashboard = () => {
     setMessageText((current) => (current ? `${current}\n${reply}` : reply));
   };
 
-  const selectAttachmentType = (type) => {
+  const handleAttachmentFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const attachment = await readChatAttachment(file);
+      setMessageAttachment(attachment);
+      setMessageFileUrl("");
+      setShowAttachmentPanel(false);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Attachment blocked", description: error?.message || "" });
+    }
+  };
+
+  const selectAttachmentType = () => {
     setShowAttachmentPanel(false);
-    toast({
-      title: `${type} attachment`,
-      description: "Paste a secure file or resource link in the attachment field before sending.",
-    });
+    attachmentInputRef.current?.click();
   };
 
   const payNextSession = async () => {
@@ -1130,6 +1153,7 @@ const UserDashboard = () => {
                             </div>
 
                             <div className="border-t border-white/10 bg-[#17242d]/95 p-3 shadow-[0_-18px_45px_rgba(0,0,0,0.22)] backdrop-blur">
+                              <input ref={attachmentInputRef} type="file" accept={CHAT_ATTACHMENT_ACCEPT} className="hidden" onChange={handleAttachmentFileChange} />
                               {replyToMessage && (
                                 <div className="mb-3 rounded-xl border-l-4 border-emerald-400 bg-[#111b21] p-3 text-xs text-slate-300">
                                   <div className="flex items-center justify-between gap-3">
@@ -1139,6 +1163,7 @@ const UserDashboard = () => {
                                   <div className="mt-1 truncate text-slate-100">{replyToMessage.text}</div>
                                 </div>
                               )}
+                              <ComposerAttachmentPreview attachment={messageAttachment} onRemove={() => setMessageAttachment(null)} />
                               <div className="mb-2 flex flex-wrap gap-2">
                                 {["I need to reschedule", "Can we discuss my journal?", "Please share a coping task"].map((reply) => (
                                   <button
@@ -1156,10 +1181,10 @@ const UserDashboard = () => {
                                 <div className="chat-panel-pop mb-3 rounded-2xl border border-white/10 bg-[#0f1921] p-3 shadow-xl">
                                   {showAttachmentPanel && (
                                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                                      <AttachmentAction icon={File} label="Document" onClick={() => selectAttachmentType("Document")} />
-                                      <AttachmentAction icon={Image} label="Gallery" onClick={() => selectAttachmentType("Gallery")} />
-                                      <AttachmentAction icon={Camera} label="Camera" onClick={() => selectAttachmentType("Camera")} />
-                                      <AttachmentAction icon={FileText} label="Resource" onClick={() => selectAttachmentType("Resource")} />
+                                      <AttachmentAction icon={Image} label="Image" onClick={selectAttachmentType} />
+                                      <AttachmentAction icon={FileText} label="PDF" onClick={selectAttachmentType} />
+                                      <AttachmentAction icon={Camera} label="Camera" onClick={selectAttachmentType} />
+                                      <AttachmentAction icon={File} label="Browse" onClick={selectAttachmentType} />
                                     </div>
                                   )}
                                   {showEmojiPanel && (
@@ -1192,8 +1217,11 @@ const UserDashboard = () => {
                                   <Input
                                     className="h-10 rounded-xl border-white/10 bg-[#0f1921] pl-9 text-slate-100 placeholder:text-slate-400"
                                     value={messageFileUrl}
-                                    onChange={(event) => setMessageFileUrl(event.target.value)}
-                                    placeholder="Optional file or resource URL"
+                                    onChange={(event) => {
+                                      setMessageFileUrl(event.target.value);
+                                      if (event.target.value.trim()) setMessageAttachment(null);
+                                    }}
+                                    placeholder="Optional image, PDF, or resource URL"
                                   />
                                 </div>
                               </div>
@@ -1221,9 +1249,9 @@ const UserDashboard = () => {
                                 <Button
                                   type="button"
                                   onClick={sendUserMessage}
-                                  disabled={!messageText.trim()}
+                                  disabled={!messageText.trim() && !messageFileUrl.trim() && !messageAttachment}
                                   className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
-                                  title={messageText.trim() ? "Send message" : "Write a message to send"}
+                                  title={messageText.trim() || messageFileUrl.trim() || messageAttachment ? "Send message" : "Write a message or attach a file to send"}
                                 >
                                   <Send className="h-5 w-5" />
                                 </Button>
@@ -1736,14 +1764,9 @@ function ChatBubble({
         ) : (
           <>
             {subject && <div className="mb-1 text-sm font-semibold">{subject}</div>}
-            <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>
+            {message.text && <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>}
             {message.task && <div className="mt-2 rounded-xl border border-white/10 bg-white/10 p-2 text-xs">Task: {message.task}</div>}
-            {message.fileUrl && (
-              <a className={`mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs no-underline transition hover:bg-white/15 ${sent ? "text-emerald-50" : "text-emerald-200"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
-                <Paperclip className="h-3 w-3" />
-                {message.fileName || "Open shared file"}
-              </a>
-            )}
+            <MessageAttachment attachment={message} sent={sent} />
           </>
         )}
         {reactions.length > 0 && (
@@ -1765,10 +1788,17 @@ function ChatBubble({
             <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={onReply}>
               <Reply className="h-3.5 w-3.5" />
             </Button>
-            {["Like", "Care", "Thanks"].map((emoji) => (
-              <Button key={emoji} size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
-                <SmilePlus className="mr-1 h-3.5 w-3.5" />
-                {emoji}
+            {chatReactionOptions.map((reaction) => (
+              <Button
+                key={reaction.emoji}
+                size="sm"
+                variant="ghost"
+                className="h-7 rounded-full px-2 text-base leading-none text-slate-100 hover:bg-white/10"
+                aria-label={`React with ${reaction.label}`}
+                title={reaction.label}
+                onClick={() => onReact(reaction.emoji)}
+              >
+                {reaction.emoji}
               </Button>
             ))}
             {message.canEdit && (

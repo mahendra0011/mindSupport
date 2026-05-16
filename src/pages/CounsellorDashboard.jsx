@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRef } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -20,6 +21,7 @@ import {
   MessageCircle,
   MessageSquareText,
   NotebookPen,
+  Paperclip,
   Pencil,
   PlusCircle,
   Power,
@@ -30,7 +32,6 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-  SmilePlus,
   Trash2,
   UserCheck,
   Users,
@@ -49,6 +50,7 @@ import {
 } from "recharts";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
+import { ComposerAttachmentPreview, MessageAttachment } from "@/components/chat/MessageAttachment";
 import GlowPanel from "@/components/reactbits/GlowPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,6 +61,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { CHAT_ATTACHMENT_ACCEPT, readChatAttachment } from "@/lib/chatAttachments";
 import { apiFetch } from "@/lib/api";
 import { getRealtimeSocket } from "@/lib/socket";
 
@@ -85,6 +88,12 @@ const fallback = {
 };
 
 const NOTIFICATION_HTTP_POLL_MS = 30000;
+
+const chatReactionOptions = [
+  { emoji: "👍", label: "Like" },
+  { emoji: "💙", label: "Care" },
+  { emoji: "🙏", label: "Thanks" },
+];
 
 const noteTemplates = [
   "Client appeared stable. Continued grounding practice and daily mood tracking recommended.",
@@ -260,6 +269,7 @@ const CounsellorDashboard = () => {
   const [patientChatSearch, setPatientChatSearch] = useState("");
   const [messageText, setMessageText] = useState("");
   const [messageFileUrl, setMessageFileUrl] = useState("");
+  const [messageAttachment, setMessageAttachment] = useState(null);
   const [replyToMessage, setReplyToMessage] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState("");
   const [editingMessageText, setEditingMessageText] = useState("");
@@ -275,6 +285,7 @@ const CounsellorDashboard = () => {
   const [baseSessionPrice, setBaseSessionPrice] = useState("");
   const [privacySettings, setPrivacySettings] = useState(defaultPrivacySettings);
   const [notificationSettings, setNotificationSettings] = useState(defaultNotificationSettings);
+  const attachmentInputRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -501,7 +512,8 @@ const CounsellorDashboard = () => {
   };
 
   const sendCounsellorMessage = async () => {
-    if (!activePatient?.id || !messageText.trim()) {
+    const attachmentUrl = messageAttachment?.fileUrl || messageFileUrl.trim();
+    if (!activePatient?.id || (!messageText.trim() && !attachmentUrl)) {
       toast({ variant: "destructive", title: "Message is incomplete", description: "Choose a user and write a message." });
       return;
     }
@@ -514,13 +526,15 @@ const CounsellorDashboard = () => {
           text: messageText,
           task: messageText,
           replyTo: replyToMessage?.id,
-          fileUrl: messageFileUrl.trim(),
-          fileName: messageFileUrl.trim() ? "Shared resource" : "",
+          fileUrl: attachmentUrl,
+          fileName: messageAttachment?.fileName || (messageFileUrl.trim() ? "Shared resource" : ""),
+          fileType: messageAttachment?.fileType || "",
         }),
       });
       toast({ title: "Message sent", description: "The user will see it in secure chat." });
       setMessageText("");
       setMessageFileUrl("");
+      setMessageAttachment(null);
       setReplyToMessage(null);
       await load();
     } catch (error) {
@@ -584,6 +598,19 @@ const CounsellorDashboard = () => {
         [key]: value,
       },
     }));
+  };
+
+  const handleAttachmentFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const attachment = await readChatAttachment(file);
+      setMessageAttachment(attachment);
+      setMessageFileUrl("");
+    } catch (error) {
+      toast({ variant: "destructive", title: "Attachment blocked", description: error?.message || "" });
+    }
   };
 
   const updateAvailabilityRow = (id, key, value) => {
@@ -1225,6 +1252,7 @@ const CounsellorDashboard = () => {
                       </div>
 
                       <div className="border-t border-white/10 bg-[#17242d]/95 p-3 shadow-[0_-18px_45px_rgba(0,0,0,0.22)] backdrop-blur">
+                        <input ref={attachmentInputRef} type="file" accept={CHAT_ATTACHMENT_ACCEPT} className="hidden" onChange={handleAttachmentFileChange} />
                         {replyToMessage && (
                           <div className="mb-3 rounded-xl border-l-4 border-emerald-400 bg-[#111b21] p-3 text-xs text-slate-300">
                             <div className="flex items-center justify-between gap-3">
@@ -1234,6 +1262,7 @@ const CounsellorDashboard = () => {
                             <div className="mt-1 truncate text-slate-100">{replyToMessage.text}</div>
                           </div>
                         )}
+                        <ComposerAttachmentPreview attachment={messageAttachment} onRemove={() => setMessageAttachment(null)} />
                         <div className="mb-3 flex flex-wrap gap-2">
                           {["Please update your mood tracker", "Try the breathing task today", "Can we review this next session?"].map((reply) => (
                             <button
@@ -1247,12 +1276,26 @@ const CounsellorDashboard = () => {
                           ))}
                         </div>
                         <div className="mb-2 grid gap-2 md:grid-cols-[1fr_190px]">
-                          <Input className="h-10 rounded-xl border-white/10 bg-[#0f1921] text-slate-100 placeholder:text-slate-400" value={messageFileUrl} onChange={(event) => setMessageFileUrl(event.target.value)} placeholder="Optional resource or file URL" />
+                          <div className="relative">
+                            <Paperclip className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <Input
+                              className="h-10 rounded-xl border-white/10 bg-[#0f1921] pl-9 text-slate-100 placeholder:text-slate-400"
+                              value={messageFileUrl}
+                              onChange={(event) => {
+                                setMessageFileUrl(event.target.value);
+                                if (event.target.value.trim()) setMessageAttachment(null);
+                              }}
+                              placeholder="Optional image, PDF, or resource URL"
+                            />
+                          </div>
                           <Button type="button" variant="outline" onClick={() => setMessageText("Please complete today's breathing exercise and update your mood tracker before our next session.")}>
                             Wellness task
                           </Button>
                         </div>
                         <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#0f1921] p-2">
+                          <Button type="button" variant="ghost" size="icon" className="h-11 w-11 shrink-0 rounded-full text-slate-100 hover:bg-white/10" onClick={() => attachmentInputRef.current?.click()} aria-label="Attach image or PDF">
+                            <Paperclip className="h-5 w-5" />
+                          </Button>
                           <Textarea
                             rows={2}
                             value={messageText}
@@ -1260,7 +1303,7 @@ const CounsellorDashboard = () => {
                             placeholder="Write a secure follow-up message..."
                             className="min-h-[44px] resize-none border-0 bg-transparent text-slate-100 shadow-none placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
-                          <Button className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600" onClick={sendCounsellorMessage} aria-label="Send message" disabled={!messageText.trim() || !activePatient}>
+                          <Button className="h-11 rounded-full bg-emerald-500 px-4 text-white hover:bg-emerald-600" onClick={sendCounsellorMessage} aria-label="Send message" disabled={(!messageText.trim() && !messageFileUrl.trim() && !messageAttachment) || !activePatient}>
                             <Send className="h-5 w-5" />
                           </Button>
                         </div>
@@ -2004,14 +2047,9 @@ function CounsellorChatBubble({
         ) : (
           <>
             {subject && <div className="mb-1 text-sm font-semibold">{subject}</div>}
-            <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>
+            {message.text && <div className={`whitespace-pre-wrap text-sm leading-relaxed ${message.deleted ? "italic opacity-70" : ""}`}>{message.text}</div>}
             {message.task && <div className="mt-2 rounded-xl border border-white/10 bg-white/10 p-2 text-xs">Task: {message.task}</div>}
-            {message.fileUrl && (
-              <a className={`mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs no-underline transition hover:bg-white/15 ${sent ? "text-emerald-50" : "text-emerald-200"}`} href={message.fileUrl} target="_blank" rel="noreferrer">
-                <LinkIcon className="h-3 w-3" />
-                {message.fileName || "Open shared file"}
-              </a>
-            )}
+            <MessageAttachment attachment={message} sent={sent} />
           </>
         )}
         {reactions.length > 0 && (
@@ -2033,10 +2071,17 @@ function CounsellorChatBubble({
             <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={onReply}>
               <Reply className="h-3.5 w-3.5" />
             </Button>
-            {["Like", "Care", "Thanks"].map((emoji) => (
-              <Button key={emoji} size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs text-slate-100 hover:bg-white/10" onClick={() => onReact(emoji)}>
-                <SmilePlus className="mr-1 h-3.5 w-3.5" />
-                {emoji}
+            {chatReactionOptions.map((reaction) => (
+              <Button
+                key={reaction.emoji}
+                size="sm"
+                variant="ghost"
+                className="h-7 rounded-full px-2 text-base leading-none text-slate-100 hover:bg-white/10"
+                aria-label={`React with ${reaction.label}`}
+                title={reaction.label}
+                onClick={() => onReact(reaction.emoji)}
+              >
+                {reaction.emoji}
               </Button>
             ))}
             {message.canEdit && (

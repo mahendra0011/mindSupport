@@ -193,10 +193,11 @@ const messageSchema = new mongoose.Schema(
     to: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     appointment: { type: mongoose.Schema.Types.ObjectId, ref: "Appointment" },
     subject: { type: String, default: "Message" },
-    text: { type: String, required: true },
+    text: { type: String, default: "" },
     replyTo: { type: mongoose.Schema.Types.ObjectId, ref: "Message" },
     fileName: { type: String, default: "" },
     fileUrl: { type: String, default: "" },
+    fileType: { type: String, default: "" },
     task: { type: String, default: "" },
     reactions: [
       {

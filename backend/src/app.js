@@ -70,7 +70,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "10mb" }));
 
 const activeStatuses = ["pending", "confirmed"];
 const approvedCounsellorStatuses = ["active", "approved"];
@@ -368,6 +368,7 @@ function normalizeMessage(message, viewer) {
     task: raw.task || "",
     fileName: raw.fileName || "",
     fileUrl: raw.fileUrl || "",
+    fileType: raw.fileType || "",
     replyTo: replyTo && !replyTo.deletedAt
       ? {
           id: String(replyTo._id || replyTo.id),

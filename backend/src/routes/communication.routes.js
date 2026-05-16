@@ -54,6 +54,38 @@ export function registerCommunicationRoutes(app, context) {
     todayYMD,
   } = context;
 
+const maxAttachmentDataUrlLength = 7500000;
+
+function normalizeMessageAttachment(body = {}) {
+  const rawUrl = String(body.fileUrl || "").trim();
+  const rawName = String(body.fileName || "").trim().slice(0, 120);
+  const rawType = String(body.fileType || "").trim().slice(0, 80);
+
+  if (!rawUrl) return { fileName: "", fileUrl: "", fileType: "" };
+
+  if (rawUrl.startsWith("data:")) {
+    if (rawUrl.length > maxAttachmentDataUrlLength) {
+      throw new Error("Attachment must be 5 MB or smaller");
+    }
+    const match = rawUrl.match(/^data:([^;,]+);base64,/i);
+    const mime = match?.[1]?.toLowerCase() || "";
+    if (!(mime === "application/pdf" || mime.startsWith("image/"))) {
+      throw new Error("Only image files and PDFs can be attached");
+    }
+    return {
+      fileName: rawName || (mime === "application/pdf" ? "attachment.pdf" : "image attachment"),
+      fileUrl: rawUrl,
+      fileType: mime,
+    };
+  }
+
+  return {
+    fileName: rawName || "Shared file",
+    fileUrl: rawUrl.slice(0, 500),
+    fileType: rawType,
+  };
+}
+
 app.get(
   "/api/messages",
   asyncRoute(authRequired),
@@ -129,8 +161,15 @@ app.post(
       return;
     }
     const text = String(req.body?.text || "").trim();
-    if (!text) {
-      res.status(400).json({ error: "Message text is required" });
+    let attachment;
+    try {
+      attachment = normalizeMessageAttachment(req.body);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+    if (!text && !attachment.fileUrl) {
+      res.status(400).json({ error: "Message text or attachment is required" });
       return;
     }
     let appointment = null;
@@ -171,8 +210,9 @@ app.post(
       replyTo: replyTo?._id,
       subject: String(req.body?.subject || "Message").trim().slice(0, 100) || "Message",
       text: text.slice(0, 2000),
-      fileName: String(req.body?.fileName || "").trim().slice(0, 120),
-      fileUrl: String(req.body?.fileUrl || "").trim().slice(0, 500),
+      fileName: attachment.fileName,
+      fileUrl: attachment.fileUrl,
+      fileType: attachment.fileType,
       task: String(req.body?.task || "").trim().slice(0, 500),
       readBy: [req.user._id],
     });
