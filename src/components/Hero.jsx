@@ -79,14 +79,14 @@ const Hero = () => {
             </div>
             
             {/* Floating Elements */}
-            <div className="premium-hover-card !absolute right-6 top-6 z-20 w-max max-w-[calc(100%-3rem)] whitespace-nowrap glass-card p-4 animate-float-delayed lg:-right-4 lg:-top-4">
+            <div className="premium-hover-card !absolute -top-6 right-6 z-20 inline-flex w-max max-w-[calc(100%-3rem)] whitespace-nowrap glass-card p-4 animate-float-delayed sm:right-10 lg:-top-8 lg:right-2">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
                 <span className="text-sm text-foreground/80">Online Support</span>
               </div>
             </div>
             
-            <div className="premium-hover-card !absolute bottom-6 left-6 z-20 w-max max-w-[calc(100%-3rem)] whitespace-nowrap glass-card p-4 animate-float lg:-bottom-4 lg:-left-4">
+            <div className="premium-hover-card !absolute -bottom-6 left-6 z-20 inline-flex w-max max-w-[calc(100%-3rem)] whitespace-nowrap glass-card p-4 animate-float sm:left-10 lg:-bottom-7 lg:-left-5">
               <div className="flex items-center space-x-2">
                 <Shield className="h-4 w-4 text-primary"/>
                 <span className="text-sm text-foreground/80">100% Confidential</span>
